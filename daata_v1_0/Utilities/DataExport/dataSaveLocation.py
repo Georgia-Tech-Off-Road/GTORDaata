@@ -1,7 +1,7 @@
 from PyQt5 import QtWidgets, QtGui, uic, QtCore
 import os
 import json
-from Utilities.DataExport.GTORNetwork import get_GTORNetworkDrive, generate_data_save_location
+from Utilities.DataExport.GTORNetwork import get_GTORNetworkDrive#, generate_data_save_location
 
 ''' "saveLocationDialog" configFile settings
 
@@ -44,7 +44,7 @@ class popup_dataSaveLocation(QtWidgets.QDialog, uiFile):
 
         self.lineEdit_filenameND.setText("")
         self.lineEdit_filenameND.setValidator(validator)
-        self.lineEdit_folderND.setText(generate_data_save_location())
+        #self.lineEdit_folderND.setText(generate_data_save_location())
         self.lineEdit_folderND.setValidator(validator)
 
 
