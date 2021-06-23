@@ -1,6 +1,7 @@
 pip install --upgrade pip
 pip install PyQt5
 pip install pyqtgraph
+pip install pywin32
 pip install pyserial
 pip install scipy
 pip install datetime

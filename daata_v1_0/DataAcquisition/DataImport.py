@@ -8,6 +8,7 @@ import random
 import math
 
 from DataAcquisition.Data import Data
+from DataAcquisition.SensorId import SensorId
 
 logger = logging.getLogger("DataAcquisition")
 
@@ -19,17 +20,21 @@ class DataImport:
         self.is_data_collecting = is_data_collecting
         self.start_time = datetime.now()
         
-        # Manual teensy port selection for now #
-        self.teensy_port = "COM3"
-        # self.teensy_port = self.get_Teensy_port()
-        self.teensy_ser = serial.Serial(port=self.teensy_port, timeout=2)
-        self.teensy_found = False
+        # Manually change the COM port below to the correct
+        # port that the teensy appears on your device manager
+        try:
+            self.teensy_port = self.get_Teensy_port()
+            self.teensy_ser = serial.Serial('COM3')
+            self.teensy_found = True
+        except Exception as e:
+            logger.error(e)
 
-        self.num_bytes_received = 0
+        # self.num_bytes_received
 
         self.end_code = [0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xf0]
         self.current_sensors = {}
         self.current_packet = []
+        self.packet_index = 0
         self.expected_size = 0
 
         self.settings_received = False
@@ -48,19 +53,8 @@ class DataImport:
         for sensor in data.get_sensors(is_external=True, is_derived=False):
             self.temp_data[sensor] = {'value': None, 'has_been_updated': False, 'is_used': False}
 
-        self.update()
-
-    def get_teensy_port(self):
-        # Teensy USB serial microcontroller program id data:
-        vendor_id = "16C0"
-        product_id = "0483"
-        serial_number = "12345"
-
-        for port in list(list_ports.comports()):
-            if port[2] == "USB VID:PID=%s:%s SNR=%s"%(vendor_id, product_id, serial_number):
-                return port[0]
-
-    # def is_connected(self):
+    def check_connected(self):
+        return self.teensy_ser.is_open
 
     def update(self):
         """
@@ -68,8 +62,10 @@ class DataImport:
             self.check_connected_fake()
         """
         # TODO implement actual serial reading
+        
         if self.teensy_found:
-            if self.teensy_ser.is_open():
+            # self.teensy_ser.open()
+            if self.teensy_ser.is_open:
                 self.read_packet()
                 self.send_packet()
             else:
@@ -81,95 +77,161 @@ class DataImport:
                 self.teensy_found = True
             else:
                 print("No compatible Teensy found.")
-                self.update()
+    
+    def get_Teensy_port(self):
+        # Teensy USB serial microcontroller program id data:
+        vendor_id = "16C0"
+        product_id = "0483"
+        serial_number = "12345"
 
-    def find_beginning(self):
-        packet_check = list()
-        while packet_check != self.end_code:
-            for i in range(8):
-                packet_check.append(self.teensy_ser.read(1))
+        for port in list(list_ports.comports()):
+            if port[2] == "USB VID:PID=%s:%s SNR=%s"%(vendor_id, product_id, serial_number):
+                return port[0]
+       
+    # def is_connected(self):
+
+    def read_serial(self):
+        #print(self.teensy_ser.in_waiting)
+        time.sleep(.1)
+        self.current_packet.clear()
+        self.current_packet = list(self.teensy_ser.read(self.teensy_ser.in_waiting))
+        #self.current_packet = list(self.teensy_ser.read(expected='\xff\xff\xff\xff\xff\xff\xff\xf0'))
+        #print(self.current_packet)
+        """while self.teensy_ser.is_open and (self.teensy_ser.in_waiting > 0):
+            self.current_packet.append(self.teensy_ser.read(expected=b'\xff\xff\xff\xff\xff\xff\xff\xf0'))
+            #print(self.current_packet)"""
+
+    def find_encode(self):
+        #print("finding endcode")
+        if self.expected_size != 0:
+            #print("bad")
+            if (len(self.current_packet) - self.packet_index) < (self.expected_size + 8):
+                #print("packet ran out")
+                self.read_serial()
+                self.packet_index = 0
+        tempIndex = self.packet_index
+        tempBytes = self.current_packet[(tempIndex) : (tempIndex + 8)]
+        while tempBytes != self.end_code:
+            tempIndex += 1
+            tempBytes = self.current_packet[(tempIndex) : (tempIndex + 8)]
+        tempIndex += 8
+        #print(tempIndex)
+        return tempIndex
 
     def read_packet(self):
+        """
         if self.use_fake_inputs:
             self.read_data_fake()
-        
+        """
         # TODO implement actual serial reading
         
-        self.find_beginning()
+        # self.read_serial()
+        # self.find_encode()
 
-        for byte in range(self.teensy_ser.in_waiting):
-            self.current_packet.append(self.teensy_ser.read(1))
-        
-        if len(self.current_packet) >= 8:
-            is_end = 0
-            packet_size = len(self.current_packet)
-            for i in range(packet_size):
-                if i < 8 and is_end == 0:
-                    if self.current_packet[packet_size - 8 + i] != self.end_code[i]:
-                        is_end = 1
-                else:
-                    break
-            if is_end == 1:
-                self.unpacketize()
-                self.current_packet.clear()
-        else:
-            print("recursion!")
-            self.read_packet()
+        self.read_serial()
+        self.packet_index = self.find_encode()
+        self.unpacketize()
 
     def send_packet(self):
         self.teensy_ser.write(self.packetize())
 
     def packetize(self):
-        if self.sending_data == False:
+        ack_0 = b'\x00\xff\xff\xff\xff\xff\xff\xff\xf0'
+        ack_1 = b'\x01\xff\xff\xff\xff\xff\xff\xff\xf0'
+        ack_2 = b'\x02\xff\xff\xff\xff\xff\xff\xff\xf0'
+        ack_3 = b'\x03\xff\xff\xff\xff\xff\xff\xff\xf0'
+        
+        if self.settings_received == False:
             # if 0x00, then parse settings and send settings
             # if 0x02, then parse data but send settings
-            return (0x00 << 64 | 0xfffffffffffffff0)
+            return ack_0
 
         else:
             # if 0x01, then parse settings and send data
             # if 0x03, then parse data and send data
-            return (0x01 << 64 | 0xfffffffffffffff0)
+            return ack_3
 
     def unpacketize(self):
-        ack_code = self.current_packet[0]
-        if ack_code > 0x03:
-            return
-        is_settings = not(ack_code and 0x02)
-        while self.teensy_ser.is_open:
-            if self.settings_received == False:
-                """ if ack_code == 0x00 or ack_code == 0x01: """
-                # if 0x00, then parse settings and send settings
-                # if 0x01, then parse settings and send data
-                self.sending_data = (ack_code == 0x01)
-                self.settings_received = True
-                self.current_sensors.clear()
-                packet_size = len(self.current_packet)
-                print("Received settings of length: ", str(packet_size))
+        ack_code = self.current_packet[self.packet_index]
+        self.sending_data = ((ack_code & 0x01) == 0x01)
+        self.packet_index += 1
+        
+        if ack_code > 0x03 or ack_code < 0x00:
+            self.packet_index = self.find_encode()
+            ack_code = self.current_packet[self.packet_index]
+            self.sending_data = ((ack_code & 0x01) == 0x01)
+            self.packet_index += 1
+
+        #while (len(self.current_packet) - self.packet_index) > (self.expected_size + 8):
+        if (ack_code == 0x00 or ack_code == 0x01) and self.settings_received == False:
+            # if 0x00, then parse settings and send settings
+            # if 0x01, then parse settings and send data
+            
+            self.settings_received = True
+            # packet_size = len(self.current_packet)
+            
+            if not(self.current_sensors == None):
+                for key in self.current_sensors.keys():
+                    self.data.set_disconnected(key)
+            
+            self.current_sensors.clear()
+            self.expected_size = 0
+            self.data.set_connected(101)
+            #print(self.current_packet)
+            
+            tempBytes = self.current_packet[(self.packet_index) : (self.packet_index + 8)]
+            while not(tempBytes == self.end_code):
+                this_sensor_id = (((self.current_packet[self.packet_index + 1]) << 8) 
+                    | (self.current_packet[self.packet_index]))
+                print(this_sensor_id)
+                this_sensor_size = self.current_packet[self.packet_index + 2]
+                print(this_sensor_size)
+                self.current_sensors[this_sensor_id] = this_sensor_size
+                self.data.set_connected(this_sensor_id)
+                self.expected_size += this_sensor_size
+                self.packet_index += 3
+                tempBytes = self.current_packet[(self.packet_index) : (self.packet_index + 8)]
+            
+            print("Received settings of length:", str(self.expected_size))
+            self.packet_index += 8
+        
+        elif (ack_code == 0x02 or ack_code == 0x03) and self.settings_received:
+            # if 0x02, then parse data but send settings
+            # if 0x03, then parse data and send data
+            #print("attempting data")
+            if (self.find_encode() - self.packet_index - 8) == self.expected_size:
+                for key in self.current_sensors:
+                    this_data_value = 0
+                    if isinstance(SensorId[key]["num_bytes"], list):
+                        valueList = []
+                        running_size = 0
+                        for values in range(len(SensorId[key]["num_bytes"])):
+                            entry_size = SensorId[key]["num_bytes"][values]
+                            for valueSize in range(entry_size):
+                                this_data_value = (this_data_value |
+                                    ((self.current_packet[self.packet_index + entry_size - valueSize + (running_size)])
+                                    << ((entry_size - valueSize - 1) * 8)))
+                            valueList.append(this_data_value)
+                            running_size += entry_size
+                        print(valueList)
+                        self.data.add_value(key, valueList)
+                        self.packet_index += self.current_sensors[key]
+                    else:
+                        for size in range(self.current_sensors[key]):
+                            this_data_value = (this_data_value |
+                                ((self.current_packet[self.packet_index + self.current_sensors[key] - size])
+                                << ((self.current_sensors[key] - size - 1) * 8)))
+                        print(this_data_value)
+                        self.data.add_value(key, this_data_value)
+                        self.packet_index += self.current_sensors[key]
                 
-                i = 0
-                while i < packet_size - 8:
-                    this_sensor_size = self.current_packet[i + 2]
-                    this_sensor_id = ((self.current_packet[i + 1]) << 8) | self.current_packet[i]
-                    self.current_sensors[this_sensor_id, this_sensor_size]
-                    self.data.set_connected(this_sensor_id)
-                    self.expected_size += this_sensor_size
-                    i += 3
-                
+                time = (datetime.now() - self.start_time).total_seconds()
+                self.data.add_value(101, time)
+                #print("Received some data")
             else:
-                # if 0x02, then parse data but send settings
-                # if 0x03, then parse data and send data
-                self.sending_data = (ack_code == 0x03)
-                if len(self.current_packet) == self.expected_size:
-                    i = 0
-                    for key in self.current_sensors:
-                        for size in range(0, self.current_sensors[key]):
-                            this_data_value = ((this_data_value |
-                                (self.current_packet[i + self.current_sensors[key] - size])) <<
-                                    ((self.current_sensors[key] - size - 1) * 8))
-                        self.data.add_value(this_data_value, key)
-                        i += self.current_sensors[key]
-                else:
-                    self.settings_received = False
+                self.settings_received = False
+        else:
+            self.find_encode()
 
     # def attach_output_sensor(self):
 

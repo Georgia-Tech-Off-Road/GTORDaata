@@ -32,7 +32,7 @@ enum sensor_id_t : uint16_t
 """
 file_end = """
 
-    MAX_SENSOR_NUM = 65536
+    MAX_SENSOR_NUM = 65535
 };
 
 #endif
@@ -75,7 +75,7 @@ for sensor_id in SensorId.keys():
         longest_name = len(SensorId[sensor_id]["name"])
 
 # Add everything to file
-with open("SensorId_TEST.h", "w") as file:
+with open("SensorId.h", "w") as file:
     file.write(file_beginning)
 
     # Write all the default sensors

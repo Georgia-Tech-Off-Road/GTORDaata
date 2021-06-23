@@ -20,11 +20,13 @@ class Homepage(DAATALayout, uiFile):
         self.create_connectionStatusCheckboxes()
         # self.export_data()
 
-        self.updateFreq =  2    # how often the gridPlotLayout checks for new sensors (Hz)
+        self.updateFreq =  1    # how often the gridPlotLayout checks for new sensors (Hz)
 
 
     ## imported methods
     from Utilities.CustomWidgets.indicatorWidget import QIndicator
+    from Utilities.DataExport import GTORNetwork
+
 
     def export_data(self):
         dir_ = QtGui.QFileDialog.getExistingDirectory(None, 'Select GTOR Network Drive', os.path.expanduser('~'), QtGui.QFileDialog.ShowDirsOnly)       #select a folder in the C drive
@@ -75,11 +77,21 @@ class Homepage(DAATALayout, uiFile):
                                             QtWidgets.QSizePolicy.Expanding)
         self.verticalLayout_connectionStatus.addItem(spacerItem1)
 
+    def update_connectionStatus(self):
+        # check if GTOR network drive is connected
+        network_drive = self.GTORNetwork.get_GTORNetworkDrive()
+        if network_drive:
+            self.ind_connectionStatus.setText("Network Drive Connected" + " (" + network_drive + ")")
+            self.ind_connectionStatus.setCheckState(True)
+        else:
+            self.ind_connectionStatus.setText("Network Drive Disconnected")
+            self.ind_connectionStatus.setCheckState(False)
+
 
 
     def update(self):
         self.update_sensorStatus()
-        logger.debug('updating ' + self.objectName() + "...")
+        self.update_connectionStatus()
 
 
     ##################################

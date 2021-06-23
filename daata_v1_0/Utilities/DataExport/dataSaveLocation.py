@@ -1,5 +1,6 @@
 from PyQt5 import QtWidgets, QtGui, uic, QtCore
 import os
+import json
 from Utilities.DataExport.GTORNetwork import get_GTORNetworkDrive, generate_data_save_location
 
 ''' "saveLocationDialog" configFile settings
@@ -31,15 +32,27 @@ class popup_dataSaveLocation(QtWidgets.QDialog, uiFile):
         self.checkBox_networkDrive.setChecked(self.configFile.value("checkBox_ND") == 'true')
         self.checkBox_SDCard.setChecked(self.configFile.value("checkBox_SD") == 'true')
 
+        # prevent typing invalid characters for filename and foldername
+        regex = QtCore.QRegExp("[a-z-A-Z_0-9]+")
+        validator = QtGui.QRegExpValidator(regex)
 
         self.lineEdit_filenameLocal.setText("")
+        self.lineEdit_filenameLocal.setValidator(validator)
         self.lineEdit_folderLocal.setText(self.configFile.value("default_localDirectory"))
+        self.lineEdit_folderLocal.setValidator(validator)
+
 
         self.lineEdit_filenameND.setText("")
+        self.lineEdit_filenameND.setValidator(validator)
         self.lineEdit_folderND.setText(generate_data_save_location())
+        self.lineEdit_folderND.setValidator(validator)
+
 
         self.lineEdit_filenameSD.setText("")
+        self.lineEdit_filenameSD.setValidator(validator)
         self.lineEdit_folderSD.setText(self.configFile.value("default_SDFolder"))
+        self.lineEdit_folderSD.setValidator(validator)
+
 
     def toggle_frames(self):
         if self.checkBox_local.isChecked():
@@ -75,6 +88,7 @@ class popup_dataSaveLocation(QtWidgets.QDialog, uiFile):
         if self.checkBox_networkDrive.isChecked():
             nd_filename = self.lineEdit_filenameND.text()
             nd_folder = self.lineEdit_folderND.text()
+
 
 
             self.saveCSV(nd_filename,nd_folder)

@@ -1,10 +1,38 @@
 import os
 from win32 import win32api     # installed with "pip3.6 install pywin32"
+# import win32api
 
 from func_timeout import func_timeout, FunctionTimedOut
+# from Utilities.DataExport.exportCSV import saveCSV
 import datetime
 import logging
 logger = logging.getLogger("GTORNetwork")
+
+
+
+def save_to_network_drive(filename, category = ""):
+    now = datetime.datetime.today()
+    date = now.strftime("%Y-%m-%d")
+    time = now.strftime("%H-%M-%S")
+    list = [
+        filename,
+        category,
+        date,
+        time
+    ]
+
+    standardized_filename = ""
+    for element in list:
+        standardized_filename += element+"_"
+    standardized_filename = standardized_filename[:-1]
+
+    folder_name = date + "_" + category
+    # save_path = os.path.join(get_GTORNetworkDrive(), "DAATA Archive", folder_name)
+    save_path = os.path.join("G://", "DAATA Archive", folder_name)
+
+    return standardized_filename
+
+
 
 def get_GTORNetworkDrive():
     try:
@@ -12,6 +40,7 @@ def get_GTORNetworkDrive():
         return return_value
     except FunctionTimedOut:
         logger.error('DriveConnectionError: GTOR Network Drive may exist but is not connected, try connecting to GaTech VPN or opening GTOR Network Drive')
+        return
 
 
 def _get_GTORNetworkDrive():
@@ -34,26 +63,8 @@ def _get_GTORNetworkDrive():
     logger.error("DriveConnectionError: Network drive cannot be found")
     return
 
-def generate_data_save_location():
-    return os.path.join(get_GTORNetworkDrive(), "DAATA Archive")
 
-def generate_standardized_filename(filename,category = ""):
-    now = datetime.datetime.today()
-    date = now.strftime("%Y-%m-%d")
-    list = [
-        date,
-        filename,
-        category
-    ]
-
-    standardized_filename = ""
-
-    for element in list:
-        standardized_filename += element+"_"
-
-
-    return standardized_filename[:-1]
 
 if __name__ == "__main__":
-    print(generate_standardized_filename("hello","tests"))
+    print(save_to_network_drive("filename","category1"))
     pass
