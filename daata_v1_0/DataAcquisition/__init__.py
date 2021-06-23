@@ -20,7 +20,7 @@ def collect_data():
     data_import = DataImport(data, data_collection_lock, use_fake_inputs, is_data_collecting)
     logger.debug("Running collect_data")
     while True:
-        data_import.check_connected()
+        # data_import.check_connected()
         time.sleep(.1)
         if is_data_collecting.is_set():
             data.reset()

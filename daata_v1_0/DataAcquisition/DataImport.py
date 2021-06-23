@@ -19,11 +19,13 @@ class DataImport:
         self.is_data_collecting = is_data_collecting
         self.start_time = datetime.now()
         
-        self.teensy_port = self.get_Teensy_port()
-        self.teensy_ser = serial.Serial(port=Teensy_port)
+        # Manual teensy port selection for now #
+        self.teensy_port = "COM3"
+        # self.teensy_port = self.get_Teensy_port()
+        self.teensy_ser = serial.Serial(port=self.teensy_port, timeout=2)
         self.teensy_found = False
 
-        self.num_bytes_received
+        self.num_bytes_received = 0
 
         self.end_code = [0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xf0]
         self.current_sensors = {}
@@ -48,9 +50,23 @@ class DataImport:
 
         self.update()
 
+    def get_teensy_port(self):
+        # Teensy USB serial microcontroller program id data:
+        vendor_id = "16C0"
+        product_id = "0483"
+        serial_number = "12345"
+
+        for port in list(list_ports.comports()):
+            if port[2] == "USB VID:PID=%s:%s SNR=%s"%(vendor_id, product_id, serial_number):
+                return port[0]
+
+    # def is_connected(self):
+
     def update(self):
+        """
         if self.use_fake_inputs:
             self.check_connected_fake()
+        """
         # TODO implement actual serial reading
         if self.teensy_found:
             if self.teensy_ser.is_open():
@@ -66,39 +82,39 @@ class DataImport:
             else:
                 print("No compatible Teensy found.")
                 self.update()
-    
-    def get_Teensy_port(self):
-        # Teensy USB serial microcontroller program id data:
-        vendor_id = "16C0"
-        product_id = "0483"
-        serial_number = "12345"
 
-        for port in list(list_ports.comports()):
-            if port[2] == "USB VID:PID=%s:%s SNR=%s"%(vendor_id, product_id, serial_number):
-                return port[0]
-       
-    # def is_connected(self):
-        
+    def find_beginning(self):
+        packet_check = list()
+        while packet_check != self.end_code:
+            for i in range(8):
+                packet_check.append(self.teensy_ser.read(1))
+
     def read_packet(self):
         if self.use_fake_inputs:
             self.read_data_fake()
         
         # TODO implement actual serial reading
-        while self.teensy_ser.is_open:
+        
+        self.find_beginning()
+
+        for byte in range(self.teensy_ser.in_waiting):
             self.current_packet.append(self.teensy_ser.read(1))
         
         if len(self.current_packet) >= 8:
-            is_end = 1
+            is_end = 0
             packet_size = len(self.current_packet)
-            for i in packet_size:
-                if i < 8 and is_end == 1:
+            for i in range(packet_size):
+                if i < 8 and is_end == 0:
                     if self.current_packet[packet_size - 8 + i] != self.end_code[i]:
-                        not_end = 0
+                        is_end = 1
                 else:
                     break
             if is_end == 1:
                 self.unpacketize()
                 self.current_packet.clear()
+        else:
+            print("recursion!")
+            self.read_packet()
 
     def send_packet(self):
         self.teensy_ser.write(self.packetize())
