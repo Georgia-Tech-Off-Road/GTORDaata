@@ -311,3 +311,4 @@ fabric.properties
 
 # *.iml
 # modules.xml
+.vscode/settings.json
