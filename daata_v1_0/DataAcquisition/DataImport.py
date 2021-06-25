@@ -1,4 +1,5 @@
 import sys
+from typing_extensions import final
 import serial
 from serial.tools import list_ports
 import time
@@ -21,10 +22,10 @@ class DataImport:
         self.start_time = datetime.now()
         
         # Manually change the COM port below to the correct
-        # port that the teensy appears on your device manager
+        # port that the teensy appears on your device manager for now
         try:
-            self.teensy_port = self.get_Teensy_port()
-            self.teensy_ser = serial.Serial('COM3')
+            self.teensy_port = 'COM3'
+            self.teensy_ser = serial.Serial(port=self.teensy_port, timeout=2)
             self.teensy_found = True
         except Exception as e:
             logger.error(e)
@@ -34,6 +35,7 @@ class DataImport:
         self.end_code = [0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xf0]
         self.current_sensors = {}
         self.current_packet = []
+        self.ack_code = 0
         self.packet_index = 0
         self.expected_size = 0
 
@@ -63,23 +65,24 @@ class DataImport:
         """
         # TODO implement actual serial reading
         
-        if self.teensy_found:
-            # self.teensy_ser.open()
-            if self.teensy_ser.is_open:
+        try:
+            assert self.teensy_found
+            logger.debug("Teensy found on port %s"%self.teensy_ser.port)
+            try:
+                assert self.teensy_ser.is_open
                 self.read_packet()
                 self.send_packet()
-            else:
-                self.teensy_ser.open()
-                self.update() 
-        else:
-            if self.teensy_port:
-                print("Teensy found on port %s"%self.teensy_port)
-                self.teensy_found = True
-            else:
-                print("No compatible Teensy found.")
+            except AssertionError:
+                logger.debug("Serial port is not open, opening now")
+                try:
+                    self.teensy_ser.open()
+                except Exception as e:
+                    logger.error(e)
+        except AssertionError:
+            logger.debug("No compatible Teensy found")
     
     def get_Teensy_port(self):
-        # Teensy USB serial microcontroller program id data:
+        # Teensy USB serial microcontroller program id data to fill out:
         vendor_id = "16C0"
         product_id = "0483"
         serial_number = "12345"
@@ -92,9 +95,14 @@ class DataImport:
 
     def read_serial(self):
         #print(self.teensy_ser.in_waiting)
-        time.sleep(.1)
-        self.current_packet.clear()
-        self.current_packet = list(self.teensy_ser.read(self.teensy_ser.in_waiting))
+        #time.sleep(.1)
+
+        try:   
+            self.current_packet.clear()
+            self.current_packet = list(self.teensy_ser.read(self.teensy_ser.in_waiting))
+        except Exception as e:
+            logger.error(e)
+        
         #self.current_packet = list(self.teensy_ser.read(expected='\xff\xff\xff\xff\xff\xff\xff\xf0'))
         #print(self.current_packet)
         """while self.teensy_ser.is_open and (self.teensy_ser.in_waiting > 0):
@@ -103,20 +111,27 @@ class DataImport:
 
     def find_encode(self):
         #print("finding endcode")
-        if self.expected_size != 0:
-            #print("bad")
-            if (len(self.current_packet) - self.packet_index) < (self.expected_size + 8):
-                #print("packet ran out")
+        try:
+            assert self.expected_size != 0
+        except AssertionError:
+            logger.debug("Packet size is known, making sure it can be read")
+            try:
+                assert (len(self.current_packet) - self.packet_index) < (self.expected_size + 8)
+            except AssertionError:
+                logger.debug("Read bytes were not enough for a whole packet, reading again")
                 self.read_serial()
                 self.packet_index = 0
-        tempIndex = self.packet_index
-        tempBytes = self.current_packet[(tempIndex) : (tempIndex + 8)]
-        while tempBytes != self.end_code:
-            tempIndex += 1
+        finally:
+            tempIndex = self.packet_index
             tempBytes = self.current_packet[(tempIndex) : (tempIndex + 8)]
-        tempIndex += 8
-        #print(tempIndex)
-        return tempIndex
+            while tempBytes != self.end_code:
+                tempIndex += 1
+                tempBytes = self.current_packet[(tempIndex) : (tempIndex + 8)]
+            tempIndex += 8
+            #print(tempIndex)
+            return tempIndex
+
+
 
     def read_packet(self):
         """
@@ -128,12 +143,19 @@ class DataImport:
         # self.read_serial()
         # self.find_encode()
 
-        self.read_serial()
-        self.packet_index = self.find_encode()
-        self.unpacketize()
+        try:
+            self.read_serial()
+            self.packet_index = self.find_encode()
+            self.unpacketize()
+        except Exception as e:
+            logger.error(e)
+
 
     def send_packet(self):
-        self.teensy_ser.write(self.packetize())
+        try:
+            self.teensy_ser.write(self.packetize())
+        except Exception as e:
+            logger.error(e)
 
     def packetize(self):
         ack_0 = b'\x00\xff\xff\xff\xff\xff\xff\xff\xf0'
@@ -141,97 +163,107 @@ class DataImport:
         ack_2 = b'\x02\xff\xff\xff\xff\xff\xff\xff\xf0'
         ack_3 = b'\x03\xff\xff\xff\xff\xff\xff\xff\xf0'
         
-        if self.settings_received == False:
+        try:
             # if 0x00, then parse settings and send settings
             # if 0x02, then parse data but send settings
+            assert self.settings_received == False
             return ack_0
 
-        else:
+        except AssertionError:
             # if 0x01, then parse settings and send data
             # if 0x03, then parse data and send data
+            logger.debug("Settings have not been received or are wrong, requesting settings now")
             return ack_3
 
-    def unpacketize(self):
-        ack_code = self.current_packet[self.packet_index]
-        self.sending_data = ((ack_code & 0x01) == 0x01)
-        self.packet_index += 1
-        
-        if ack_code > 0x03 or ack_code < 0x00:
+    def set_ack(self):
+        try:
             self.packet_index = self.find_encode()
-            ack_code = self.current_packet[self.packet_index]
-            self.sending_data = ((ack_code & 0x01) == 0x01)
+            self.ack_code = self.current_packet[self.packet_index]
+            self.sending_data = ((self.ack_code & 0x01) == 0x01)
             self.packet_index += 1
+        except Exception as e:
+            logger.error(e)
 
-        #while (len(self.current_packet) - self.packet_index) > (self.expected_size + 8):
-        if (ack_code == 0x00 or ack_code == 0x01) and self.settings_received == False:
-            # if 0x00, then parse settings and send settings
-            # if 0x01, then parse settings and send data
-            
-            self.settings_received = True
-            # packet_size = len(self.current_packet)
-            
-            if not(self.current_sensors == None):
-                for key in self.current_sensors.keys():
-                    self.data.set_disconnected(key)
-            
-            self.current_sensors.clear()
-            self.expected_size = 0
-            self.data.set_connected(101)
-            #print(self.current_packet)
-            
-            tempBytes = self.current_packet[(self.packet_index) : (self.packet_index + 8)]
-            while not(tempBytes == self.end_code):
-                this_sensor_id = (((self.current_packet[self.packet_index + 1]) << 8) 
-                    | (self.current_packet[self.packet_index]))
-                print(this_sensor_id)
-                this_sensor_size = self.current_packet[self.packet_index + 2]
-                print(this_sensor_size)
-                self.current_sensors[this_sensor_id] = this_sensor_size
-                self.data.set_connected(this_sensor_id)
-                self.expected_size += this_sensor_size
-                self.packet_index += 3
-                tempBytes = self.current_packet[(self.packet_index) : (self.packet_index + 8)]
-            
-            print("Received settings of length:", str(self.expected_size))
-            self.packet_index += 8
-        
-        elif (ack_code == 0x02 or ack_code == 0x03) and self.settings_received:
-            # if 0x02, then parse data but send settings
-            # if 0x03, then parse data and send data
-            #print("attempting data")
-            if (self.find_encode() - self.packet_index - 8) == self.expected_size:
-                for key in self.current_sensors:
-                    this_data_value = 0
-                    if isinstance(SensorId[key]["num_bytes"], list):
-                        valueList = []
-                        running_size = 0
-                        for values in range(len(SensorId[key]["num_bytes"])):
-                            entry_size = SensorId[key]["num_bytes"][values]
-                            for valueSize in range(entry_size):
-                                this_data_value = (this_data_value |
-                                    ((self.current_packet[self.packet_index + entry_size - valueSize + (running_size)])
-                                    << ((entry_size - valueSize - 1) * 8)))
-                            valueList.append(this_data_value)
-                            running_size += entry_size
-                        print(valueList)
-                        self.data.add_value(key, valueList)
-                        self.packet_index += self.current_sensors[key]
-                    else:
-                        for size in range(self.current_sensors[key]):
-                            this_data_value = (this_data_value |
-                                ((self.current_packet[self.packet_index + self.current_sensors[key] - size])
-                                << ((self.current_sensors[key] - size - 1) * 8)))
-                        print(this_data_value)
-                        self.data.add_value(key, this_data_value)
-                        self.packet_index += self.current_sensors[key]
+    def unpacketize(self):
+        try:
+            self.set_ack()
+            assert self.ack_code > 0x03 or self.ack_code < 0x00
+        except AssertionError:
+            logger.debug("Ack code was out of range or parsed incorrectly")
+            self.set_ack()
+        finally:
+            try:
+                # if 0x00, then parse settings and send settings
+                # if 0x01, then parse settings and send data
+                assert (self.ack_code == 0x00 or self.ack_code == 0x01) and self.settings_received == False
+                    
+                self.settings_received = True
+                # packet_size = len(self.current_packet)
                 
-                time = (datetime.now() - self.start_time).total_seconds()
-                self.data.add_value(101, time)
-                #print("Received some data")
-            else:
-                self.settings_received = False
-        else:
-            self.find_encode()
+                if not(self.current_sensors == None):
+                    for key in self.current_sensors.keys():
+                        self.data.set_disconnected(key)
+                
+                self.current_sensors.clear()
+                self.expected_size = 0
+                self.data.set_connected(101)
+                #print(self.current_packet)
+                
+                tempBytes = self.current_packet[(self.packet_index) : (self.packet_index + 8)]
+                while not(tempBytes == self.end_code):
+                    this_sensor_id = (((self.current_packet[self.packet_index + 1]) << 8) 
+                        | (self.current_packet[self.packet_index]))
+                    print(this_sensor_id)
+                    this_sensor_size = self.current_packet[self.packet_index + 2]
+                    print(this_sensor_size)
+                    self.current_sensors[this_sensor_id] = this_sensor_size
+                    self.data.set_connected(this_sensor_id)
+                    self.expected_size += this_sensor_size
+                    self.packet_index += 3
+                    tempBytes = self.current_packet[(self.packet_index) : (self.packet_index + 8)]
+                
+                print("Received settings of length:", str(self.expected_size))
+                self.packet_index += 8
+            except AssertionError:
+                # if 0x02, then parse data but send settings
+                # if 0x03, then parse data and send data
+                assert (self.ack_code == 0x02 or self.ack_code == 0x03) and self.settings_received
+                logger.debug("Settings are received and data is being parsed")
+
+                if (self.find_encode() - self.packet_index - 8) == self.expected_size:
+                    for key in self.current_sensors:
+                        this_data_value = 0
+                        if isinstance(SensorId[key]["num_bytes"], list):
+                            valueList = []
+                            running_size = 0
+                            for values in range(len(SensorId[key]["num_bytes"])):
+                                entry_size = SensorId[key]["num_bytes"][values]
+                                for valueSize in range(entry_size):
+                                    this_data_value = (this_data_value |
+                                        ((self.current_packet[self.packet_index + entry_size - valueSize + (running_size)])
+                                        << ((entry_size - valueSize - 1) * 8)))
+                                valueList.append(this_data_value)
+                                running_size += entry_size
+                            print(valueList)
+                            self.data.add_value(key, valueList)
+                            self.packet_index += self.current_sensors[key]
+                        else:
+                            for size in range(self.current_sensors[key]):
+                                this_data_value = (this_data_value |
+                                    ((self.current_packet[self.packet_index + self.current_sensors[key] - size])
+                                    << ((self.current_sensors[key] - size - 1) * 8)))
+                            print(this_data_value)
+                            self.data.add_value(key, this_data_value)
+                            self.packet_index += self.current_sensors[key]
+                    
+                    time = (datetime.now() - self.start_time).total_seconds()
+                    self.data.add_value(101, time)
+                    #print("Received some data")
+                else:
+                    self.settings_received = False
+            except:
+                logger.debug("Ack code is weird or settings condition is not met, finding endcode")
+                self.find_encode()
 
     # def attach_output_sensor(self):
 
