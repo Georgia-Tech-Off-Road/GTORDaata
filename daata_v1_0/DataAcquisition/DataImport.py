@@ -11,7 +11,7 @@ import math
 from DataAcquisition.Data import Data
 from DataAcquisition.SensorId import SensorId
 
-logger = logging.getLogger("DataAcquisition")
+logger = logging.getLogger("DataImport")
 
 class DataImport:
     def __init__(self, data, lock, is_data_collecting, use_fake_inputs):
@@ -23,6 +23,7 @@ class DataImport:
         
         # Manually change the COM port below to the correct
         # port that the teensy appears on your device manager for now
+        self.teensy_found = False
         try:
             self.teensy_port = 'COM3'
             self.teensy_ser = serial.Serial(port=self.teensy_port, timeout=2)

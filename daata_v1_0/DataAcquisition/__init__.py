@@ -25,6 +25,7 @@ def collect_data():
     while True:
         # if is_data_collecting.is_set():
         data_import.update()
+        time.sleep(.0001)
         # updateCntr += 1
         # print(updateCntr)
         # print((datetime.now() - startTime).total_seconds())

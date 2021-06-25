@@ -9,7 +9,8 @@ logging_objects = {
     "Plotting": INFO,
     "GTORNetwork": DEBUG,
     "Homepage": INFO,
-    "DataCollection": DEBUG
+    "DataCollection": DEBUG,
+    "DataImport": INFO
 }
 
 
