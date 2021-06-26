@@ -55,7 +55,7 @@ class DataCollection(DAATALayout, uiFile):
 
         self.connect_slotsAndSignals()
         self.configFile = QSettings('DAATA', 'data_collection')
-        #self.configFile.clear()
+        self.configFile.clear()
         self.load_settings()
 
 

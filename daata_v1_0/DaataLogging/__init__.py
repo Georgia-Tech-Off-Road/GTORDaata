@@ -7,10 +7,10 @@ logging_objects = {
     "DataAcquisition": INFO,
     "MainWindow": DEBUG,
     "Plotting": INFO,
-    "GTORNetwork": DEBUG,
+    "GTORNetwork": INFO,
     "Homepage": INFO,
     "DataCollection": DEBUG,
-    "DataImport": INFO
+    "DataImport": DEBUG
 }
 
 
