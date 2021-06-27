@@ -45,32 +45,34 @@ class DataImport:
         self.prev_bl_lds_val = 0
         self.prev_fr_lds_val = 0
 
-        self.temp_data = {}
-        for sensor in data.get_sensors(is_external=True, is_derived=False):
-            self.temp_data[sensor] = {'value': None, 'has_been_updated': False, 'is_used': False}
 
     def check_connected(self):
-        return self.teensy_ser.is_open
+        if self.teensy_ser.is_open:
+            self.data.is_connected = True
+            return True
+        else:
+            self.data.is_connected = False
+            return False
 
     def update(self):
-        """
         if self.use_fake_inputs:
             self.check_connected_fake()
-        """
-        try:
-            assert self.teensy_found
+            self.read_data_fake()
+        else:
             try:
-                assert self.teensy_ser.is_open
-                self.read_packet()
-                self.send_packet()
-            except AssertionError:
-                logger.info("Serial port is not open, opening now")
+                assert self.teensy_found
                 try:
-                    self.teensy_ser.open()
-                except Exception as e:
-                    logger.error(e)
-        except AssertionError:
-            logger.debug("No compatible Teensy found")
+                    assert self.check_connected()
+                    self.read_packet()
+                    self.send_packet()
+                except AssertionError:
+                    logger.info("Serial port is not open, opening now")
+                    try:
+                        self.teensy_ser.open()
+                    except Exception as e:
+                        logger.error(e)
+            except AssertionError:
+                logger.debug("No compatible Teensy found")
 
     def connect_serial(self):
         # # Teensy USB serial microcontroller program id data to fill out:
@@ -144,33 +146,34 @@ class DataImport:
             # if 0x02, then parse data but send settings
             # if 0x03, then parse data and send data
             if self.ack_code == 0x02 or self.ack_code == 0x03:
-                logger.debug("Received data and will now parse")
-                try:
-                    assert len(self.current_packet) == self.expected_size
-                    for sensor_id in self.current_sensors:
-                        if isinstance(SensorId[sensor_id]["num_bytes"], list):
-                            data_value = []
-                            for sensor in range(len(SensorId[sensor_id]["num_bytes"])):
-                                individual_data_value = b''
-                                for i in range(SensorId[sensor_id]["num_bytes"][sensor]):
-                                    individual_data_value += self.current_packet[0]
+                with self.lock:
+                    logger.debug("Received data and will now parse")
+                    try:
+                        assert len(self.current_packet) == self.expected_size
+                        for sensor_id in self.current_sensors:
+                            if isinstance(SensorId[sensor_id]["num_bytes"], list):
+                                data_value = []
+                                for sensor in range(len(SensorId[sensor_id]["num_bytes"])):
+                                    individual_data_value = b''
+                                    for i in range(SensorId[sensor_id]["num_bytes"][sensor]):
+                                        individual_data_value += self.current_packet[0]
+                                        self.current_packet.pop(0)
+                                    data_value.append(int.from_bytes(individual_data_value, "little"))
+                            else:
+                                data_value = b''
+                                for i in range(SensorId[sensor_id]["num_bytes"]):
+                                    data_value += self.current_packet[0]
                                     self.current_packet.pop(0)
-                                data_value.append(int.from_bytes(individual_data_value, "little"))
-                        else:
-                            data_value = b''
-                            for i in range(SensorId[sensor_id]["num_bytes"]):
-                                data_value += self.current_packet[0]
-                                self.current_packet.pop(0)
-                            data_value = int.from_bytes(data_value, "little")
+                                data_value = int.from_bytes(data_value, "little")
 
-                        print(data_value)
-                        self.data.add_value(sensor_id, data_value)
+                            print(data_value)
+                            self.data.add_value(sensor_id, data_value)
 
-                    time = (datetime.now() - self.start_time).total_seconds()
-                    self.data.add_value(101, time)
-                except AssertionError:
-                    logger.warning("Packet size is different than expected")
-                    self.is_receiving_data = False
+                        time = (datetime.now() - self.start_time).total_seconds()
+                        self.data.add_value(101, time)
+                    except AssertionError:
+                        logger.warning("Packet size is different than expected")
+                        self.is_receiving_data = False
 
             # if 0x00, then parse settings and send settings
             # if 0x01, then parse settings and send data
@@ -211,22 +214,19 @@ class DataImport:
     # def attach_output_sensor(self):
 
     def check_connected_fake(self):
-        self.data.set_connected("time")
-        self.start_time = datetime.now()
-        if (datetime.now() - self.time_begin).total_seconds() > 0:
-            self.data.is_connected = True
-            self.data.set_connected("engine_rpm")
-            self.data.set_connected("secondary_rpm")
-            self.data.set_connected("fl_lds")
-            self.data.set_connected("br_lds")
-            self.data.set_connected("fr_lds")
-            self.data.set_connected("bl_lds")
-
-        if (datetime.now() - self.time_begin).total_seconds() > 6:
-            self.data.set_disconnected("fl_lds")
-            self.data.set_disconnected("br_lds")
-            self.data.set_disconnected("fr_lds")
-            self.data.set_disconnected("bl_lds")
+        if self.is_data_collecting and not self.data.is_connected:
+            self.data.set_connected(101)  # Time ID
+            self.start_time = datetime.now()
+            if (datetime.now() - self.time_begin).total_seconds() > 0:
+                self.data.is_connected = True
+                self.data.set_connected(90)
+                self.data.set_connected(91)
+                self.data.set_connected(92)
+                self.data.set_connected(93)
+                self.data.set_connected(94)
+                self.data.set_connected(95)
+        elif not self.is_data_collecting:
+            self.data.is_connected = False
 
     def read_data_fake(self):
         with self.lock:
@@ -236,34 +236,34 @@ class DataImport:
                 if (datetime.now() - self.prev_time).total_seconds() * 1000 > 5:
                     time = (datetime.now() - self.start_time).total_seconds()
 
-                    self.data.add_value("time", time)
+                    self.data.add_value(101, time)
 
                     self.prev_engine_val = max(1800, min(4000, self.prev_engine_val + 0.5 * math.sin(
                         time * 10) + random.randrange(-2, 2)))
-                    self.data.add_value('engine_rpm', self.prev_engine_val)
+                    self.data.add_value(90, self.prev_engine_val)
 
                     # temp_t = time%8-4
                     temp_t = time % 6 - 4
                     self.prev_secondary_rpm_val = abs(2 * temp_t * math.exp(temp_t)
                                                       - math.exp(1.65 * temp_t))
-                    self.data.add_value('secondary_rpm', self.prev_secondary_rpm_val)
+                    self.data.add_value(91, self.prev_secondary_rpm_val)
 
                     self.prev_lds_val = 100 + 100 * math.sin(time / 20)
-                    self.data.add_value('fl_lds', self.prev_lds_val)
+                    self.data.add_value(92, self.prev_lds_val)
 
                     self.prev_br_lds_val = max(1800, min(4000, self.prev_engine_val + 0.5 * math.sin(
                         time * 10) + random.randrange(-2, 2)))
-                    self.data.add_value('br_lds', self.prev_br_lds_val)
+                    self.data.add_value(93, self.prev_br_lds_val)
 
                     self.prev_bl_lds_val = 100 + 100 * math.sin(time * 2) \
                                            + 100 * math.sin(time * 3.2) \
                                            + 100 * math.sin(time * 5.5) \
                                            + 100 * math.sin(time * 11.4)
-                    self.data.add_value('bl_lds', self.prev_bl_lds_val)
+                    self.data.add_value(94, self.prev_bl_lds_val)
 
                     self.prev_fr_lds_val = math.e ** (3 * math.sin(5 * time)) * abs(math.cos(5 * time)) + \
                                            50 * math.cos(time) \
                                            + 25 * math.cos(1 / 4 * time - math.pi / 6) \
                                            + 20 * math.cos(1 / 25 * time - math.pi / 3) \
                                            + 100 + random.randrange(-2, 2)
-                    self.data.add_value('fr_lds', self.prev_fr_lds_val)
+                    self.data.add_value(95, self.prev_fr_lds_val)

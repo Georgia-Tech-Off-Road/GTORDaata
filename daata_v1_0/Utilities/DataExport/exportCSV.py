@@ -15,13 +15,12 @@ def saveCSV(self, filename, directory):
 
 
     csvfile = open(os.path.join(directory, filename), 'w')
-    writer = csv.writer(csvfile, dialect='excel', lineterminator = '\n')
+    writer = csv.writer(csvfile, dialect='excel', lineterminator='\n')
 
 
 
     # connected_sensors = data.get_sensors(is_connected=True)
-    sensorsList = ["time"]
-    sensorsList = sensorsList + data.get_sensors(is_plottable=True, is_connected=True,is_derived=False)
+    sensorsList = data.get_sensors(is_connected=True, is_derived=False)
 
     lastIndex = data.get_most_recent_index()
     print(sensorsList)

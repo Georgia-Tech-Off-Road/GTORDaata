@@ -13,29 +13,24 @@ data_collection_lock = threading.Lock()  # Creates a lock for data synchronizati
 data = Data(data_collection_lock)
 
 # Set this to true if you want to test the code without having hardware connected
-use_fake_inputs = False
+use_fake_inputs = True
 
 
 def collect_data():
     from MainWindow import is_data_collecting
     data_import = DataImport(data, data_collection_lock, is_data_collecting, use_fake_inputs)
     logger.info("Running collect_data")
-    updateCntr = 0
-    startTime = datetime.now()
     while True:
-        # if is_data_collecting.is_set():
-        data_import.update()
-        time.sleep(.0001)
-        # updateCntr += 1
-        # print(updateCntr)
-        # print((datetime.now() - startTime).total_seconds())
-        # data_import.check_connected()
-        """
+        data_was_collecting = False
         time.sleep(.1)
+
         if is_data_collecting.is_set():
             data.reset()
-            logger.debug("Collecting data")
+            data_was_collecting = True
+            logger.debug("Starting data collection")
             while is_data_collecting.is_set():
                 data_import.update()
                 time.sleep(.0001)
-        """
+
+        if data_was_collecting:
+            logger.info("Stopping data collection")

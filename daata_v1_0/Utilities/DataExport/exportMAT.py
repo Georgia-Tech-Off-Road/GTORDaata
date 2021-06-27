@@ -15,8 +15,7 @@ def saveMAT(self, filename, directory):
     dataDict['collected_data'] = dict()
 
     # connected_sensors = data.get_sensors(is_connected=True)
-    sensorsList = ["time"]
-    sensorsList = sensorsList + data.get_sensors(is_plottable=True, is_connected=True,is_derived=False)
+    sensorsList = data.get_sensors(is_connected=True, is_derived=False)
     lastIndex = data.get_most_recent_index()
 
     for sensor in sensorsList:
