@@ -2,16 +2,18 @@ from abc import ABCMeta, abstractmethod
 import logging
 import math
 
-
 logger = logging.getLogger("DataAcquisition")
 
 
 class Sensor(metaclass=ABCMeta):
     def __init__(self, **kwargs):
+        from DataAcquisition import is_data_collecting
+        self.is_data_collecting = is_data_collecting
         self.values = list()
         self.name = kwargs.get('name')
         self.object = kwargs.get('object')
         self.most_recent_index = 0
+        self.current_value = None
         self.display_name = kwargs.get('display_name')
         self.unit = kwargs.get('unit')
         self.unit_short = kwargs.get('unit_short')
@@ -23,8 +25,10 @@ class Sensor(metaclass=ABCMeta):
 
     def add_value(self, value):
         try:
-            self.values.append(value)
-            self.most_recent_index = len(self.values) - 1
+            self.current_value = value
+            if self.is_data_collecting.is_set():
+                self.values.append(value)
+                self.most_recent_index = len(self.values) - 1
         except Exception as e:
             logger.error(e)
 

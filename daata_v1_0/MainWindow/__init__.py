@@ -17,7 +17,7 @@ from MainWindow._tabHandler import closeTab
 import DataAcquisition
 
 
-is_data_collecting = threading.Event()  # Creates an event to know if the data collection has started
+from DataAcquisition import is_data_collecting
 data_collection_thread = threading.Thread(target=DataAcquisition.collect_data)  # Creates thread for collecting data
 logger = logging.getLogger("MainWindow")
 

@@ -111,6 +111,14 @@ class Data:
                 logger.error("The sensor {} does not exist, check your spelling".format(sensor_name))
                 return None
 
+    def get_current_value(self, sensor_name):
+        with self.lock:
+            try:
+                return self.__data[sensor_name].current_value
+            except Exception as e:
+                logger.error(e)
+                return None
+
     def get_sensors(self, is_external=None, is_plottable=None, is_derived=None, is_connected=None):
         """
         Versatile function to get a list of sensors with specific attributes

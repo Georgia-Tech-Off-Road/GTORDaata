@@ -8,6 +8,7 @@ from DataAcquisition.DataImport import DataImport
 logger = logging.getLogger("DataAcquisition")
 
 data_collection_lock = threading.Lock()  # Creates a lock for data synchronization
+is_data_collecting = threading.Event()  # Creates an event to know if the data collection has started
 
 # This is the main variable that can be accessed from other areas of the code. Use 'DataAcquisition.data'
 data = Data(data_collection_lock)
@@ -17,20 +18,18 @@ use_fake_inputs = True
 
 
 def collect_data():
-    from MainWindow import is_data_collecting
     data_import = DataImport(data, data_collection_lock, is_data_collecting, use_fake_inputs)
     logger.info("Running collect_data")
+    data_was_collecting = False
     while True:
-        data_was_collecting = False
-        time.sleep(.1)
+        data_import.update()
+        time.sleep(.0001)
 
-        if is_data_collecting.is_set():
+        if is_data_collecting.is_set() and not data_was_collecting:
+            logger.info("Starting data collection")
             data.reset()
             data_was_collecting = True
-            logger.debug("Starting data collection")
-            while is_data_collecting.is_set():
-                data_import.update()
-                time.sleep(.0001)
 
-        if data_was_collecting:
+        if not is_data_collecting.is_set() and data_was_collecting:
             logger.info("Stopping data collection")
+            data_was_collecting = False
