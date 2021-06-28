@@ -158,12 +158,14 @@ class DataImport:
                                     for i in range(SensorId[sensor_id]["num_bytes"][sensor]):
                                         individual_data_value += self.current_packet[0]
                                         self.current_packet.pop(0)
+                                    # Branch if the value is a float by checking SensorID
                                     data_value.append(int.from_bytes(individual_data_value, "little"))
                             else:
                                 data_value = b''
                                 for i in range(SensorId[sensor_id]["num_bytes"]):
                                     data_value += self.current_packet[0]
                                     self.current_packet.pop(0)
+                                # Branch if the value is a float by checking SensorID
                                 data_value = int.from_bytes(data_value, "little")
 
                             print(data_value)
