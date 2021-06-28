@@ -8,6 +8,7 @@ import logging
 from datetime import datetime
 import random
 import math
+import struct
 
 from DataAcquisition.Data import Data
 from DataAcquisition.SensorId import SensorId
@@ -159,14 +160,22 @@ class DataImport:
                                         individual_data_value += self.current_packet[0]
                                         self.current_packet.pop(0)
                                     # Branch if the value is a float by checking SensorID
-                                    data_value.append(int.from_bytes(individual_data_value, "little"))
+                                    # If floats are not intelligible, remove the ">" sign before the "f"
+                                    if SensorId[sensor_id]["is_float"][sensor] == True:
+                                        data_value.append(struct.unpack('>f', individual_data_value)[0])
+                                    else:
+                                        data_value.append(int.from_bytes(individual_data_value, "little"))
                             else:
                                 data_value = b''
                                 for i in range(SensorId[sensor_id]["num_bytes"]):
                                     data_value += self.current_packet[0]
                                     self.current_packet.pop(0)
                                 # Branch if the value is a float by checking SensorID
-                                data_value = int.from_bytes(data_value, "little")
+                                # If floats are not intelligible, remove the ">" sign before the "f"
+                                if SensorId[sensor_id]["is_float"] == True:
+                                    data_value = struct.unpack('>f', data_value)[0]                              
+                                else:
+                                    data_value = int.from_bytes(data_value, "little")
 
                             print(data_value)
                             self.data.add_value(sensor_id, data_value)
