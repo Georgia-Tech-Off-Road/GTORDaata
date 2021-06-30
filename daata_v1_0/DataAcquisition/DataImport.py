@@ -236,6 +236,10 @@ class DataImport:
                 self.data.set_connected(93)
                 self.data.set_connected(94)
                 self.data.set_connected(95)
+                self.data.set_connected(96)
+                self.data.set_connected(97)
+                self.data.set_connected(98)
+                self.data.set_connected(99)
         elif not self.is_data_collecting:
             self.data.is_connected = False
 
