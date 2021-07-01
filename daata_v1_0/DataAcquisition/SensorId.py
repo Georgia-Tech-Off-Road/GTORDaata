@@ -40,67 +40,80 @@ SensorId = {
     0: {
         "name": "default_no_sensor",
         "object": "Generic",
-        "num_bytes": 0
+        "num_bytes": 0,
+        "is_float": False
     },
     1: {
         "name": "flag_datacollecting",
         "object": "Flag",
-        "num_bytes": 1
+        "num_bytes": 1,
+        "is_float": False
     },
     2: {
         "name": "command_sdcardfilenamestring",
         "object": "Command",
-        "num_bytes": 12
+        "num_bytes": 12,
+        "is_float": False
     },
     90: {
         "name": "test_sensor_0",
         "object": "Generic",
-        "num_bytes": 4
+        "num_bytes": 4,
+        "is_float": False
     },
     91: {
         "name": "test_sensor_1",
         "object": "Generic",
-        "num_bytes": 4
+        "num_bytes": 4,
+        "is_float": False
     },
     92: {
         "name": "test_sensor_2",
         "object": "Generic",
-        "num_bytes": 4
+        "num_bytes": 4,
+        "is_float": False
     },
     93: {
         "name": "test_sensor_3",
         "object": "Generic",
-        "num_bytes": 4
+        "num_bytes": 4,
+        "is_float": False
     },
     94: {
         "name": "test_sensor_4",
         "object": "Generic",
-        "num_bytes": 4
+        "num_bytes": 4,
+        "is_float": False
     },
     95: {
         "name": "test_sensor_5",
         "object": "Generic",
-        "num_bytes": 4
+        "num_bytes": 4,
+        "is_float": False
     },
     96: {
         "name": "test_sensor_6",
         "object": "Generic",
-        "num_bytes": 4
+        "num_bytes": 4,
+        "is_float": False
     },
     97: {
         "name": "test_sensor_7",
         "object": "Generic",
-        "num_bytes": 4
+        "num_bytes": 4,
+        "is_float": False
     },
     98: {
         "name": "test_sensor_8",
         "object": "Generic",
-        "num_bytes": 4
+        "num_bytes": 4,
+        "is_float": False
     },
     99: {
         "name": "test_sensor_9",
         "object": "Generic",
-        "num_bytes": 4
+        "num_bytes": 4,
+        "is_float": False
     },
 
 
@@ -109,7 +122,8 @@ SensorId = {
     100: {
         "name": "time_generic",
         "object": "Time",
-        "num_bytes": 4
+        "num_bytes": 4,
+        "is_float": False
     },
     101: {
         "name": "time_internal_seconds",
@@ -117,6 +131,7 @@ SensorId = {
         "num_bytes": 2,  # not 100% sure on this
         "display_name": "Time",
         "unit": "Seconds",
+        "is_float": False,
         "unit_short": "s"
     },
     102: {
@@ -126,50 +141,59 @@ SensorId = {
         "display_name": "Dashboard Time Since Start",
         "unit": "Miliseconds",
         "unit_short": "ms",
+        "is_float": False,
         "class": "dashboard"
     },
     103: {
         "name": "time_dash_us",
         "object": "Time",
         "num_bytes": 4,
+        "is_float": False,
         "class": "dashboard"
     },
     104: {
         "name": "time_auxdaq_ms",
         "object": "Time",
         "num_bytes": 2,
+        "is_float": False,
         "class": "aux_daq"
     },
     105: {
         "name": "time_auxdaq_us",
         "object": "Time",
         "num_bytes": 4,
+        "is_float": False,
         "class": "aux_daq"
     },
     106: {
         "name": "time_diff_ms",
         "object": "Time",
-        "num_bytes": 2
+        "num_bytes": 2,
+        "is_float": False
     },
     107: {
         "name": "time_diff_us",
         "object": "Time",
-        "num_bytes": 4
+        "num_bytes": 4,
+        "is_float": False
     },
     108: {
         "name": "time_daata_ms",
         "object": "Time",
-        "num_bytes": 2
+        "num_bytes": 2,
+        "is_float": False
     },
     109: {
         "name": "time_daata_us",
         "object": "Time",
-        "num_bytes": 4
+        "num_bytes": 4,
+        "is_float": False
     },
     199: {
         "name": "rtc_unixtime",
         "object": "Time",
-        "num_bytes": 4
+        "num_bytes": 4,
+        "is_float": False
     },
 
 
@@ -180,6 +204,7 @@ SensorId = {
         "object": "Speed",
         "num_bytes": 2,
         "pulses_per_revolution": 1,
+        "is_float": False,
         "display_name": "Speed"
     },
     201: {
@@ -187,6 +212,7 @@ SensorId = {
         "object": "Position",
         "num_bytes": 4,
         "pulses_per_revolution": 1,
+        "is_float": False,
         "display_name": "Position"
     },
     202: {
@@ -197,13 +223,15 @@ SensorId = {
             "name": "speed_generic4",
             "object": "Speed",
             "display_name": "Speed Generic (4ppr Sensor)",
-            "pulses_per_revolution": 4
+            "pulses_per_revolution": 4,
+            "is_float": False
         },
         1: {
             "name": "position_generic4",
             "object": "Position",
             "display_name": "Position Generic (4ppr Sensor)",
-            "pulses_per_revolution": 4
+            "pulses_per_revolution": 4,
+            "is_float": False
         }
     },
     203: {
@@ -214,13 +242,15 @@ SensorId = {
             "name": "speed_generic30",
             "object": "Speed",
             "display_name": "Speed Generic (30ppr Sensor)",
-            "pulses_per_revolution": 4
+            "pulses_per_revolution": 4,
+            "is_float": False
         },
         1: {
             "name": "position_generic30",
             "object": "Position",
             "display_name": "Position Generic (30ppr Sensor)",
-            "pulses_per_revolution": 4
+            "pulses_per_revolution": 4,
+            "is_float": False
         }
     },
     204: {
@@ -231,13 +261,15 @@ SensorId = {
             "name": "speed_generic500",
             "object": "Speed",
             "display_name": "Speed Generic (500ppr Sensor)",
-            "pulses_per_revolution": 500
+            "pulses_per_revolution": 500,
+            "is_float": False
         },
         1: {
             "name": "position_generic500",
             "object": "Position",
             "display_name": "Position Generic (500ppr Sensor)",
-            "pulses_per_revolution": 500
+            "pulses_per_revolution": 500,
+            "is_float": False
         }
     },
     205: {
@@ -248,13 +280,15 @@ SensorId = {
             "name": "position_generic600",
             "object": "Position",
             "display_name": "Position Generic (600ppr Sensor)",
-            "pulses_per_revolution": 600
+            "pulses_per_revolution": 600,
+            "is_float": False
         },
         1: {
             "name": "speed_generic600",
             "object": "Speed",
             "display_name": "Speed Generic (600ppr Sensor)",
-            "pulses_per_revolution": 600
+            "pulses_per_revolution": 600,
+            "is_float": False
         }
     },
     206: {
@@ -266,6 +300,7 @@ SensorId = {
             "object": "Speed",
             "display_name": "Speed Engine (600ppr Sensor)",
             "pulses_per_revolution": 600,
+            "is_float": False,
             "class": "dashboard"
         },
         1: {
@@ -273,6 +308,7 @@ SensorId = {
             "object": "Position",
             "display_name": "Position Engine (600ppr Sensor)",
             "pulses_per_revolution": 600,
+            "is_float": False,
             "class": "dashboard"
         }
     },
@@ -285,6 +321,7 @@ SensorId = {
             "object": "Speed",
             "display_name": "Speed",
             "pulses_per_revolution": 4,
+            "is_float": False,
             "class": "dashboard"
         },
         1: {
@@ -292,6 +329,7 @@ SensorId = {
             "object": "Position",
             "display_name": "Position",
             "pulses_per_revolution": 4,
+            "is_float": False,
             "class": "dashboard"
         }
     },
@@ -304,6 +342,7 @@ SensorId = {
             "object": "Speed",
             "display_name": "Speed",
             "pulses_per_revolution": 30,
+            "is_float": False,
             "class": "dashboard"
         },
         1: {
@@ -311,6 +350,7 @@ SensorId = {
             "object": "Position",
             "display_name": "Position",
             "pulses_per_revolution": 30,
+            "is_float": False,
             "class": "dashboard"
         }
     },
@@ -323,6 +363,7 @@ SensorId = {
         "unit": "Revolutions Per Minutes",
         "unit_short": "RPM",
         "pulses_per_revolution": 600,
+        "is_float": False,
         "class": "dashboard"
     },
     210: {
@@ -334,6 +375,7 @@ SensorId = {
         "unit": "Revolutions Per Minutes",
         "unit_short": "RPM",
         "pulses_per_revolution": 4,
+        "is_float": False,
         "class": "dashboard"
     },
     211: {
@@ -345,6 +387,7 @@ SensorId = {
         "unit": "Revolutions Per Minutes",
         "unit_short": "RPM",
         "pulses_per_revolution": 30,
+        "is_float": False,
         "class": "dashboard"
     },
     212: {
@@ -356,6 +399,7 @@ SensorId = {
         "unit": "Revolutions Per Minutes",
         "unit_short": "RPM",
         "pulses_per_revolution": 600,
+        "is_float": False,
         "class": "engine_dyno"
     },
     213: {
@@ -367,6 +411,7 @@ SensorId = {
         "unit": "Revolutions Per Minutes",
         "unit_short": "RPM",
         "pulses_per_revolution": 30,
+        "is_float": False,
         "class": "engine_dyno"
     },
     
@@ -374,7 +419,8 @@ SensorId = {
     300: {
         "name": "pressure_generic",
         "object": "Pressure",
-        "num_bytes": 2
+        "num_bytes": 2,
+        "is_float": False
     },
     301: {
         "name": "force_generic",
@@ -386,24 +432,28 @@ SensorId = {
         "name": "brake_sensor1",
         "object": "Pressure",
         "num_bytes": 4,
+        "is_float": False,
         "class": "aux_daq"
     },
     303: {
         "name": "brake_sensor2",
         "object": "Pressure",
         "num_bytes": 4,
+        "is_float": False,
         "class": "aux_daq"
     },
     304: {
         "name": "pressure_frontbrake_psi",
         "object": "Pressure",
         "num_bytes": 2,
+        "is_float": False,
         "class": "aux_daq"
     },
     305: {
         "name": "pressure_rearbrake_psi",
         "object": "Pressure",
         "num_bytes": 2,
+        "is_float": False,
         "class": "aux_daq"
     },
     306: {
@@ -421,13 +471,15 @@ SensorId = {
         "name": "lds_generic",
         "object": "LDS",
         "num_bytes": 2,
-        "stroke_length": 1
+        "stroke_length": 1,
+        "is_float": False
     },
     401: {
         "name": "lds_frontleftshock_mm",
         "object": "LDS",
         "num_bytes": 2,
         "stroke_length": 200,
+        "is_float": False,
         "class": "aux_daq"
     },
     402: {
@@ -435,6 +487,7 @@ SensorId = {
         "object": "LDS",
         "num_bytes": 2,
         "stroke_length": 200,
+        "is_float": False,
         "class": "aux_daq"
     },
     403: {
@@ -442,6 +495,7 @@ SensorId = {
         "object": "LDS",
         "num_bytes": 2,
         "stroke_length": 225,
+        "is_float": False,
         "class": "aux_daq"
     },
     404: {
@@ -449,6 +503,7 @@ SensorId = {
         "object": "LDS",
         "num_bytes": 2,
         "stroke_length": 225,
+        "is_float": False,
         "class": "aux_daq"
     },
 
@@ -456,48 +511,55 @@ SensorId = {
     500: {
         "name": "imu_sensor",
         "num_bytes": [4, 4, 4, 4, 4, 4, 4],
-        "is_float": [True, True, True, True, True, True, True],
+        #"is_float": [True, True, True, True, True, True, True],
         "h_file_comment": "Accel X, Y, Z; Gyro X, Y, Z; Temp",
         0: {
             "name": "imu_acceleration_x",
             "object": "Acceleration",
             "display_name": "IMU X Acceleration",
+            "is_float": True,
             "class": "aux_daq"
         },
         1: {
             "name": "imu_acceleration_y",
             "object": "Acceleration",
             "display_name": "IMU Y Acceleration",
+            "is_float": True,
             "class": "aux_daq"
         },
         2: {
             "name": "imu_acceleration_z",
             "object": "Acceleration",
             "display_name": "IMU Z Acceleration",
+            "is_float": True,
             "class": "aux_daq"
         },
         3: {
             "name": "imu_gyro_x",
             "object": "Gyro",
             "display_name": "IMU X Gyro",
+            "is_float": True,
             "class": "aux_daq"
         },
         4: {
             "name": "imu_gyro_y",
             "object": "Gyro",
             "display_name": "IMU Y Gyro",
+            "is_float": True,
             "class": "aux_daq"
         },
         5: {
             "name": "imu_gyro_z",
             "object": "Gyro",
             "display_name": "IMU Z Gyro",
+            "is_float": True,
             "class": "aux_daq"
         },
         6: {
             "name": "imu_temperature",
             "object": "Temperature",
             "display_name": "IMU Temperature",
+            "is_float": True,
             "class": "aux_daq"
         }
     }
