@@ -14,7 +14,7 @@ is_data_collecting = threading.Event()  # Creates an event to know if the data c
 data = Data(data_collection_lock)
 
 # Set this to true if you want to test the code without having hardware connected
-use_fake_inputs = True
+use_fake_inputs = False
 
 
 def collect_data():

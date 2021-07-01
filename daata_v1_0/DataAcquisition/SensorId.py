@@ -456,49 +456,56 @@ SensorId = {
     500: {
         "name": "imu_sensor",
         "num_bytes": [4, 4, 4, 4, 4, 4, 4],
-        "is_float": [True, True, True, True, True, True, True],
+        #"is_float": [True, True, True, True, True, True, True],
         "h_file_comment": "Accel X, Y, Z; Gyro X, Y, Z; Temp",
         0: {
             "name": "imu_acceleration_x",
             "object": "Acceleration",
             "display_name": "IMU X Acceleration",
-            "class": "aux_daq"
+            "class": "aux_daq",
+            "is_float": True
         },
         1: {
             "name": "imu_acceleration_y",
             "object": "Acceleration",
             "display_name": "IMU Y Acceleration",
-            "class": "aux_daq"
+            "class": "aux_daq",
+            "is_float": True
         },
         2: {
             "name": "imu_acceleration_z",
             "object": "Acceleration",
             "display_name": "IMU Z Acceleration",
-            "class": "aux_daq"
+            "class": "aux_daq",
+            "is_float": True
         },
         3: {
             "name": "imu_gyro_x",
             "object": "Gyro",
             "display_name": "IMU X Gyro",
-            "class": "aux_daq"
+            "class": "aux_daq",
+            "is_float": True
         },
         4: {
             "name": "imu_gyro_y",
             "object": "Gyro",
             "display_name": "IMU Y Gyro",
-            "class": "aux_daq"
+            "class": "aux_daq",
+            "is_float": True
         },
         5: {
             "name": "imu_gyro_z",
             "object": "Gyro",
             "display_name": "IMU Z Gyro",
-            "class": "aux_daq"
+            "class": "aux_daq",
+            "is_float": True
         },
         6: {
             "name": "imu_temperature",
             "object": "Temperature",
             "display_name": "IMU Temperature",
-            "class": "aux_daq"
+            "class": "aux_daq",
+            "is_float": True
         }
     }
 }
