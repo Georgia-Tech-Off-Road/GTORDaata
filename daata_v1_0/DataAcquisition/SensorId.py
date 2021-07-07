@@ -115,6 +115,78 @@ SensorId = {
         "num_bytes": 4,
         "is_float": False
     },
+    256: {
+        "name": "test_sensor_10",
+        "object": "Generic",
+        "num_bytes": 4,
+        "is_float": False
+    },
+    257: {
+        "name": "test_sensor_11",
+        "object": "Generic",
+        "num_bytes": 4,
+        "is_float": False
+    },
+    258: {
+        "name": "test_sensor_12",
+        "object": "Generic",
+        "num_bytes": 4,
+        "is_float": False
+    },
+    259: {
+        "name": "test_sensor_13",
+        "object": "Generic",
+        "num_bytes": 4,
+        "is_float": False
+    },
+    260: {
+        "name": "test_sensor_14",
+        "object": "Generic",
+        "num_bytes": 4,
+        "is_float": False
+    },
+    261: {
+        "name": "test_sensor_15",
+        "object": "Generic",
+        "num_bytes": 4,
+        "is_float": False
+    },
+    262: {
+        "name": "test_sensor_16",
+        "object": "Generic",
+        "num_bytes": 4,
+        "is_float": False
+    },
+    263: {
+        "name": "test_sensor_17",
+        "object": "Generic",
+        "num_bytes": 4,
+        "is_float": False
+    },
+    264: {
+        "name": "test_sensor_18",
+        "object": "Generic",
+        "num_bytes": 4,
+        "is_float": False
+    },
+    265: {
+        "name": "test_sensor_19",
+        "object": "Generic",
+        "num_bytes": 4,
+        "is_float": False
+    },
+    266: {
+        "name": "test_sensor_20",
+        "object": "Generic",
+        "num_bytes": 4,
+        "is_float": False
+    },
+    267: {
+        "name": "test_sensor_21",
+        "object": "Generic",
+        "num_bytes": 4,
+        "is_float": False
+    },
 
 
 
