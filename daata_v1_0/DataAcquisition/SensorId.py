@@ -463,28 +463,38 @@ SensorId = {
         "class": "dashboard"
     },
     212: {
-        "name": "speed_dynoengine600_rpm",
-        "object": "Speed",
-        "num_bytes": 2,
-        "h_file_comment": "Speed in RPM (600ppr sensor)",
-        "display_name": "Engine Speed",
-        "unit": "Revolutions Per Minutes",
-        "unit_short": "RPM",
-        "pulses_per_revolution": 600,
-        "is_float": False,
-        "class": "engine_dyno"
+        "name": "SPEED_DYNOENGINE600_RPM",
+        "num_bytes": [4, 2],
+        "h_file_comment": "Speed in RPM and position in ticks (600ppr sensor)",
+        0: {
+            "name": "dyno_position",
+            "object": "Position",
+            "display_name": "Position Dyno (600ppr Sensor)",
+            "pulses_per_revolution": 600
+        },
+        1: {
+            "name": "dyno_speed",
+            "object": "Speed",
+            "display_name": "Speed Dyno (600ppr Sensor)",
+            "pulses_per_revolution": 600
+        }
     },
     213: {
-        "name": "speed_dynosecondary30_rpm",
-        "object": "Speed",
-        "num_bytes": 2,
-        "h_file_comment": "Speed in RPM (30ppr sensor)",
-        "display_name": "Engine Speed",
-        "unit": "Revolutions Per Minutes",
-        "unit_short": "RPM",
-        "pulses_per_revolution": 30,
-        "is_float": False,
-        "class": "engine_dyno"
+        "name": "SPEED_DYNOSECONDARY30_RPM",
+        "num_bytes": [4, 2],
+        "h_file_comment": "Speed in RPM and position in ticks (600ppr sensor)",
+        0: {
+            "name": "dyno_secondary_position",
+            "object": "Position",
+            "display_name": "Position Dyno (30ppr Sensor)",
+            "pulses_per_revolution": 30
+        },
+        1: {
+            "name": "dyno_secondary_speed",
+            "object": "Speed",
+            "display_name": "Speed Dyno (30ppr Sensor)",
+            "pulses_per_revolution": 30
+        }
     },
     
     # 300 - FORCE/PRESSURE SENSORS
@@ -529,7 +539,7 @@ SensorId = {
         "class": "aux_daq"
     },
     306: {
-        "name": "force_dyno_lbs",
+        "name": "FORCE_DYNO_LBS",
         "object": "Force",
         "num_bytes": 4,
         "is_float": True,
