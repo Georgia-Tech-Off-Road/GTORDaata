@@ -8,6 +8,7 @@ import logging
 from datetime import datetime
 import random
 import math
+import struct
 
 from DataAcquisition.Data import Data
 from DataAcquisition.SensorId import SensorId
@@ -44,7 +45,6 @@ class DataImport:
         self.prev_br_lds_val = 0
         self.prev_bl_lds_val = 0
         self.prev_fr_lds_val = 0
-
 
     def check_connected(self):
         if self.teensy_ser.is_open:
@@ -87,7 +87,7 @@ class DataImport:
         # Manually change the COM port below to the correct
         # port that the teensy appears on your device manager for now
         try:
-            self.teensy_port = 'COM12'
+            self.teensy_port = 'COM4'
             self.teensy_ser = serial.Serial(baudrate=115200, port=self.teensy_port, timeout=2,
                                             write_timeout=1)
             time.sleep(2)
@@ -141,6 +141,7 @@ class DataImport:
         try:
             self.ack_code = int.from_bytes(self.current_packet[0],
                                            "little")  # Convert byte string to int for comparison
+            #print(self.current_packet)
             self.current_packet.pop(0)  # Remove the ack code from the packet
 
             # if 0x02, then parse data but send settings
@@ -158,15 +159,29 @@ class DataImport:
                                     for i in range(SensorId[sensor_id]["num_bytes"][sensor]):
                                         individual_data_value += self.current_packet[0]
                                         self.current_packet.pop(0)
-                                    data_value.append(int.from_bytes(individual_data_value, "little"))
+                                    # Branch if the value is a float by checking SensorID
+                                    try:
+                                        if SensorId[sensor_id][sensor]["is_float"]:
+                                            data_value.append(struct.unpack('f', individual_data_value)[0])
+                                        else:
+                                            data_value.append(int.from_bytes(individual_data_value, "little"))
+                                    except KeyError:
+                                        data_value.append(int.from_bytes(individual_data_value, "little"))
                             else:
                                 data_value = b''
                                 for i in range(SensorId[sensor_id]["num_bytes"]):
                                     data_value += self.current_packet[0]
                                     self.current_packet.pop(0)
-                                data_value = int.from_bytes(data_value, "little")
+                                # Branch if the value is a float by checking SensorID
+                                try:
+                                    if SensorId[sensor_id]["is_float"]:
+                                        data_value = struct.unpack('f', data_value)[0]
+                                    else:
+                                        data_value = int.from_bytes(data_value, "little")
+                                except KeyError:
+                                    data_value = int.from_bytes(data_value, "little")
 
-                            print(data_value)
+                            #print(data_value)
                             self.data.add_value(sensor_id, data_value)
 
                         time = (datetime.now() - self.start_time).total_seconds()
@@ -174,6 +189,8 @@ class DataImport:
                     except AssertionError:
                         logger.warning("Packet size is different than expected")
                         self.is_receiving_data = False
+                    except Exception as e:
+                        logger.error(e)
 
             # if 0x00, then parse settings and send settings
             # if 0x01, then parse settings and send data
