@@ -160,13 +160,12 @@ class DataImport:
                                         individual_data_value += self.current_packet[0]
                                         self.current_packet.pop(0)
                                     # Branch if the value is a float by checking SensorID
-                                    # If floats are not intelligible, remove the ">" sign before the "f"
                                     try:
                                         if SensorId[sensor_id][sensor]["is_float"]:
-                                            data_value.append(struct.unpack('>f', individual_data_value)[0])
+                                            data_value.append(struct.unpack('f', individual_data_value)[0])
                                         else:
                                             data_value.append(int.from_bytes(individual_data_value, "little"))
-                                    except IndexError:
+                                    except KeyError:
                                         data_value.append(int.from_bytes(individual_data_value, "little"))
                             else:
                                 data_value = b''
@@ -174,13 +173,12 @@ class DataImport:
                                     data_value += self.current_packet[0]
                                     self.current_packet.pop(0)
                                 # Branch if the value is a float by checking SensorID
-                                # If floats are not intelligible, remove the ">" sign before the "f"
                                 try:
                                     if SensorId[sensor_id]["is_float"]:
-                                        data_value = struct.unpack('>f', data_value)[0]
+                                        data_value = struct.unpack('f', data_value)[0]
                                     else:
                                         data_value = int.from_bytes(data_value, "little")
-                                except IndexError:
+                                except KeyError:
                                     data_value = int.from_bytes(data_value, "little")
 
                             #print(data_value)
