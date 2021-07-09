@@ -46,7 +46,6 @@ class DataImport:
         self.prev_bl_lds_val = 0
         self.prev_fr_lds_val = 0
 
-
     def check_connected(self):
         if self.teensy_ser.is_open:
             self.data.is_connected = True
@@ -88,7 +87,7 @@ class DataImport:
         # Manually change the COM port below to the correct
         # port that the teensy appears on your device manager for now
         try:
-            self.teensy_port = 'COM3'
+            self.teensy_port = 'COM4'
             self.teensy_ser = serial.Serial(baudrate=115200, port=self.teensy_port, timeout=2,
                                             write_timeout=1)
             time.sleep(2)
@@ -162,9 +161,12 @@ class DataImport:
                                         self.current_packet.pop(0)
                                     # Branch if the value is a float by checking SensorID
                                     # If floats are not intelligible, remove the ">" sign before the "f"
-                                    if SensorId[sensor_id][sensor]["is_float"] == True:
-                                        data_value.append(struct.unpack('>f', individual_data_value)[0])
-                                    else:
+                                    try:
+                                        if SensorId[sensor_id][sensor]["is_float"]:
+                                            data_value.append(struct.unpack('>f', individual_data_value)[0])
+                                        else:
+                                            data_value.append(int.from_bytes(individual_data_value, "little"))
+                                    except IndexError:
                                         data_value.append(int.from_bytes(individual_data_value, "little"))
                             else:
                                 data_value = b''
@@ -173,9 +175,12 @@ class DataImport:
                                     self.current_packet.pop(0)
                                 # Branch if the value is a float by checking SensorID
                                 # If floats are not intelligible, remove the ">" sign before the "f"
-                                if SensorId[sensor_id]["is_float"] == True:
-                                    data_value = struct.unpack('>f', data_value)[0]                              
-                                else:
+                                try:
+                                    if SensorId[sensor_id]["is_float"]:
+                                        data_value = struct.unpack('>f', data_value)[0]
+                                    else:
+                                        data_value = int.from_bytes(data_value, "little")
+                                except IndexError:
                                     data_value = int.from_bytes(data_value, "little")
 
                             #print(data_value)
@@ -186,6 +191,8 @@ class DataImport:
                     except AssertionError:
                         logger.warning("Packet size is different than expected")
                         self.is_receiving_data = False
+                    except Exception as e:
+                        logger.error(e)
 
             # if 0x00, then parse settings and send settings
             # if 0x01, then parse settings and send data
