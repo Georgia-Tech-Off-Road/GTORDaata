@@ -32,8 +32,10 @@ class Sensor(metaclass=ABCMeta):
         except Exception as e:
             logger.error(e)
 
-    def get_value(self, index):
+    def get_value(self, index=None):
         try:
+            if index is None:
+                return self.current_value
             return self.values[index]
         except IndexError:
             logger.error("Index: {} out of range, use get_most_recent_index to ensure that the index exists".format(index))

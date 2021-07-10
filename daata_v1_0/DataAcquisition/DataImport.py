@@ -27,6 +27,7 @@ class DataImport:
         # Connect to the Teensy
         self.connect_serial()
 
+        # Variables that are used for reading/parsing incoming packets
         self.end_code = [0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xf0]
         self.current_sensors = []
         self.current_packet = []
@@ -34,8 +35,13 @@ class DataImport:
         self.packet_index = 0
         self.expected_size = 0
 
+        # Variables that set the ack for sending packets
         self.is_receiving_data = False
         self.is_sending_data = False
+
+        # Variables that are used for creating/sending packets
+        self.output_sensors = list()
+        self.internal_sensors = list()
 
         # Variables needed for fake data
         self.time_begin = datetime.now()
@@ -55,6 +61,12 @@ class DataImport:
             return False
 
     def update(self):
+        """
+        This is the main function that gets called in the data collection thread that manages the connection
+        to the serial port and will read packets and parse them and send any necessary packets.
+
+        :return: None
+        """
         if self.use_fake_inputs:
             self.check_connected_fake()
             self.read_data_fake()
@@ -98,6 +110,12 @@ class DataImport:
             logger.error(e)
 
     def read_packet(self):
+        """
+        read_packet manages all incoming data on the Serial port and detects when a full packet has been received
+        so that it can be parsed.
+
+        :return: None
+        """
         try:
             while self.teensy_ser.in_waiting != 0:  # if there are bytes waiting in input buffer
                 self.current_packet.append(self.teensy_ser.read(1))  # read in a single byte
@@ -138,6 +156,12 @@ class DataImport:
             return ack_0
 
     def unpacketize(self):
+        """
+        unpacketize is the function that is called when a full packet has been received. This function will parse
+        the packet and will either store the received settings or data based on what type of packet was received.
+
+        :return: None
+        """
         try:
             self.ack_code = int.from_bytes(self.current_packet[0],
                                            "little")  # Convert byte string to int for comparison
@@ -228,7 +252,63 @@ class DataImport:
         except Exception as e:
             logger.error(e)
 
-    # def attach_output_sensor(self):
+    def attach_output_sensor(self, sensor_id):
+        with self.lock:
+            try:
+                assert sensor_id in SensorId.keys()
+                if sensor_id in self.output_sensors:
+                    logger.warning("Attempted attaching output sensor with id {}. This sensor is already attached.".format(sensor_id))
+                elif sensor_id in self.internal_sensors:
+                    logger.warning("Sensor with id {} was attached as an internal sensor. Moved to output sensor.".format(sensor_id))
+                    self.internal_sensors.remove(sensor_id)
+                    self.output_sensors.append(sensor_id)
+                else:
+                    self.output_sensors.append(sensor_id)
+                self.data.set_connected(sensor_id)
+            except AssertionError:
+                logger.error("Attempted attaching ouptput sensor with id {}. This sensor does not exist".format(sensor_id))
+            logger.debug("Successfully attached output sensor with id {}".format(sensor_id))
+
+    def detach_output_sensor(self, sensor_id):
+        with self.lock:
+            try:
+                assert sensor_id in SensorId.keys()
+                self.data.set_disconnected(sensor_id)
+                if sensor_id in self.output_sensors:
+                    self.output_sensors.remove(sensor_id)
+                else:
+                    logger.warning("Attempted detaching output sensor with id {}. This sensor wasn't attached.".format(sensor_id))
+            except AssertionError:
+                logger.error("Attempted detaching output sensor with id {}. This sensor does not exist".format(sensor_id))
+            logger.debug("Successfully detached output sensor with id {}".format(sensor_id))
+
+    def attach_internal_sensor(self, sensor_id):
+        with self.lock:
+            try:
+                assert sensor_id in SensorId.keys()
+                if sensor_id in self.internal_sensors:
+                    logger.warning("Attempted attaching internal sensor with id {}. This sensor is already attached.".format(sensor_id))
+                elif sensor_id in self.output_sensors:
+                    logger.warning("Attempted attaching internal sensor with id {}. Already attached as output sensor.".format(sensor_id))
+                else:
+                    self.output_sensors.append(sensor_id)
+                self.data.set_connected(sensor_id)
+            except AssertionError:
+                logger.error("Attempted attaching sensor with id {}. This sensor does not exist".format(sensor_id))
+            logger.debug("Successfully attached internal sensor with id {}".format(sensor_id))
+
+    def detach_internal_sensor(self, sensor_id):
+        with self.lock:
+            try:
+                assert sensor_id in SensorId.keys()
+                self.data.set_disconnected(sensor_id)
+                if sensor_id in self.internal_sensors:
+                    self.internal_sensors.remove(sensor_id)
+                else:
+                    logger.warning("Attempted detaching internal sensor with id {}. This sensor wasn't attached.".format(sensor_id))
+            except AssertionError:
+                logger.error("Attempted detaching internal sensor with id {}. This sensor does not exist".format(sensor_id))
+            logger.debug("Successfully detached internal sensor with id {}".format(sensor_id))
 
     def check_connected_fake(self):
         if self.is_data_collecting and not self.data.is_connected:
