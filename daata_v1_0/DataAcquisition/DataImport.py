@@ -3,6 +3,8 @@ from typing_extensions import final
 import serial
 from serial.serialutil import EIGHTBITS
 from serial.tools import list_ports
+from serial.serialutil import SerialException
+from DataAcquisition.ComPortUtil import ListPortsDialog
 import time
 import logging
 from datetime import datetime
@@ -99,6 +101,9 @@ class DataImport:
         # Manually change the COM port below to the correct
         # port that the teensy appears on your device manager for now
         try:
+            #form = ListPortsDialog()
+            #form.show()
+            #self.teensy_port = form.chosen_port
             self.teensy_port = 'COM4'
             self.teensy_ser = serial.Serial(baudrate=115200, port=self.teensy_port, timeout=2,
                                             write_timeout=1)
