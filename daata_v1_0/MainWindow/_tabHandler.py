@@ -1,14 +1,13 @@
 ## This file handles all top-level tabs in DAATA
 
 from PyQt5 import QtWidgets
-from functools import partial
 
 
 ## Creates tab widget for apps
 def resetTabs_tabWidget(self):
     for index in range(self.tabWidget.count()):
         self.tabWidget.removeTab(0)
-    self.create_layoutTab('Data Collection')  # sets default tab that pops up in Layouts
+    self.create_sceneTab('Data Collection')  # sets default tab that pops up in Scenes
     self.tabWidget_central.setCurrentIndex(
         self.tabWidget_central.indexOf(self.tab_homepage))  ## temporary measure to default to homepage on startup
     self.tabWidget.setStyleSheet("""
@@ -20,20 +19,20 @@ def resetTabs_tabWidget(self):
 
 
 tabInstances = 0    # a counter for the number of tabs created in current session
-def create_layoutTab(self, key):
+def create_sceneTab(self, key):
     # from Utilities.Settings import settings_load, settings_save
     global tabInstances
 
 
-    tab = self.dict_layouts[key]['create_layout']()
+    tab = self.dict_scenes[key]['create_scene']()
     tab.setObjectName(key + " (instance " + str(tabInstances) + ")")           # set object names for each tab's widget (allows duplicate widgets to have a functional parent/child relationship)
     self.tabWidget.addTab(tab, key)
     self.tabWidget.setCurrentIndex(self.tabWidget.indexOf(tab))
-    self.tabWidget_central.setCurrentIndex(self.tabWidget_central.indexOf(self.tab_layouts))
+    self.tabWidget_central.setCurrentIndex(self.tabWidget_central.indexOf(self.tab_scenes))
 
     if key == 'Data Collection':
         # tab.slot_graphDimension()
-        tab.create_gridPlotLayout()
+        tab.createGridPlotLayout()
     tabInstances += 1
 
 

@@ -10,12 +10,12 @@ def populate_menu(self):
 
 def create_addLayoutMenu(self):
     ## Make an action to create a tab for each imported widget
-    for key in self.dict_layouts.keys():
-        self.dict_layouts[key]['menu_action'] = QtWidgets.QAction(self)
-        self.dict_layouts[key]['menu_action'].setCheckable(False)
-        self.dict_layouts[key]['menu_action'].setToolTip('Open a new tab for ' + key)
-        self.dict_layouts[key]['menu_action'].setText(key)
-        self.menuAdd_Layout.addAction(self.dict_layouts[key]['menu_action'])
+    for key in self.dict_scenes.keys():
+        self.dict_scenes[key]['menu_action'] = QtWidgets.QAction(self)
+        self.dict_scenes[key]['menu_action'].setCheckable(False)
+        self.dict_scenes[key]['menu_action'].setToolTip('Open a new tab for ' + key)
+        self.dict_scenes[key]['menu_action'].setText(key)
+        self.menuAdd_Layout.addAction(self.dict_scenes[key]['menu_action'])
 
 
 def create_fileMenu(self):
@@ -29,12 +29,12 @@ def create_fileMenu(self):
 
 # class MenuAction:
 #     ## Make an action to create a tab for each imported widget
-#     for key in self.dict_layouts.keys():
-#         self.dict_layouts[key]['menu_action'] = QtWidgets.QAction(self)
-#         self.dict_layouts[key]['menu_action'].setCheckable(False)
-#         self.dict_layouts[key]['menu_action'].setToolTip('Open a new tab for ' + key)
-#         self.dict_layouts[key]['menu_action'].setText(key)
-#         self.menuWidget.addAction(self.dict_layouts[key]['menu_action'])
+#     for data in self.dict_scenes.keys():
+#         self.dict_scenes[data]['menu_action'] = QtWidgets.QAction(self)
+#         self.dict_scenes[data]['menu_action'].setCheckable(False)
+#         self.dict_scenes[data]['menu_action'].setToolTip('Open a new tab for ' + data)
+#         self.dict_scenes[data]['menu_action'].setText(data)
+#         self.menuWidget.addAction(self.dict_scenes[data]['menu_action'])
 #
 #     ## Make an action in the File menu to display current parent and children tree
 #     self.action_parentChildren = QtWidgets.QAction(self)

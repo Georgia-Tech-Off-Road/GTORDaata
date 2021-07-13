@@ -14,7 +14,7 @@ def saveMAT(self, filename, directory):
     dataDict = dict()
     dataDict['collected_data'] = dict()
 
-    # connected_sensors = data.get_sensors(is_connected=True)
+    # connected_sensors = object.get_sensors(is_connected=True)
     sensorsList = data.get_sensors(is_connected=True, is_derived=False)
     lastIndex = data.get_most_recent_index()
 

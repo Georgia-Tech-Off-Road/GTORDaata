@@ -6,10 +6,10 @@ import threading
 import logging
 import os
 
-from Layouts import DAATALayout
-from Layouts.Homepage import Homepage
-from Layouts.DataCollection import DataCollection
-from Layouts.Layout_Test import Widget_Test
+from Scenes import BaseScene
+from Scenes.Homepage import Homepage
+from Scenes.DataCollection import DataCollection
+from Scenes.Scene_Test import Widget_Test
 
 
 from Utilities.Popups.popups import popup_ParentChildrenTree
@@ -18,7 +18,7 @@ import DataAcquisition
 
 
 from DataAcquisition import is_data_collecting
-data_collection_thread = threading.Thread(target=DataAcquisition.collect_data)  # Creates thread for collecting data
+data_collection_thread = threading.Thread(target=DataAcquisition.collect_data)  # Creates thread for collecting object
 logger = logging.getLogger("MainWindow")
 
 
@@ -34,34 +34,40 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         data_collection_thread.start()
 
         self.setupUi(self)
-        self.dict_layouts = {}  # instantiates dictionary that holds objects for widgets
-        self.import_Layouts()
+        self.dict_scenes = {}  # instantiates dictionary that holds objects for widgets
+        self.importScenes()
 
         self.resetTabs_tabWidget()
         self.populate_menu()
 
 
-        self.create_homepage()
+        self.createHomepage()
         #
         # self.settings_debug()
         #
         # self.settings_load()
 
-        self.refreshFreq = 60
-        self.updateLoops = 0
+        self.update_freq = 20    # refresh rate
         self.timer = QtCore.QTimer()
         self.timer.timeout.connect(self.updateAll)
-        self.timer.start(1000 / self.refreshFreq)
-        self.timer.setInterval(1000 / self.refreshFreq)
+        self.timer.setInterval(1000 / self.update_freq)
+        self.timer.start()
+
+        self.update_occasional_interval = 2000 # how often updateOccasional() is run in ms
+        self.timer2 = QtCore.QTimer()
+        self.timer2.timeout.connect(self.updateOccasional)
+        self.timer2.setInterval(self.update_occasional_interval)
+        self.timer2.start()
+
 
         self.connectSignalsSlots()
 
-        self.set_appIcon()
+        self.setAppIcon()
         self.loadStylesheet()
 
 
     # set app icon on taskbar and titlebar
-    def set_appIcon(self):
+    def setAppIcon(self):
         import ctypes
         myappid = 'mycompany.myproduct.subproduct.version'  # arbitrary string
         ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
@@ -89,7 +95,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             background: {bgColor};
             }}
 
-        QMainWindow [objectName^="tab_layouts"] {{
+        QMainWindow [objectName^="tab_scenes"] {{
             background: {bgColor};
             }}
         QMainWindow QTabWidget {{
@@ -152,44 +158,45 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.setStyleSheet(stylesheet)
 
     ## Imported methods
-    from ._tabHandler import resetTabs_tabWidget, create_layoutTab, rename_tab, closeTab
+    from ._tabHandler import resetTabs_tabWidget, create_sceneTab, rename_tab, closeTab
     from ._menubarHandler import populate_menu
     from Utilities.Settings.SettingsDialog import SettingsDialog
 
     def updateAll(self):
-        if self.updateLoops > self.refreshFreq:
-            self.updateLoops = 0
-        self.updateLoops = self.updateLoops + 1
-
         if self.tab_homepage.isVisible():
-            if (self.updateLoops % (self.refreshFreq / self.homepage.updateFreq)) == 0:
-                self.homepage.update()
+            self.homepage.update()
                 # logger.debug("updating " + self.homepage.objectName())
 
-        if self.tab_layouts.isVisible():
-            for tab in self.tabWidget.findChildren(DAATALayout):
+        if self.tab_scenes.isVisible():
+            for tab in self.tabWidget.findChildren(BaseScene):
                 if tab.isVisible():
-                    if (self.updateLoops % (self.refreshFreq/tab.updateFreq)) == 0:
-                        tab.update()
+                    tab.update()
                         # logger.debug("updating " + tab.objectName())
 
+    def updateOccasional(self):
+        if self.tab_homepage.isVisible():
+            self.homepage.updateOccasional()
+        if self.tab_scenes.isVisible():
+            for tab in self.tabWidget.findChildren(BaseScene):
+                if tab.isVisible():
+                    tab.updateOccasional()
 
-    def import_Layouts(self):
-        self.dict_layouts = {
+    def importScenes(self):
+        self.dict_scenes = {
             'Data Collection': {
-                'create_layout': partial(DataCollection, data_collection_thread, is_data_collecting)
+                'create_scene': partial(DataCollection, data_collection_thread, is_data_collecting)
             },
 
-            'Layout Test': {
-                'create_layout': Widget_Test
+            'BaseScene Test': {
+                'create_scene': Widget_Test
             },
 
             'Engine Dyno': {
-                'create_layout': partial(DataCollection, data_collection_thread, is_data_collecting)
+                'create_scene': partial(DataCollection, data_collection_thread, is_data_collecting)
             }
         }
 
-    def create_homepage(self):
+    def createHomepage(self):
         self.homepage = Homepage()
         self.homepage.setObjectName("Homepage")
         self.gridLayout_tab_homepage.addWidget(self.homepage)
@@ -215,8 +222,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
 
     def connectSignalsSlots(self):
-        for key in self.dict_layouts.keys():
-            self.dict_layouts[key]['menu_action'].triggered.connect(partial(self.create_layoutTab, key))
+        for key in self.dict_scenes.keys():
+            self.dict_scenes[key]['menu_action'].triggered.connect(partial(self.create_sceneTab, key))
         self.tabWidget.tabBarDoubleClicked.connect(self.rename_tab)
         self.tabWidget.tabCloseRequested.connect(partial(self.closeTab, self))
         self.action_parentChildrenTree.triggered.connect(partial(popup_ParentChildrenTree, self))

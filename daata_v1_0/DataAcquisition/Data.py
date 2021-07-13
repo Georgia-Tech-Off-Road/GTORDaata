@@ -51,9 +51,9 @@ class Data:
 
     def generate_object(self, sensor_name, object_type, param_dict):
         """
-        Used for generating the data object (only should be used internally)
+        Used for generating the object object (only should be used internally)
 
-        :param sensor_name: The key used for the data object
+        :param sensor_name: The data used for the object object
         :param object_type: The type of object to generate
         :param param_dict: The kwargs used for the object
         """
@@ -129,7 +129,7 @@ class Data:
         :param is_plottable: If the sensor can be plotted against time (True/False, defaults to None)
         :param is_derived: If the value of the 'sensor' is derived from other sensors (True/False, defaults to None)
         :param is_connected: If the sensor is connected (True/False, defaults to None)
-        :return: A list of sensor key names
+        :return: A list of sensor data names
         """
 
         logger.debug("Getting a list of sensors")

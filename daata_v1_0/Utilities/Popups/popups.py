@@ -22,7 +22,7 @@ class popup_ParentChildrenTree(QtWidgets.QDialog, uiFile_parentChildrenTree):
         returnValue = self.exec()
 
 
-# open confirmation dialog when attempting to stop data collection
+# open confirmation dialog when attempting to stop object collection
 uiFile_stopDataConfirmation , _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'dialog_confirmation.ui'))  # loads the .ui file from QT Designer
 class popup_stopDataConfirmation(QDialog, uiFile_stopDataConfirmation):
     def __init__(self):
@@ -30,7 +30,7 @@ class popup_stopDataConfirmation(QDialog, uiFile_stopDataConfirmation):
         self.setupUi(self)
         self.setWindowFlags(QtCore.Qt.WindowCloseButtonHint)     # hide the question mark in title bar
         self.setWindowIcon(QtGui.QIcon('iconWarning.png'))
-        self.setWindowTitle("Stop data collection and save data?")
+        self.setWindowTitle("Stop object collection and save object?")
         self.label.setText("WARNING: Data being collected in current run will be stopped and CANNOT be resumed")
         returnValue = self.exec()
 

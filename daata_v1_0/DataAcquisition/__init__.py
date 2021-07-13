@@ -7,10 +7,10 @@ from DataAcquisition.DataImport import DataImport
 
 logger = logging.getLogger("DataAcquisition")
 
-data_collection_lock = threading.Lock()  # Creates a lock for data synchronization
-is_data_collecting = threading.Event()  # Creates an event to know if the data collection has started
+data_collection_lock = threading.Lock()  # Creates a lock for object synchronization
+is_data_collecting = threading.Event()  # Creates an event to know if the object collection has started
 
-# This is the main variable that can be accessed from other areas of the code. Use 'DataAcquisition.data'
+# This is the main variable that can be accessed from other areas of the code. Use 'DataAcquisition.object'
 data = Data(data_collection_lock)
 
 # Set this to true if you want to test the code without having hardware connected
@@ -26,10 +26,10 @@ def collect_data():
         time.sleep(.0001)
 
         if is_data_collecting.is_set() and not data_was_collecting:
-            logger.info("Starting data collection")
+            logger.info("Starting object collection")
             data.reset()
             data_was_collecting = True
 
         if not is_data_collecting.is_set() and data_was_collecting:
-            logger.info("Stopping data collection")
+            logger.info("Stopping object collection")
             data_was_collecting = False

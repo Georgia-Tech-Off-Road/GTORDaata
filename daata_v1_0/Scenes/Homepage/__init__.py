@@ -1,26 +1,24 @@
 from PyQt5 import QtWidgets, uic, QtCore, QtGui
 import os
 from DataAcquisition import data
-from Layouts import DAATALayout
+from Scenes import BaseScene
 import logging
 
 logger = logging.getLogger("Homepage")
 
 uiFile, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'homepage.ui'))  # loads the .ui file from QT Desginer
 
-class Homepage(DAATALayout, uiFile):
+class Homepage(BaseScene, uiFile):
     def __init__(self):
         super().__init__()
         self.setupUi(self)
         # self.hide()
-        self.dict_sensorStatus = {}
+        self.dict_sensor_status = {}
         self.connected_sensors = data.get_sensors(is_connected=True)
 
-        self.create_sensorStatusCheckboxes()
-        self.create_connectionStatusCheckboxes()
+        self.createSensorStatusCheckboxes()
+        self.createConnectionStatusCheckboxes()
         # self.export_data()
-
-        self.updateFreq =  1    # how often the gridPlotLayout checks for new sensors (Hz)
 
 
     ## imported methods
@@ -28,7 +26,16 @@ class Homepage(DAATALayout, uiFile):
     from Utilities.DataExport import GTORNetwork
 
 
-    def export_data(self):
+    ## functions that are frequently called if the tab is visible
+    def update(self):
+        pass
+
+    ## functions that are occasionally called if the tab is visible
+    def updateOccasional(self):
+        self.updateSensorStatus()
+        self.updateConnectionStatus()
+
+    def exportData(self):
         dir_ = QtGui.QFileDialog.getExistingDirectory(None, 'Select GTOR Network Drive', os.path.expanduser('~'), QtGui.QFileDialog.ShowDirsOnly)       #select a folder in the C drive
         print(dir_)
         # file = QtWidgets.QFileDialog.getSaveFileName(self, 'Save File', "data_collection.mat")        # returns a QUrl object of what User wishes to save file as
@@ -38,12 +45,12 @@ class Homepage(DAATALayout, uiFile):
         # print(file)
         pass
 
-    def create_sensorStatusCheckboxes(self):
+    def createSensorStatusCheckboxes(self):
         all_sensors = data.get_sensors()
         for sensor in all_sensors:
-            self.dict_sensorStatus[sensor] = {}
-            self.dict_sensorStatus[sensor]['indicator'] = self.QIndicator(data.get_display_name(sensor), objectName=sensor)
-            self.verticalLayout_sensorStatus.addWidget(self.dict_sensorStatus[sensor]['indicator'])
+            self.dict_sensor_status[sensor] = {}
+            self.dict_sensor_status[sensor]['indicator'] = self.QIndicator(data.get_display_name(sensor), objectName=sensor)
+            self.verticalLayout_sensorStatus.addWidget(self.dict_sensor_status[sensor]['indicator'])
 
 
 
@@ -52,16 +59,7 @@ class Homepage(DAATALayout, uiFile):
                                             QtWidgets.QSizePolicy.Expanding)
         self.verticalLayout_sensorStatus.addItem(spacerItem1)
 
-
-    def update_sensorStatus(self):
-        connected_sensors = data.get_sensors(is_connected=True)
-        for sensor in self.dict_sensorStatus.keys():
-            if sensor in connected_sensors:
-                self.dict_sensorStatus[sensor]['indicator'].setChecked(True)
-            else:
-                self.dict_sensorStatus[sensor]['indicator'].setChecked(False)
-
-    def create_connectionStatusCheckboxes(self):
+    def createConnectionStatusCheckboxes(self):
         self.ind_RFBox = self.QIndicator("RF Box Disconnected", objectName = "ind_RFBox")
         self.verticalLayout_connectionStatus.addWidget(self.ind_RFBox)
 
@@ -77,7 +75,15 @@ class Homepage(DAATALayout, uiFile):
                                             QtWidgets.QSizePolicy.Expanding)
         self.verticalLayout_connectionStatus.addItem(spacerItem1)
 
-    def update_connectionStatus(self):
+    def updateSensorStatus(self):
+        connected_sensors = data.get_sensors(is_connected=True)
+        for sensor in self.dict_sensor_status.keys():
+            if sensor in connected_sensors:
+                self.dict_sensor_status[sensor]['indicator'].setChecked(True)
+            else:
+                self.dict_sensor_status[sensor]['indicator'].setChecked(False)
+
+    def updateConnectionStatus(self):
         # check if GTOR network drive is connected
         network_drive = self.GTORNetwork.get_GTORNetworkDrive()
         if network_drive:
@@ -86,12 +92,6 @@ class Homepage(DAATALayout, uiFile):
         else:
             self.ind_connectionStatus.setText("Network Drive Disconnected")
             self.ind_connectionStatus.setCheckState(False)
-
-
-
-    def update(self):
-        self.update_sensorStatus()
-        self.update_connectionStatus()
 
 
     ##################################

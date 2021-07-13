@@ -66,7 +66,7 @@
        <enum>QTabWidget::Rounded</enum>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <property name="elideMode">
        <enum>Qt::ElideNone</enum>
@@ -99,7 +99,7 @@
         </property>
        </layout>
       </widget>
-      <widget class="QWidget" name="tab_layouts">
+      <widget class="QWidget" name="tab_scenes">
        <property name="sizePolicy">
         <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
          <horstretch>0</horstretch>
@@ -107,7 +107,7 @@
         </sizepolicy>
        </property>
        <attribute name="title">
-        <string>Layouts</string>
+        <string>Scenes</string>
        </attribute>
        <layout class="QGridLayout" name="gridLayout_tab_layouts" rowstretch="0">
         <property name="sizeConstraint">
@@ -169,7 +169,7 @@
      <x>0</x>
      <y>0</y>
      <width>1239</width>
-     <height>21</height>
+     <height>22</height>
     </rect>
    </property>
    <property name="defaultUp">
@@ -196,7 +196,7 @@
    </widget>
    <widget class="QMenu" name="menuAdd_Layout">
     <property name="title">
-     <string>Add Layout</string>
+     <string>Add Scene</string>
     </property>
    </widget>
    <addaction name="menuFile"/>

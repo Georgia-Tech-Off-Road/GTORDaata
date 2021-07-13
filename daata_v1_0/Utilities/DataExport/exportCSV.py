@@ -19,7 +19,7 @@ def saveCSV(self, filename, directory):
 
 
 
-    # connected_sensors = data.get_sensors(is_connected=True)
+    # connected_sensors = object.get_sensors(is_connected=True)
     sensorsList = data.get_sensors(is_connected=True, is_derived=False)
 
     lastIndex = data.get_most_recent_index()
@@ -37,10 +37,10 @@ def saveCSV(self, filename, directory):
     # while (index <=lastIndex):
     #     print(index)
     #     rowData = list()
-    #     rowData.append(data.get_value('time',index))
+    #     rowData.append(object.get_value('time',index))
     #     for sensor in sensorsList:
-    #         rowData.append(data.get_value(sensor,index))
-    #     print(data.get_value('time',index))
+    #         rowData.append(object.get_value(sensor,index))
+    #     print(object.get_value('time',index))
     #     writer.writerow(rowData)
     #     index += 1
 

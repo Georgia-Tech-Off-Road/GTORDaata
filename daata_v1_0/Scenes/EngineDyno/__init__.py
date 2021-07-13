@@ -8,7 +8,7 @@ from functools import partial
 import DataAcquisition
 from DataAcquisition import data
 from Utilities.CustomWidgets.Plotting import CustomPlotWidget, GridPlotLayout
-from Layouts import DAATALayout
+from Scenes import BaseScene
 import logging
 
 uiFile, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'engine_dyno.ui'))  # loads the .ui file from QT Desginer
@@ -16,7 +16,7 @@ uiFile, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'engine_dyno.
 logger = logging.getLogger("EngineDyno")
 debugCounter = 0
 
-class EngineDyno(DAATALayout, uiFile):
+class EngineDyno(BaseScene, uiFile):
     def __init__(self, thread, is_data_collecting):
         super().__init__()
         self.setupUi(self)
@@ -129,9 +129,9 @@ class EngineDyno(DAATALayout, uiFile):
 
         for key in self.dict_sensors.keys():
             if self.dict_sensors[key]['checkbox'].isChecked():
-                # self.dict_sensors[key]['graph_widget'] = CustomPlotWidget(key, parent=self.scrollAreaWidgetContents,
+                # self.dict_sensors[data]['graph_widget'] = CustomPlotWidget(data, parent=self.scrollAreaWidgetContents,
                 #                                                       graph_width_seconds=10)
-                # self.dict_sensors[key]['graph_widget'].setObjectName(key)
+                # self.dict_sensors[data]['graph_widget'].setObjectName(data)
 
                 if col == maxCols:
                     col = 0
@@ -144,7 +144,7 @@ class EngineDyno(DAATALayout, uiFile):
 
                 col += 1
             else:
-                # self.dict_sensors[key]['graph_widget'].hide()
+                # self.dict_sensors[data]['graph_widget'].hide()
                 pass
 
         # self.gridPlotLayout.moveWidgetDown(self.dict_sensors['bl_lds']['graph_widget'])
@@ -189,12 +189,12 @@ class EngineDyno(DAATALayout, uiFile):
         if self.selectAll_checkbox.isChecked():
             for key in self.currentKeys:
                 self.dict_sensors[key]['checkbox'].setChecked(True)
-                # self.dict_sensors[key]['graph_widget'].show()
+                # self.dict_sensors[data]['graph_widget'].show()
                 # self.activeSensorCount = len(self.dict_sensors)
         else:
             for key in self.currentKeys:
                 self.dict_sensors[key]['checkbox'].setChecked(False)
-                # self.dict_sensors[key]['graph_widget'].hide()
+                # self.dict_sensors[data]['graph_widget'].hide()
             # self.activeSensorCount = 0
         # self.label_activeSensorCount.setText('(' + str(self.activeSensorCount) + '/' + str(len(self.dict_sensors)) + ')')
         self.update_sensorCount()
@@ -231,7 +231,7 @@ class EngineDyno(DAATALayout, uiFile):
     def update(self):
         # update only
         # if the Data Collection tab is the current tab
-        # or if the Layouts tab is the current tab
+        # or if the Scenes tab is the current tab
 
         self.update_sensorCheckboxes()
         if self.is_data_collecting.is_set():

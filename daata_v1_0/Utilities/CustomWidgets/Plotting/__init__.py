@@ -8,6 +8,7 @@ import numpy
 from PyQt5.QtWidgets import QGridLayout
 
 from DataAcquisition import data
+from Utilities.LinkedList import SLinkedList
 
 logger = logging.getLogger("Plotting")
 
@@ -238,6 +239,8 @@ class PlotSettingsDialog(QtWidgets.QDialog, uiSettingsDialog):
         del self
 
 
+
+
 class GridPlotLayout(QGridLayout):
     def __init__(self, parent = None):
         super(GridPlotLayout, self).__init__(parent)
@@ -278,17 +281,17 @@ class GridPlotLayout(QGridLayout):
             pass
 
     def widgetAtPosition(self, row, col):
-        return self.itemAtPosition(row, col).widget()
+        return self.itemAtPosition(row, col)   # subtract one so that rows/cols start at index 1 instead of 0
 
     def rowOf(self, widg):
         index = self.indexOf(widg)
         position = self.getItemPosition(index)
-        return position[0]
+        return position[0] + 1
 
     def colOf(self, widg):
         index = self.indexOf(widg)
         position = self.getItemPosition(index)
-        return position[1]
+        return position[1] + 1
 
     def rowSpanOf(self, widg):
         index = self.indexOf(widg)
