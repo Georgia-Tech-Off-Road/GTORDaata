@@ -42,16 +42,18 @@ class Homepage(DAATALayout, uiFile):
         all_sensors = data.get_sensors()
         for sensor in all_sensors:
             self.dict_sensorStatus[sensor] = {}
-            self.dict_sensorStatus[sensor]['indicator'] = self.QIndicator(data.get_display_name(sensor), objectName=sensor)
-            self.verticalLayout_sensorStatus.addWidget(self.dict_sensorStatus[sensor]['indicator'])
-
-
+            sensor_title = str(data.get_id(sensor)) \
+                            + ": " + data.get_display_name(sensor)
+            self.dict_sensorStatus[sensor]['indicator'] \
+                = self.QIndicator(sensor_title, objectName=sensor)
+            self.verticalLayout_sensorStatus.addWidget(
+                self.dict_sensorStatus[sensor]['indicator'])
 
         # Create a vertical spacer that forces checkboxes to the top
-        spacerItem1 = QtWidgets.QSpacerItem(20, 1000000, QtWidgets.QSizePolicy.Minimum,
+        spacerItem1 = QtWidgets.QSpacerItem(20, 1000000,
+                                            QtWidgets.QSizePolicy.Minimum,
                                             QtWidgets.QSizePolicy.Expanding)
         self.verticalLayout_sensorStatus.addItem(spacerItem1)
-
 
     def update_sensorStatus(self):
         connected_sensors = data.get_sensors(is_connected=True)

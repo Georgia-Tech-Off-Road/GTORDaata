@@ -22,6 +22,7 @@ class Sensor(metaclass=ABCMeta):
         self.is_derived = False
         self.is_connected = False
         self.is_float = kwargs.get('is_float')
+        self.id = kwargs.get('id')
 
     def add_value(self, value):
         try:

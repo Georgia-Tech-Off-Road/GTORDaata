@@ -204,6 +204,14 @@ class Data:
         except KeyError:
             logger.error("The sensor {} does not exist, check your spelling".format(sensor_name))
 
+    def get_id(self, sensor_name):
+        logger.debug("Getting the sensor id for {}".format(sensor_name))
+        try:
+            return self.__data[sensor_name].id
+        except KeyError:
+            logger.error("The sensor {} does not exist, check your spelling"
+                         .format(sensor_name))
+
     def reset(self):
         logger.debug("Resetting all the sensors")
         sensors = self.get_sensors(is_derived=False)
