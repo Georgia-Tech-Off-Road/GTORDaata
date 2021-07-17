@@ -51,7 +51,7 @@ dataSize = {}
 
 endCode = [0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xf0]
 
-while byteIndex < len(dataRecord):
+while byteIndex < len(dataRecord):	
 	if dataRecord[byteIndex] == b'\x02':
 		csvList.clear()
 		keyIndex = 0
@@ -66,7 +66,7 @@ while byteIndex < len(dataRecord):
 					tempBytes += dataRecord[byteIndex]
 					byteIndex += 1
 				WFTValues.append(struct.unpack('f', tempBytes)[0])
-			csvList.append(WFTValues)
+				csvList.append(struct.unpack('f', tempBytes)[0])
 		csvWriter.writerow(csvList)
 	else:
 		byteIndex +=1
