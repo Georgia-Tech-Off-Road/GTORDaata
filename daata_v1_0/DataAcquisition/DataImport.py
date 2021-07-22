@@ -17,6 +17,7 @@ from DataAcquisition.SensorId import SensorId
 
 logger = logging.getLogger("DataImport")
 
+# TODO - We never set self.is_sending_data... this needs to be fixed
 
 class DataImport:
     def __init__(self, data, lock, is_data_collecting, use_fake_inputs):
@@ -40,6 +41,8 @@ class DataImport:
         # Variables that set the ack for sending packets
         self.is_receiving_data = False
         self.is_sending_data = False
+        self.sending_period = 0.2  # in seconds
+        self.last_send_time = datetime.now()
 
         # Variables that are used for creating/sending packets
         self.output_sensors = list()
@@ -78,7 +81,9 @@ class DataImport:
                 try:
                     assert self.check_connected()
                     self.read_packet()
-                    self.send_packet()
+                    if (datetime.now() - self.last_send_time).total_seconds() > self.sending_period:
+                        self.send_packet()
+                        self.last_send_time = datetime.now()
                 except AssertionError:
                     logger.info("Serial port is not open, opening now")
                     try:
@@ -171,6 +176,10 @@ class DataImport:
             self.ack_code = int.from_bytes(self.current_packet[0],
                                            "little")  # Convert byte string to int for comparison
             #print(self.current_packet)
+            print_data = list()
+            for data_val in self.current_packet:
+                print_data.append(hex(int.from_bytes(data_val, "little")))
+            print(print_data)
             self.current_packet.pop(0)  # Remove the ack code from the packet
 
             # if 0x02, then parse data but send settings

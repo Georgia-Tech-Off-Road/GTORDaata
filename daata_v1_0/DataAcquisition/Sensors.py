@@ -115,6 +115,21 @@ class Force(Sensor):
         self.unit = kwargs.get('unit', "Pounds")
         self.unit_short = kwargs.get('unit_short', "lbs")
 
+    def add_value(self, value):
+        try:
+            if self.name is "fx_analog":
+                value = (value - 2.5) * 8990 / 5
+            if self.name is "fy_analog":
+                value = (value - 2.5) * 4500 / 5
+            if self.name is "fz_analog":
+                value = (value - 2.5) * 8990 / 5
+            self.current_value = value
+            if self.is_data_collecting.is_set():
+                self.values.append(value)
+                self.most_recent_index = len(self.values) - 1
+        except Exception as e:
+            logger.error(e)
+
 
 class LDS(Sensor):
     def __init__(self, stroke_length, **kwargs):

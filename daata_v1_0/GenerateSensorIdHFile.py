@@ -4,7 +4,7 @@ from DataAcquisition.SensorId import SensorId
 
 print(os.getcwd())
 if os.getcwd()[-10:] == "daata_v1_0":
-    os.chdir(os.path.join(os.getcwd(), r"..\..\Libraries\Sensor"))
+    os.chdir(os.path.join(os.getcwd(), r"C:\Users\ahell\Downloads"))
 elif os.getcwd()[-6:] == "Sensor":
     pass
 else:

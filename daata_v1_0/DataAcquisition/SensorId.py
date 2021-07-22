@@ -545,7 +545,107 @@ SensorId = {
         "is_float": True,
         "class": "engine_dyno"
     },
-
+    307: {
+        "name": "wheel_force_transducer_analog_1",
+        "num_bytes": [4, 4, 4, 4],
+        "h_file_comment": "FX, FY, FZ, MX",
+        0: {
+            "name": "fx_analog",
+            "object": "Force",
+            "display_name": "Wheel Force X Analog",
+            "is_float": True,
+            "class": "aux_daq"
+        },
+        1: {
+            "name": "fy_analog",
+            "object": "Force",
+            "display_name": "Wheel Force Y Analog",
+            "is_float": True,
+            "class": "aux_daq"
+        },
+        2: {
+            "name": "fz_analog",
+            "object": "Force",
+            "display_name": "Wheel Force Z Analog",
+            "is_float": True,
+            "class": "aux_daq"
+        },
+        3: {
+            "name": "mx_analog",
+            "object": "Gyro",
+            "display_name": "Wheel Gyro X Analog",
+            "is_float": True,
+            "class": "aux_daq"
+        }
+    },
+    308: {
+        "name": "wheel_force_transducer_analog_2",
+        "num_bytes": [4, 4, 4, 4],
+        "h_file_comment": "MY, MZ, Vel, Pos",
+        0: {
+            "name": "my_analog",
+            "object": "Gyro",
+            "display_name": "Wheel Gyro Y Analog",
+            "is_float": True,
+            "class": "aux_daq"
+        },
+        1: {
+            "name": "mz_analog",
+            "object": "Gyro",
+            "display_name": "Wheel Gyro Z Analog",
+            "is_float": True,
+            "class": "aux_daq"
+        },
+        2: {
+            "name": "velocity_analog",
+            "object": "Speed",
+            "pulses_per_revolution": 1,
+            "display_name": "Wheel Velocity Analog",
+            "is_float": True,
+            "class": "aux_daq"
+        },
+        3: {
+            "name": "position_analog",
+            "object": "Position",
+            "pulses_per_revolution": 1,
+            "display_name": "Wheel Position Analog",
+            "is_float": True,
+            "class": "aux_daq"
+        }
+    },
+    309: {
+        "name": "wheel_force_transducer_analog_3",
+        "num_bytes": [4, 4, 4, 4],
+        "h_file_comment": "AccelX, AccelY",
+        0: {
+            "name": "accel_x_analog",
+            "object": "Acceleration",
+            "display_name": "Wheel Accel X Analog",
+            "is_float": True,
+            "class": "aux_daq"
+        },
+        1: {
+            "name": "accel_z_analog",
+            "object": "Acceleration",
+            "display_name": "Wheel Accel Z Analog",
+            "is_float": True,
+            "class": "aux_daq"
+        },
+        2: {
+            "name": "no_connect_1",
+            "object": "Acceleration",
+            "display_name": "No Connect 1",
+            "is_float": True,
+            "class": "aux_daq"
+        },
+        3: {
+            "name": "no_connect_2",
+            "object": "Acceleration",
+            "display_name": "No Connect 2",
+            "is_float": True,
+            "class": "aux_daq"
+        }
+    },
 
 
     # 400 - LDS SENSORS
@@ -593,7 +693,6 @@ SensorId = {
     500: {
         "name": "imu_sensor",
         "num_bytes": [4, 4, 4, 4, 4, 4, 4],
-        #"is_float": [True, True, True, True, True, True, True],
         "h_file_comment": "Accel X, Y, Z; Gyro X, Y, Z; Temp",
         0: {
             "name": "imu_acceleration_x",
