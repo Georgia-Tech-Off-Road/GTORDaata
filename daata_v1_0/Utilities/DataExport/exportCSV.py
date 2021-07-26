@@ -1,6 +1,6 @@
 import csv
 import os
-from DataAcquisition import data
+from DataAcquisition import data 
 
 
 
@@ -10,26 +10,29 @@ def saveCSV(self, filename, directory):
     #TODO add smarter functionality to automatically make it a csv file
     if filename == "":
         return
-    if ".csv" not in filename:
-        filename = filename + ".csv"
 
 
-    csvfile = open(os.path.join(directory, filename), 'w')
+    csvfile = open(os.path.join(directory, filename + ".csv"), 'w')
     writer = csv.writer(csvfile, dialect='excel', lineterminator='\n')
 
-
-
+    
     # connected_sensors = data.get_sensors(is_connected=True)
     sensorsList = data.get_sensors(is_connected=True, is_derived=False)
 
     lastIndex = data.get_most_recent_index()
-    print(sensorsList)
     sensorData = list()
 
     for index, sensor in enumerate(sensorsList):
         row = [sensor] + data.get_values(sensor, lastIndex, lastIndex+1)
-        sensorData.append(row)
-        writer.writerow(sensorData[index])
+        if sensor == 'time_internal_seconds':
+            sensorData.insert(0, row)
+        else:
+            sensorData.append(row)
+
+    # rows -> columns
+    rows = zip(*sensorData)
+    for row in rows:
+        writer.writerow(row)
 
     # for sensor in sensorsList:
     #
@@ -43,7 +46,6 @@ def saveCSV(self, filename, directory):
     #     print(data.get_value('time',index))
     #     writer.writerow(rowData)
     #     index += 1
-
 
     csvfile.close()
 
