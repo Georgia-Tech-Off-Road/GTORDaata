@@ -26,7 +26,10 @@ debugCounter = 0;
 ## add warning dialog if trying to start recording data while teensy is not plugged in (checked with data.is_connected)
 
 class DataCollection(DAATALayout, uiFile):
-    def __init__(self, thread, is_data_collecting):
+    only_show_connected = True
+
+    def __init__(self, thread, is_data_collecting,
+                 show_connected_only=only_show_connected):
         super().__init__()
         self.setupUi(self)
         self.hide()
@@ -37,7 +40,8 @@ class DataCollection(DAATALayout, uiFile):
         self.data = DataAcquisition.data
         self.dict_sensors = {}  # instantiates sensor dictionary
         self.currentKeys = list()
-        for key in self.data.get_sensors(is_plottable=True):
+        for key in self.data.get_sensors(is_plottable=True,
+                                         is_connected=show_connected_only):
             self.dict_sensors[key] = dict()
             self.currentKeys.append(key)
 
