@@ -82,9 +82,6 @@ class popup_dataSaveLocation(QtWidgets.QDialog, uiFile):
             # save current values as defaults
             self.configFile.setValue("default_localDirectory", local_folder)
 
-
-
-
         if self.checkBox_networkDrive.isChecked():
             nd_filename = self.lineEdit_filenameND.text()
             nd_folder = self.lineEdit_folderND.text()
@@ -94,8 +91,6 @@ class popup_dataSaveLocation(QtWidgets.QDialog, uiFile):
             self.saveCSV(nd_filename,nd_folder)
             self.saveMAT(nd_filename,nd_folder)
 
-
-
         if self.checkBox_SDCard.isChecked():
             SDFilename = self.lineEdit_filenameSD.text()
             SDFolder = self.lineEdit_folderSD.text()
@@ -104,13 +99,15 @@ class popup_dataSaveLocation(QtWidgets.QDialog, uiFile):
             SDFile.write("this is a test file for saving to the SD Card")
             SDFile.close()
 
-
             self.configFile.setValue("default_SDFolder", SDFolder)
 
         self.configFile.setValue("checkBox_local", self.checkBox_local.isChecked())
         self.configFile.setValue("checkBox_ND", self.checkBox_networkDrive.isChecked())
         self.configFile.setValue("checkBox_SD", self.checkBox_SDCard.isChecked())
 
+        self.close()
+
+    def cancelSave(self):
         self.close()
 
     def change_NDDir(self):
@@ -121,13 +118,12 @@ class popup_dataSaveLocation(QtWidgets.QDialog, uiFile):
         dir = QtGui.QFileDialog.getExistingDirectory(None, 'Save Data Location', os.path.expanduser('~'))  # select a folder in the C drive
         self.lineEdit_folderLocal.setText(dir)
 
-
-
     def connectSlotsSignals(self):
         self.checkBox_local.clicked.connect(self.toggle_frames)
         self.checkBox_networkDrive.clicked.connect(self.toggle_frames)
         self.checkBox_SDCard.clicked.connect(self.toggle_frames)
         self.pushButton_save.clicked.connect(self.saveData)
+        self.pushButton_cancel.clicked.connect(self.cancelSave)
         self.pushButton_browseDir.clicked.connect(self.change_localDir)
         self.pushButton_browseNDDir.clicked.connect(self.change_NDDir)
         # print(self.label.text())
