@@ -103,7 +103,9 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
         if yMin != 'auto' and yMax == 'auto':
             self.plotWidget.setLimits(yMin = int(yMin))
         if (yMin != 'auto') and (yMax != 'auto'):
-            self.plotWidget.setLimits(yMin = int(yMin), yMax = int(yMax))
+            # self.plotWidget.setLimits(yMin = int(yMin), yMax = int(yMax))
+            # Set strict visible range
+            self.plotWidget.setYRange(int(yMin), int(yMax), padding=0)
         if (yMin == 'auto') and (yMax == 'auto'):
             self.enable_autoRange(True)
             self.plotWidget.setLimits(yMin = None, yMax = None)

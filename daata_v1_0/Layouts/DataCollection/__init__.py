@@ -252,7 +252,8 @@ class DataCollection(DAATALayout, uiFile):
     def update(self):
         # update only
         # if the Data Collection tab is the current tab
-        # or if the Layouts tab is the current tab
+        # or if the Layouts tab is the current tab.
+        # updates the list of sensors connected
 
         self.update_sensorCheckboxes()
         if self.is_data_collecting.is_set():

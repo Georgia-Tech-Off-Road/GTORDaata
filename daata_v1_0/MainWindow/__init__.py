@@ -51,6 +51,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.updateLoops = 0
         self.timer = QtCore.QTimer()
         self.timer.timeout.connect(self.updateAll)
+        # updates the graph every refreshFreq
         self.timer.start(1000 / self.refreshFreq)
         self.timer.setInterval(1000 / self.refreshFreq)
 
