@@ -190,11 +190,19 @@ class Ratio(DerivedSensor):
         self.transfer_function = kwargs.get('transfer_function', 1)
 
     def get_value(self, index):
+        if self.output_speed_rpm.get_value(index) == 0:
+            return 10e6
         return self.input_speed_rpm.get_value(index) / self.output_speed_rpm.get_value(index) * self.transfer_function
 
     def get_values(self, index, num_values):
-        return [input_speed/output_speed * self.transfer_function for input_speed, output_speed in
-                zip(self.input_speed_rpm.get_values(index, num_values), self.output_speed_rpm.get_values(index, num_values))]
+        values = list()
+        for input_speed, output_speed in zip(self.input_speed_rpm.get_values(index, num_values),
+                                             self.output_speed_rpm.get_values(index, num_values)):
+            if output_speed == 0:
+                values.append(10e6)
+            else:
+                values.append(input_speed/output_speed * self.transfer_function)
+        return values
 
     @property
     def is_connected(self):
@@ -202,6 +210,8 @@ class Ratio(DerivedSensor):
 
     @property
     def current_value(self):
+        if self.output_speed_rpm.current_value == 0:
+            return 10e6
         return self.input_speed_rpm.current_value / self.output_speed_rpm.current_value * self.transfer_function
 
 

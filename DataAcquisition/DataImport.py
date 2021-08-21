@@ -79,7 +79,7 @@ class DataImport:
             #form = ListPortsDialog()
             #form.show()
             #self.teensy_port = form.chosen_port
-            self.teensy_port = 'COM7'
+            self.teensy_port = 'COM6'
             self.teensy_ser = serial.Serial(baudrate=115200, port=self.teensy_port, timeout=2,
                                             write_timeout=1)
             logger.info("Teensy found on port {}".format(self.teensy_ser.port))
@@ -132,7 +132,7 @@ class DataImport:
                 except KeyError as e:
                     logger.error(e)
                     logger.error("Error in packetize with ack 3")
-            logger.debug("Sending data : {}".format(byte_data))
+            logger.info("Sending data : {}".format(byte_data))
             return b'\x03' + byte_data + end_code
         elif self.is_sending_data and not self.is_receiving_data:
             byte_data = b''

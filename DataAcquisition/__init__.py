@@ -46,8 +46,7 @@ def read_data():
                     except Exception as e:
                         logger.error(e)
             except AssertionError:
-                logger.info("No compatible Teensy found")
-                time.sleep(5)
+                pass
 
         if is_data_collecting.is_set() and not data_was_collecting:
             logger.info("Starting data collection")

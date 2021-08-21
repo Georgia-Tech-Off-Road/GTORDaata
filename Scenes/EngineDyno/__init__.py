@@ -40,6 +40,7 @@ class EngineDyno(DAATAScene, uiFile):
         self.is_data_collecting = is_data_collecting
 
         self.is_sensors_attached = False
+        self.load_cell_taring = False
 
         self.connect_slots_and_signals()
         self.configFile = QSettings('DAATA', 'data_collection')
@@ -91,9 +92,7 @@ class EngineDyno(DAATAScene, uiFile):
     def slot_tare_load_cell(self):
         logger.info("Taring load cell")
         data.set_current_value("command_tare_load_cell", 1)
-        time.sleep(0.15)
-        data.set_current_value("command_tare_load_cell", 0)
-        pass
+        self.load_cell_taring = True
 
     def slot_set_load_cell_scale(self):
         logger.info("Changing load cell scale")
@@ -202,6 +201,12 @@ class EngineDyno(DAATAScene, uiFile):
             if self.is_sensors_attached:
                 data_import.detach_output_sensor(data.get_id("command_tare_load_cell"))
                 self.is_sensors_attached = False
+
+        if self.load_cell_taring:
+            self.load_cell_taring = False
+        else:
+            data.set_current_value("command_tare_load_cell", 0)
+
 
     def connect_slots_and_signals(self):
         self.button_display.clicked.connect(self.slot_data_collecting_state_change)
