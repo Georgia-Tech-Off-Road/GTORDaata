@@ -1,6 +1,7 @@
 import time
 import threading
 import logging
+import sys
 from datetime import datetime
 from DataAcquisition.Data import Data
 from DataAcquisition.DataImport import DataImport
@@ -9,6 +10,7 @@ logger = logging.getLogger("DataAcquisition")
 
 data_collection_lock = threading.Lock()  # Creates a lock for data synchronization
 is_data_collecting = threading.Event()  # Creates an event to know if the data collection has started
+stop_thread = threading.Event()
 
 # This is the main variable that can be accessed from other areas of the code. Use 'DataAcquisition.data'
 data = Data(data_collection_lock)
@@ -23,7 +25,10 @@ data_import = DataImport(data, data_collection_lock, is_data_collecting, use_fak
 def read_data():
     logger.info("Running read_data")
     data_was_collecting = False
-    data_import.teensy_ser.flushInput()
+    try:
+        data_import.teensy_ser.flushInput()
+    except AttributeError:
+        logger.warning("Unable to flush Serial Buffer. No Serial object connected")
     while True:
         if data_import.use_fake_inputs:
             data_import.check_connected_fake()
@@ -41,7 +46,8 @@ def read_data():
                     except Exception as e:
                         logger.error(e)
             except AssertionError:
-                logger.debug("No compatible Teensy found")
+                logger.info("No compatible Teensy found")
+                time.sleep(5)
 
         if is_data_collecting.is_set() and not data_was_collecting:
             logger.info("Starting data collection")
@@ -52,6 +58,8 @@ def read_data():
             logger.info("Stopping data collection")
             data_was_collecting = False
 
+        if stop_thread.is_set():
+            sys.exit()
 
 def send_data():
     if data_import.use_fake_inputs:

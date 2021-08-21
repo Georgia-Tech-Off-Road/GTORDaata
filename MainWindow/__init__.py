@@ -6,6 +6,7 @@ import threading
 import logging
 import os
 import time
+import sys
 
 from Scenes import DAATAScene
 from Scenes.Homepage import Homepage
@@ -20,7 +21,7 @@ from MainWindow._tabHandler import close_tab
 import DataAcquisition
 
 
-from DataAcquisition import is_data_collecting, data_import
+from DataAcquisition import is_data_collecting, data_import, stop_thread
 
 logger = logging.getLogger("MainWindow")
 
@@ -106,10 +107,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         """
         self.homepage.update_passive()
         for scene in self.tabWidget.findChildren(DAATAScene):
-            try:
-                scene.update_passive()
-            except:
-                pass
+            scene.update_passive()
+
+
 
     def set_app_icon(self):
         """
@@ -250,7 +250,12 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
     # --- Overridden event methods --- #
     def closeEvent(self, event):
-        pass
+        self.data_sending_thread.stop()
+        stop_thread.set()
+        self.data_reading_thread.join()
+        self.timer_active.stop()
+        self.timer_passive.stop()
+        sys.exit()
         ##  Close Confirmation Window
         # close = QtWidgets.QMessageBox()
         # close.setText("Close DAATA?")

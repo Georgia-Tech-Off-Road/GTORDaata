@@ -32,8 +32,21 @@ class Data:
                             param_dict["id"] = sensor_id
                             self.generate_object(SensorId[sensor_id][i]["name"], object_type, param_dict)
                             i = i + 1
-                    except KeyError:
-                        pass
+                    except KeyError as e:
+                        logger.error(e)
+                        logger.error("Key error in __init__ 1")
+
+            for sensor_name in derived_sensors:
+                try:
+                    object_type = derived_sensors[sensor_name]["object"]
+                    param_dict = derived_sensors[sensor_name]
+                    sensors = list()
+                    for sensor in derived_sensors[sensor_name]["sensors"]:
+                        sensors.append(self.__data[sensor])
+                    self.generate_object(sensor_name, object_type, param_dict, sensors)
+                except KeyError as e:
+                    logger.error(e)
+                    logger.error("Key error in __init__ 2")
 
             '''
             # Internal sensors
@@ -49,13 +62,14 @@ class Data:
 
             logger.info("Data object successfully initialized")
 
-    def generate_object(self, sensor_name, object_type, param_dict):
+    def generate_object(self, sensor_name, object_type, param_dict, sensors=None):
         """
         Used for generating the data object (only should be used internally)
 
         :param sensor_name: The key used for the data object
         :param object_type: The type of object to generate
         :param param_dict: The kwargs used for the object
+        :param sensors: A list of sensor objects that are used by a derived sensor
         """
         logger.info("Generating {} of type: {}".format(sensor_name, object_type))
         if object_type == "Generic":
@@ -82,10 +96,18 @@ class Data:
             self.__data[sensor_name] = Gyro(**param_dict)
         if object_type == "Temperature":
             self.__data[sensor_name] = Temperature(**param_dict)
+
+        # Derived Sensors
         if object_type == "WheelSpeed":
-            self.__data[sensor_name] = WheelSpeed(**param_dict)
+            self.__data[sensor_name] = WheelSpeed(sensors[0], **param_dict)
         if object_type == "CarSpeed":
-            self.__data[sensor_name] = CarSpeed(**param_dict)
+            self.__data[sensor_name] = CarSpeed(sensors[0], **param_dict)
+        if object_type == "Torque":
+            self.__data[sensor_name] = Torque(sensors[0], **param_dict)
+        if object_type == "MechanicalPower":
+            self.__data[sensor_name] = MechanicalPower(sensors[0], sensors[1], **param_dict)
+        if object_type == "Ratio":
+            self.__data[sensor_name] = Ratio(sensors[0], sensors[1], **param_dict)
 
     def get_most_recent_index(self, sensor_name="time_internal_seconds"):
         with self.lock:
@@ -117,6 +139,7 @@ class Data:
                 return self.__data[sensor_name].current_value
             except Exception as e:
                 logger.error(e)
+                logger.error("Error in get_current_value for sensor {}".format(sensor_name))
                 return None
 
     def set_current_value(self, sensor_name, value):
@@ -125,6 +148,22 @@ class Data:
                 self.__data[sensor_name].current_value = value
             except Exception as e:
                 logger.error(e)
+                logger.error("Error in set_current_value for sensor {}".format(sensor_name))
+
+    def set_sensor_scale(self, sensor_name, scale_factor):
+        """
+        Sets a scale factor for a sensors values. Note that this doesn't work for all sensors.
+
+        :param sensor_name: The name of the sensor to set the scale factor.
+        :param scale_factor: The factor to scale the sensors values by.
+        :return: None
+        """
+        with self.lock:
+            try:
+                self.__data[sensor_name].scale = scale_factor
+            except Exception as e:
+                logger.error(e)
+                logger.error("Error in set_sensor_scale for sensor {}".format(sensor_name))
 
     def get_sensors(self, is_external=None, is_plottable=None, is_derived=None, is_connected=None):
         """
@@ -218,6 +257,8 @@ class Data:
         except KeyError:
             logger.error("The sensor {} does not exist, check your spelling"
                          .format(sensor_name))
+        except AttributeError:
+            return None
 
     def reset(self):
         logger.debug("Resetting all the sensors")
@@ -241,6 +282,7 @@ class Data:
                 logger.error("Key error occurred in add_value for sensor with ID: {}".format(sensor_id))
         except Exception as e:
             logger.error(e)
+            logger.error("Error in set_connected")
 
     def set_disconnected(self, sensor_id):
         try:
@@ -256,6 +298,7 @@ class Data:
                 logger.error("Key error occurred in add_value for sensor with ID: {}".format(sensor_id))
         except Exception as e:
             logger.error(e)
+            logger.error("Error in set_disconnected")
 
     def pack(self, sensor_id):
         try:
@@ -267,6 +310,7 @@ class Data:
                 return bytearray(data)
         except Exception as e:
             logger.error(e)
+            logger.error("Error in pack")
 
     def add_value(self, sensor_id, value=None):
         # Make sure to wrap this function in the lock as it is not thread-safe
@@ -280,5 +324,6 @@ class Data:
                 logger.error("Key error occurred in add_value for sensor with ID: {}".format(sensor_id))
         except Exception as e:
             logger.error(e)
+            logger.error("Error in add_value")
 
 

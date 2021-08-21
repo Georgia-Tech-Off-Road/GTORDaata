@@ -13,7 +13,7 @@ uint32_t prev_time = micros();
 bool led_state = 0;
 
 void setup() {
-  // put your setup code here, to run once:
+    // put your setup code here, to run once:
   uart.begin();
   uart.attach_output_sensor(t1, TEST_SENSOR_1);
   uart.attach_output_sensor(he_speed, SPEED_POSITION_GENERIC600);
@@ -24,6 +24,7 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
+
   uart.update();
 
   if(abs(micros() - prev_time) > 250000){

@@ -58,7 +58,12 @@ SensorId = {
     3: {
         "name": "command_toggle_teensy_led",
         "object": "Command",
-        "num_bytes": 1,
+        "num_bytes": 1
+    },
+    4: {
+        "name": "command_tare_load_cell",
+        "object": "Command",
+        "num_bytes": 1
     },
     90: {
         "name": "test_sensor_0",
@@ -468,24 +473,24 @@ SensorId = {
         "class": "dashboard"
     },
     212: {
-        "name": "SPEED_DYNOENGINE600_RPM",
+        "name": "speed_dynoengine600_rpm",
         "num_bytes": [4, 2],
         "h_file_comment": "Speed in RPM and position in ticks (600ppr sensor)",
         0: {
-            "name": "dyno_position",
+            "name": "dyno_engine_position",
             "object": "Position",
             "display_name": "Position Dyno (600ppr Sensor)",
             "pulses_per_revolution": 600
         },
         1: {
-            "name": "dyno_speed",
+            "name": "dyno_engine_speed",
             "object": "Speed",
             "display_name": "Speed Dyno (600ppr Sensor)",
             "pulses_per_revolution": 600
         }
     },
     213: {
-        "name": "SPEED_DYNOSECONDARY30_RPM",
+        "name": "speed_dynosecondary30_rpm",
         "num_bytes": [4, 2],
         "h_file_comment": "Speed in RPM and position in ticks (600ppr sensor)",
         0: {
@@ -544,7 +549,7 @@ SensorId = {
         "class": "aux_daq"
     },
     306: {
-        "name": "FORCE_DYNO_LBS",
+        "name": "force_dyno_lbs",
         "object": "Force",
         "num_bytes": 4,
         "is_float": True,

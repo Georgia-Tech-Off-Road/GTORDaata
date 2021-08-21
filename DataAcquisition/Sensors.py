@@ -140,8 +140,10 @@ class Force(Sensor):
         super().__init__(**kwargs)
         self.unit = kwargs.get('unit', "Pounds")
         self.unit_short = kwargs.get('unit_short', "lbs")
+        self.scale = 1
 
     def transfer_function(self, value):
+        value = value * self.scale
         if self.name is "fx_analog":
             return (value - 2.5) * 8990 / 5
         if self.name is "fy_analog":

@@ -11,7 +11,8 @@ logging_objects = {
     "Homepage": INFO,
     "DataCollection": DEBUG,
     "DataImport": ERROR,
-    "BlinkLEDTest": DEBUG
+    "BlinkLEDTest": DEBUG,
+    "EngineDyno": DEBUG
 }
 
 # Console output handler

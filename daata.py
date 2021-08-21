@@ -11,4 +11,3 @@ daata = MainWindow()
 daata.show()
 sys.exit(app.exec_())
 
-
