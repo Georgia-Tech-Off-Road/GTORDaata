@@ -46,7 +46,7 @@ def read_data():
                     except Exception as e:
                         logger.error(e)
             except AssertionError:
-                pass
+                time.sleep(0)
 
         if is_data_collecting.is_set() and not data_was_collecting:
             logger.info("Starting data collection")
