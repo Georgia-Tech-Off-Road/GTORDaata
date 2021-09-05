@@ -6,7 +6,7 @@ from PyQt5 import QtWidgets
 def populate_menu(self):
     create_addLayoutMenu(self)
     create_fileMenu(self)
-
+    create_comMenu(self)
 
 def create_addLayoutMenu(self):
     ## Make an action to create a tab for each imported widget
@@ -25,6 +25,15 @@ def create_fileMenu(self):
     self.action_Preferences.setToolTip("Edit application config_MainWindow")
     self.action_Preferences.setText("Preferences")
     self.menuFile.addAction(self.action_Preferences)
+
+def create_comMenu(self):
+    ## Create an action for COM port
+    for key in self.dict_ports.keys():
+        self.dict_ports[key] = QtWidgets.QAction(self)
+        self.dict_ports[key].setCheckable(True)
+        self.dict_ports[key].setText(key)
+        self.menuCOM_Port.addAction(self.dict_ports[key])
+
 
 
 # class MenuAction:

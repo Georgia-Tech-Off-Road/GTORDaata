@@ -7,6 +7,7 @@ import logging
 import os
 import time
 import sys
+import serial
 
 from Scenes import DAATAScene
 from Scenes.Homepage import Homepage
@@ -22,6 +23,10 @@ import DataAcquisition
 
 
 from DataAcquisition import is_data_collecting, data_import, stop_thread
+from DataAcquisition.DataImport import DataImport
+
+import re, itertools
+import winreg as winreg
 
 logger = logging.getLogger("MainWindow")
 
@@ -36,20 +41,19 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # Create the thread and timer objects to manage data communication with microcontrollers
         self.data_sending_thread = QtCore.QTimer()
         self.data_sending_thread.timeout.connect(DataAcquisition.send_data)
-        self.data_sending_thread.start(100)  # Send data at 10 Hz
-
-        time.sleep(0.1)
 
         self.data_reading_thread = threading.Thread(target=DataAcquisition.read_data)
-        self.data_reading_thread.start()
 
         # Attach the internal timer
         data_import.attach_internal_sensor(101)
 
         # Set up all the elements of the UI
         self.setupUi(self)
+
         self.dict_scenes = {}  # instantiates dictionary that holds objects for widgets
         self.import_scenes()
+        self.dict_ports = {}
+        self.import_coms()
         self.create_tab_widget()
         self.populate_menu()
         self.set_app_icon()
@@ -219,6 +223,29 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             }
         }
 
+    def enumerate_serial_ports(self):
+        """ Uses the Win32 registry to return an
+            iterator of serial (COM) ports
+            existing on this computer.
+        """
+        path = 'HARDWARE\\DEVICEMAP\\SERIALCOMM'
+        try:
+            key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, path)
+        except WindowsError:
+            raise StopIteration
+
+        for i in itertools.count():
+            try:
+                val = winreg.EnumValue(key, i)
+                yield str(val[1])
+            except EnvironmentError:
+                break
+
+    def import_coms(self):
+        self.dict_ports["Auto"] = None #adds the Auto option no matter what
+        for portName in self.enumerate_serial_ports():
+            self.dict_ports[portName] = None
+
     def create_homepage(self):
         """
         This function creates the homepage
@@ -229,6 +256,21 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.gridLayout_tab_homepage.addWidget(self.homepage)
         # self.tabWidget.setCornerWidget(self.homepage.button, corner = Qt.Corner.TopRightCorner)
 
+    def modifyInputMode(self):
+        for key in self.dict_ports.keys():
+            ## what happens if the user has multiple options selected?
+            ## what happens if the user changes their selection?
+            if self.dict_ports[key].isChecked():
+                print("KEY:", key)
+                data_import.input_mode = key
+                if "COM" in data_import.input_mode:
+                    DataImport.connect_serial(data_import)
+                    self.data_sending_thread.start(100)
+                    self.data_reading_thread.start()
+                else:
+                    # implement the CSV and BIN Parsers depending on the input mode value
+                    pass
+
     def connect_signals_and_slots(self):
         """
         This functions connects all the Qt signals with the slots so that elements such as buttons or checkboxes
@@ -236,8 +278,17 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         :return: None
         """
+
         for key in self.dict_scenes.keys():
             self.dict_scenes[key]['menu_action'].triggered.connect(partial(self.create_scene_tab, key))
+
+        for key in self.dict_ports.keys():
+            self.dict_ports[key].triggered.connect(lambda: self.modifyInputMode())
+
+        ## Implement functionality for the following menu items
+        #self.actionFake_Data.triggered.connect()
+        #self.actionBIN_File.triggered.connect()
+        #self.actionCSV_File.triggered.connect()
         self.tabWidget.tabBarDoubleClicked.connect(self.rename_tab)
         self.tabWidget.tabCloseRequested.connect(partial(self.close_tab, self))
         self.action_parentChildrenTree.triggered.connect(partial(popup_ParentChildrenTree, self))
@@ -266,6 +317,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # else:
         #     event.ignore()
 
+## The line QtGui.QStyleOption() will throw an error
+    '''
     def paintEvent(self, pe):
         """
         This method allows the color scheme of the class to be changed by CSS stylesheets
@@ -278,3 +331,4 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         p = QtGui.QPainter(self)
         s = self.style()
         s.drawPrimitive(QtGui.QStyle.PE_Widget, opt, p, self)
+    '''

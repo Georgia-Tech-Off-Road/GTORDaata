@@ -313,6 +313,8 @@ class DataCollection(DAATAScene, uiFile):
         self.save_settings()
         self.window().setWindowTitle('closed tab')
 
+## The line QtGui.QStyleOption() will throw an error
+    '''
     def paintEvent(self, pe):
         """
         This method allows the color scheme of the class to be changed by CSS stylesheets
@@ -325,4 +327,4 @@ class DataCollection(DAATAScene, uiFile):
         p = QtGui.QPainter(self)
         s = self.style()
         s.drawPrimitive(QtGui.QStyle.PE_Widget, opt, p, self)
-
+    '''

@@ -19,14 +19,14 @@ logger = logging.getLogger("DataImport")
 
 
 class DataImport:
-    def __init__(self, data, lock, is_data_collecting, use_fake_inputs):
+    def __init__(self, data, lock, is_data_collecting):
         self.data = data
         self.lock = lock
-        self.use_fake_inputs = use_fake_inputs
         self.is_data_collecting = is_data_collecting
+        self.input_mode = ""
 
         # Connect to the Teensy
-        self.connect_serial()
+        #self.connect_serial() #being called too soon.
 
         # Variables that are used for reading/parsing incoming packets
         self.end_code = [0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xf0]
@@ -55,6 +55,9 @@ class DataImport:
         self.prev_bl_lds_val = 0
         self.prev_fr_lds_val = 0
 
+    def get_inputMode(self):
+        return self.input_mode
+
     def check_connected(self):
         if self.teensy_ser.is_open:
             self.data.is_connected = True
@@ -73,13 +76,8 @@ class DataImport:
         #     if port[2] == "USB VID:PID=%s:%s SNR=%s"%(vendor_id, product_id, serial_number):
         #         return port[0]
 
-        # Manually change the COM port below to the correct
-        # port that the teensy appears on your device manager for now
         try:
-            #form = ListPortsDialog()
-            #form.show()
-            #self.teensy_port = form.chosen_port
-            self.teensy_port = 'COM6'
+            self.teensy_port = self.input_mode
             self.teensy_ser = serial.Serial(baudrate=115200, port=self.teensy_port, timeout=2,
                                             write_timeout=1)
             logger.info("Teensy found on port {}".format(self.teensy_ser.port))

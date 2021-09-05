@@ -169,7 +169,7 @@
      <x>0</x>
      <y>0</y>
      <width>1239</width>
-     <height>22</height>
+     <height>26</height>
     </rect>
    </property>
    <property name="defaultUp">
@@ -199,10 +199,20 @@
      <string>Add Layout</string>
     </property>
    </widget>
+   <widget class="QMenu" name="menuInput">
+    <property name="title">
+     <string>Input</string>
+    </property>
+    <addaction name="actionFake_Data"/>
+    <addaction name="actionBIN_File"/>
+    <addaction name="actionCSV_File"/>
+    <addaction name="menuCOM_Port"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
    <addaction name="menuView"/>
    <addaction name="menuAdd_Layout"/>
+   <addaction name="menuInput"/>
   </widget>
   <action name="actionTest">
    <property name="text">
@@ -217,6 +227,26 @@
     <string>Display a tree of all parent objects and their respective children for the current UI layout</string>
    </property>
   </action>
+  <action name="actionFake_Data">
+   <property name="text">
+    <string>Fake Data</string>
+   </property>
+  </action>
+  <action name="actionBIN_File">
+   <property name="text">
+    <string>BIN File</string>
+   </property>
+  </action>
+  <action name="actionCSV_File">
+   <property name="text">
+    <string>CSV File</string>
+   </property>
+  </action>
+  <widget class="QMenu" name="menuCOM_Port">
+    <property name="title">
+     <string>COM Port</string>
+    </property>
+  </widget>
  </widget>
  <resources/>
  <connections/>

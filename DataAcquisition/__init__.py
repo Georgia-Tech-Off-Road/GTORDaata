@@ -15,11 +15,8 @@ stop_thread = threading.Event()
 # This is the main variable that can be accessed from other areas of the code. Use 'DataAcquisition.data'
 data = Data(data_collection_lock)
 
-# Set this to true if you want to test the code without having hardware connected
-use_fake_inputs = False
-
 # This is the object that controls importing data
-data_import = DataImport(data, data_collection_lock, is_data_collecting, use_fake_inputs)
+data_import = DataImport(data, data_collection_lock, is_data_collecting)
 
 
 def read_data():
@@ -30,7 +27,7 @@ def read_data():
     except AttributeError:
         logger.warning("Unable to flush Serial Buffer. No Serial object connected")
     while True:
-        if data_import.use_fake_inputs:
+        if data_import.input_mode == "Fake":
             data_import.check_connected_fake()
             data_import.read_data_fake()
         else:
@@ -61,7 +58,7 @@ def read_data():
             sys.exit()
 
 def send_data():
-    if data_import.use_fake_inputs:
+    if "COM" not in data_import.input_mode:
         pass
     else:
         try:

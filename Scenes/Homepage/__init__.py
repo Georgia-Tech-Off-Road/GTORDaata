@@ -94,7 +94,9 @@ class Homepage(DAATAScene, uiFile):
     from Utilities.CustomWidgets.indicatorWidget import QIndicator
     from Utilities.DataExport import GTORNetwork
 
+## The line QtGui.QStyleOption() will throw an error
     # --- Overridden event methods --- #
+    ''' 
     def paintEvent(self, pe):
         """
         This method allows the color scheme of the class to be changed by CSS stylesheets
@@ -102,8 +104,10 @@ class Homepage(DAATAScene, uiFile):
         :param pe:
         :return: None
         """
+
         opt = QtGui.QStyleOption()
         opt.initFrom(self)
         p = QtGui.QPainter(self)
         s = self.style()
         s.drawPrimitive(QtGui.QStyle.PE_Widget, opt, p, self)
+    '''
