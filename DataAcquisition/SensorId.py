@@ -65,6 +65,11 @@ SensorId = {
         "object": "Command",
         "num_bytes": 1
     },
+    5: {
+        "name": "command_motor_speed",
+        "object": "Command",
+        "num_bytes": 1
+    },
     90: {
         "name": "test_sensor_0",
         "object": "Generic",
@@ -555,6 +560,13 @@ SensorId = {
         "is_float": True,
         "class": "engine_dyno"
     },
+    306: {
+        "name": "force_shockdyno_lbs",
+        "object": "Force",
+        "num_bytes": 4,
+        "is_float": True,
+        "class": "engine_dyno"
+    },
     307: {
         "name": "wheel_force_transducer_analog_1",
         "num_bytes": [4, 4, 4, 4],
@@ -662,14 +674,14 @@ SensorId = {
     400: {
         "name": "lds_generic",
         "object": "LDS",
-        "num_bytes": 2,
+        "num_bytes": 1,
         "stroke_length": 1,
         "is_float": False
     },
     401: {
         "name": "lds_frontleftshock_mm",
         "object": "LDS",
-        "num_bytes": 2,
+        "num_bytes": 1,
         "stroke_length": 200,
         "is_float": False,
         "class": "aux_daq"
@@ -677,7 +689,7 @@ SensorId = {
     402: {
         "name": "lds_frontrightshock_mm",
         "object": "LDS",
-        "num_bytes": 2,
+        "num_bytes": 1,
         "stroke_length": 200,
         "is_float": False,
         "class": "aux_daq"
@@ -685,7 +697,7 @@ SensorId = {
     403: {
         "name": "lds_backleftshock_mm",
         "object": "LDS",
-        "num_bytes": 2,
+        "num_bytes": 1,
         "stroke_length": 225,
         "is_float": False,
         "class": "aux_daq"
@@ -693,11 +705,19 @@ SensorId = {
     404: {
         "name": "lds_backrightshock_mm",
         "object": "LDS",
-        "num_bytes": 2,
+        "num_bytes": 1,
         "stroke_length": 225,
         "is_float": False,
         "class": "aux_daq"
     },
+    405: {
+        "name": "lds_shockdyno_mm",
+        "object": "LDS",
+        "num_bytes": 1,
+        "stroke_length": 225,
+        "is_float": False
+    },
+
 
     # 500 - IMU SENSORS
     500: {
