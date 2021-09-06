@@ -15,6 +15,7 @@ from Scenes.DataCollection import DataCollection
 from Scenes.EngineDyno import EngineDyno
 from Scenes.Layout_Test import Widget_Test
 from Scenes.BlinkLEDTest import BlinkLEDTest
+from Scenes.EngineDynoExp import EngineDynoExp
 
 
 from Utilities.Popups.popups import popup_ParentChildrenTree
@@ -71,7 +72,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         self.timer_passive = QtCore.QTimer()
         self.timer_passive.timeout.connect(self.update_passive)
-        self.timer_passive.start(1000)  # Call update_passive every 1000 ms (1 Hz)
+
+        # Call update_passive every 1000 ms (1 Hz)
+        self.timer_passive.start(1000)
 
         # Lastly, connect all signals and slots
         self.connect_signals_and_slots()
@@ -220,6 +223,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
             'Blink LED Test': {
                 'create_scene': BlinkLEDTest
+            },
+
+            'Engine Dyno Exp': {
+                'create_scene': EngineDynoExp
             }
         }
 
