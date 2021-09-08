@@ -263,7 +263,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.gridLayout_tab_homepage.addWidget(self.homepage)
         # self.tabWidget.setCornerWidget(self.homepage.button, corner = Qt.Corner.TopRightCorner)
 
-    def modifyInputMode(self):
+    def modifyCOMInputMode(self):
         for key in self.dict_ports.keys():
             ## what happens if the user has multiple options selected?
             ## what happens if the user changes their selection?
@@ -278,6 +278,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                     # implement the CSV and BIN Parsers depending on the input mode value
                     pass
 
+    def setInputMode(self, input_mode):
+        data_import.input_mode = input_mode
+        self.data_reading_thread.start()
+
     def connect_signals_and_slots(self):
         """
         This functions connects all the Qt signals with the slots so that elements such as buttons or checkboxes
@@ -290,12 +294,13 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.dict_scenes[key]['menu_action'].triggered.connect(partial(self.create_scene_tab, key))
 
         for key in self.dict_ports.keys():
-            self.dict_ports[key].triggered.connect(lambda: self.modifyInputMode())
+            self.dict_ports[key].triggered.connect(lambda: self.modifyCOMInputMode())
 
         ## Implement functionality for the following menu items
-        #self.actionFake_Data.triggered.connect()
-        #self.actionBIN_File.triggered.connect()
-        #self.actionCSV_File.triggered.connect()
+        self.actionFake_Data.triggered.connect(lambda: self.setInputMode("FAKE"))
+        self.actionBIN_File.triggered.connect(lambda: self.setInputMode("BIN"))
+        self.actionCSV_File.triggered.connect(lambda: self.setInputMode("CSV"))
+
         self.tabWidget.tabBarDoubleClicked.connect(self.rename_tab)
         self.tabWidget.tabCloseRequested.connect(partial(self.close_tab, self))
         self.action_parentChildrenTree.triggered.connect(partial(popup_ParentChildrenTree, self))

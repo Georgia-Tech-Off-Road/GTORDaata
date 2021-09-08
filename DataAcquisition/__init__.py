@@ -27,7 +27,7 @@ def read_data():
     except AttributeError:
         logger.warning("Unable to flush Serial Buffer. No Serial object connected")
     while True:
-        if data_import.input_mode == "Fake":
+        if data_import.input_mode == "FAKE":
             data_import.check_connected_fake()
             data_import.read_data_fake()
         else:
