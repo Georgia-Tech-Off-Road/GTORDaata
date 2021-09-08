@@ -263,24 +263,25 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.gridLayout_tab_homepage.addWidget(self.homepage)
         # self.tabWidget.setCornerWidget(self.homepage.button, corner = Qt.Corner.TopRightCorner)
 
-    def modifyCOMInputMode(self):
+    def COMInputMode(self):
         for key in self.dict_ports.keys():
             ## what happens if the user has multiple options selected?
             ## what happens if the user changes their selection?
             if self.dict_ports[key].isChecked():
-                print("KEY:", key)
-                data_import.input_mode = key
-                if "COM" in data_import.input_mode:
-                    DataImport.connect_serial(data_import)
-                    self.data_sending_thread.start(100)
-                    self.data_reading_thread.start()
-                else:
-                    # implement the CSV and BIN Parsers depending on the input mode value
-                    pass
+                self.setInputMode(key)              
 
     def setInputMode(self, input_mode):
+        print("Input Mode:", input_mode)
         data_import.input_mode = input_mode
-        self.data_reading_thread.start()
+        if not self.data_reading_thread.is_alive():
+            self.data_reading_thread.start()
+        if "COM" in data_import.input_mode:
+            DataImport.connect_serial(data_import)
+            if not self.data_sending_thread.is_alive():
+                self.data_sending_thread.start(100)
+        else:
+            # implement the CSV and BIN Parsers depending on the input mode value
+            pass
 
     def connect_signals_and_slots(self):
         """
@@ -293,10 +294,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         for key in self.dict_scenes.keys():
             self.dict_scenes[key]['menu_action'].triggered.connect(partial(self.create_scene_tab, key))
 
+        ## Handles event of a COM port being selected
         for key in self.dict_ports.keys():
-            self.dict_ports[key].triggered.connect(lambda: self.modifyCOMInputMode())
+            self.dict_ports[key].triggered.connect(lambda: self.COMInputMode())
 
-        ## Implement functionality for the following menu items
+        ## Functionality for the following menu items
         self.actionFake_Data.triggered.connect(lambda: self.setInputMode("FAKE"))
         self.actionBIN_File.triggered.connect(lambda: self.setInputMode("BIN"))
         self.actionCSV_File.triggered.connect(lambda: self.setInputMode("CSV"))

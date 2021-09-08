@@ -32,9 +32,10 @@ def read_data():
             data_import.read_data_fake()
         else:
             try:
-                assert data_import.teensy_found
-                try:
+                if "COM" in data_import.input_mode:
+                    assert data_import.teensy_found
                     assert data_import.check_connected()
+                try:                    
                     data_import.read_packet()
                 except AssertionError:
                     logger.info("Serial port is not open, opening now")
