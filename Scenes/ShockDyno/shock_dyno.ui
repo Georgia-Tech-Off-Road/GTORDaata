@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>703</width>
+    <width>711</width>
     <height>599</height>
    </rect>
   </property>
@@ -250,7 +250,7 @@
             </font>
            </property>
            <property name="text">
-            <string>Speed Sensors</string>
+            <string>Motor Speed Control</string>
            </property>
            <property name="alignment">
             <set>Qt::AlignCenter</set>
@@ -288,26 +288,9 @@
             <item>
              <layout class="QHBoxLayout" name="horizontalLayout_5">
               <item>
-               <widget class="QLabel" name="label_7">
-                <property name="font">
-                 <font>
-                  <pointsize>10</pointsize>
-                 </font>
-                </property>
-                <property name="text">
-                 <string>Engine Speed (RPM)</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLCDNumber" name="engine_speed_lcd">
-                <property name="enabled">
-                 <bool>false</bool>
-                </property>
-                <property name="font">
-                 <font>
-                  <pointsize>10</pointsize>
-                 </font>
+               <widget class="QSlider" name="horizontalSlider">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
                 </property>
                </widget>
               </item>
@@ -316,28 +299,14 @@
             <item>
              <layout class="QHBoxLayout" name="horizontalLayout_6">
               <item>
-               <widget class="QLabel" name="label_8">
-                <property name="font">
-                 <font>
-                  <pointsize>10</pointsize>
-                 </font>
-                </property>
+               <widget class="QPushButton" name="pushButton">
                 <property name="text">
-                 <string>Secondary Speed (RPM)</string>
+                 <string>PushButton</string>
                 </property>
                </widget>
               </item>
               <item>
-               <widget class="QLCDNumber" name="secondary_speed_lcd">
-                <property name="enabled">
-                 <bool>false</bool>
-                </property>
-                <property name="font">
-                 <font>
-                  <pointsize>10</pointsize>
-                 </font>
-                </property>
-               </widget>
+               <widget class="QLCDNumber" name="lcdNumber"/>
               </item>
              </layout>
             </item>

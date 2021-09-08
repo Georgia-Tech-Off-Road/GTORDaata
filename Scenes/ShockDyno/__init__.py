@@ -18,9 +18,9 @@ pg.setConfigOption('background', 'w')   # white
 pg.setConfigOption('foreground', 'k')   # black
 
 # load the .ui file from QT Designer
-uiFile, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'engine_dyno.ui'))
+uiFile, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'shock_dyno.ui'))
 
-logger = logging.getLogger("EngineDyno")
+logger = logging.getLogger("ShockDyno")
 
 
 class EngineDyno(DAATAScene, uiFile):
@@ -33,7 +33,7 @@ class EngineDyno(DAATAScene, uiFile):
 
         self.graph_objects = dict()
         # self.current_keys = ["rpm_vs_time", "torque_vs_time", "cvt_ratio_vs_time", "power_vs_rpm"]
-        self.current_keys = ["dyno_engine_speed", "dyno_secondary_speed", "dyno_torque_ftlbs", "ratio_dyno_cvt"]
+        self.current_keys = ["dyno_engine_speed", "dyno_secondary_speed", "shockdyno_torque_ftlbs", "ratio_dyno_cvt"]
         self.create_graphs()
 
         from MainWindow import is_data_collecting
