@@ -94,9 +94,14 @@ class ShockDyno(DAATAScene, uiFile):
         data.set_current_value("command_tare_load_cell", 1)
         self.load_cell_taring = True
 
+    def slot_set_motor_speed(self, motor_speed):
+        logger.info("Setting motor speed")
+        data.set_current_value("command_motor_speed", motor_speed)
+        self.load_cell_taring = True
+
     def slot_set_load_cell_scale(self):
         logger.info("Changing load cell scale")
-        data.set_sensor_scale("force_dyno_lbs", self.load_cell_scale.value())
+        data.set_sensor_scale("force_shockdyno_lbs", self.load_cell_scale.value())
 
     def update_graphs(self):
         for key in self.current_keys:
