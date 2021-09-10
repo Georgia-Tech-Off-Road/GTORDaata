@@ -23,7 +23,7 @@ uiFile, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'shock_dyno.u
 logger = logging.getLogger("ShockDyno")
 
 
-class EngineDyno(DAATAScene, uiFile):
+class ShockDyno(DAATAScene, uiFile):
     def __init__(self):
         super().__init__()
         self.setupUi(self)

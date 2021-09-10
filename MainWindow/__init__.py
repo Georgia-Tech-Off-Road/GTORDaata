@@ -13,6 +13,7 @@ from Scenes import DAATAScene
 from Scenes.Homepage import Homepage
 from Scenes.DataCollection import DataCollection
 from Scenes.EngineDyno import EngineDyno
+from Scenes.ShockDyno import ShockDyno
 from Scenes.Layout_Test import Widget_Test
 from Scenes.BlinkLEDTest import BlinkLEDTest
 from Scenes.EngineDynoExp import EngineDynoExp
@@ -219,6 +220,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
             'Engine Dyno': {
                 'create_scene': EngineDyno
+            },
+
+            'Shock Dyno': {
+                'create_scene' : ShockDyno
             },
 
             'Blink LED Test': {
