@@ -15,7 +15,7 @@ from Scenes.DataCollection import DataCollection
 from Scenes.EngineDyno import EngineDyno
 from Scenes.Layout_Test import Widget_Test
 from Scenes.BlinkLEDTest import BlinkLEDTest
-from Scenes.EngineDynoExp import EngineDynoExp
+from Scenes.MultiDataGraph import MultiDataGraph
 
 
 from Utilities.Popups.popups import popup_ParentChildrenTree
@@ -225,8 +225,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 'create_scene': BlinkLEDTest
             },
 
-            'Engine Dyno Exp': {
-                'create_scene': EngineDynoExp
+            'Multi Data Graph': {
+                'create_scene': MultiDataGraph
             }
         }
 
