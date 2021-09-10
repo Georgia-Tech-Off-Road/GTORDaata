@@ -18,7 +18,7 @@ pg.setConfigOption('background', 'w')   # white
 pg.setConfigOption('foreground', 'k')   # black
 
 # load the .ui file from QT Designer
-uiFile, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'engine_dyno.ui'))
+uiFile, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'multiDataGraph.ui'))
 
 logger = logging.getLogger("MultiDataGraph")
 
@@ -183,8 +183,10 @@ class MultiDataGraph(DAATAScene, uiFile):
 
         # connections to GridPlotLayout
         # for key in self.graph_objects.keys():
+        #     key = self.current_keys[0]
         #     widget = self.graph_objects[key]
-        #     settings = widget.button_settings.clicked.connect(partial(self.graph_objects[key].open_SettingsWindow))
+        #     settings = widget.button_settings.clicked.connect(partial(
+        #         self.graph_objects[key].open_SettingsWindow))
 
     def save_settings(self):
         """
