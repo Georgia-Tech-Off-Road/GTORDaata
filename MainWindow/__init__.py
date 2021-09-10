@@ -28,6 +28,8 @@ from DataAcquisition.DataImport import DataImport
 import re, itertools
 import winreg as winreg
 
+from serial.tools import list_ports
+
 logger = logging.getLogger("MainWindow")
 
 
@@ -256,7 +258,16 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.gridLayout_tab_homepage.addWidget(self.homepage)
         # self.tabWidget.setCornerWidget(self.homepage.button, corner = Qt.Corner.TopRightCorner)
 
+    def autoSelectPort(self):
+        ## Teensy USB serial microcontroller id data:
+        vendor_id = "16C0"
+        product_id = "0483"
+        for port in list(list_ports.comports()):
+            if "USB VID:PID=%s:%s" % (vendor_id, product_id) in port[2]:
+                return port[0]
+
     def modifyInputMode(self):
+        
         for key in self.dict_ports.keys():
             ## what happens if the user has multiple options selected?
             ## what happens if the user changes their selection?
@@ -264,6 +275,14 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 print("KEY:", key)
                 data_import.input_mode = key
                 if "COM" in data_import.input_mode:
+                    DataImport.connect_serial(data_import)
+                    self.data_sending_thread.start(100)
+                    self.data_reading_thread.start()
+                elif data_import.input_mode == "Auto":
+                    selectedPort = self.autoSelectPort()
+                    self.dict_ports[selectedPort].setChecked(True) #select the automatically selected port in the gui
+                    print("Automatically selected port:", selectedPort)
+                    data_import.input_mode = selectedPort #updates the input mode with the new COM port
                     DataImport.connect_serial(data_import)
                     self.data_sending_thread.start(100)
                     self.data_reading_thread.start()

@@ -67,15 +67,6 @@ class DataImport:
             return False
 
     def connect_serial(self):
-        # # Teensy USB serial microcontroller program id data to fill out:
-        # vendor_id = "16C0"
-        # product_id = "0483"
-        # serial_number = "12345"
-        #
-        # for port in list(list_ports.comports()):
-        #     if port[2] == "USB VID:PID=%s:%s SNR=%s"%(vendor_id, product_id, serial_number):
-        #         return port[0]
-
         try:
             self.teensy_port = self.input_mode
             self.teensy_ser = serial.Serial(baudrate=115200, port=self.teensy_port, timeout=2,
