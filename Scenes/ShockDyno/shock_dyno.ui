@@ -491,7 +491,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QLCDNumber" name="power_lcd">
+          <widget class="QLCDNumber" name="position_lcd">
            <property name="enabled">
             <bool>false</bool>
            </property>
