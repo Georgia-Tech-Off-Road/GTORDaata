@@ -78,6 +78,12 @@ class DataImport:
             logger.error(e)
             logger.error("Error in connect_serial")
 
+    def disconnect_serial(self):
+        try:
+            self.teensy_ser.close()
+        except Exception as e:
+            print(e)
+
     def read_packet(self):
         """
         read_packet manages all incoming data on the Serial port and detects when a full packet has been received

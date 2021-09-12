@@ -267,11 +267,12 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 return port[0]
 
     def modifyInputMode(self):
-        
+        checked = 0
         for key in self.dict_ports.keys():
             ## what happens if the user has multiple options selected?
             ## what happens if the user changes their selection?
             if self.dict_ports[key].isChecked():
+                checked += 1
                 print("KEY:", key)
                 data_import.input_mode = key
                 if "COM" in data_import.input_mode:
@@ -280,7 +281,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                     self.data_reading_thread.start()
                 elif data_import.input_mode == "Auto":
                     selectedPort = self.autoSelectPort()
-                    self.dict_ports[selectedPort].setChecked(True) #select the automatically selected port in the gui
+                    #self.dict_ports[selectedPort].setChecked(True) #select the automatically selected port in the gui
                     print("Automatically selected port:", selectedPort)
                     data_import.input_mode = selectedPort #updates the input mode with the new COM port
                     DataImport.connect_serial(data_import)
@@ -289,6 +290,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 else:
                     # implement the CSV and BIN Parsers depending on the input mode value
                     pass
+        if checked == 0:
+            print("NOTHING CHECKED")
+            pass
+            #need to stop the threads
+            #need to close the serial connection
 
     def connect_signals_and_slots(self):
         """
