@@ -490,7 +490,6 @@ SensorId = {
         1: {
             "name": "dyno_engine_speed",
             "object": "Speed",
-            "object": "Speed",
             "display_name": "Speed Dyno (600ppr Sensor)",
             "pulses_per_revolution": 600
         }

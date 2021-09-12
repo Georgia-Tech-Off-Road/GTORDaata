@@ -178,11 +178,21 @@ class ShockDyno(DAATAScene, uiFile):
         self.load_cell_scale.valueChanged.connect(self.slot_set_load_cell_scale)
 
         self.horizontalSlider.valueChanged.connect(self.slot_set_motor_speed)
+        self.pushButton.clicked.connect(self.sweep)
 
         # connections to GridPlotLayout
         # for key in self.graph_objects.keys():
         #     widget = self.graph_objects[key]
         #     settings = widget.button_settings.clicked.connect(partial(self.graph_objects[key].open_SettingsWindow))
+
+    def sweep(self):
+        for i in range(100):
+            print(i)
+            #self.lcdNumber.display(i)
+            #logger.info("Setting motor speed")
+            #data.set_current_value("command_motor_speed", i)
+            #time.sleep(2)
+
 
     def save_settings(self):
         """
