@@ -7,22 +7,20 @@ import pyqtgraph as pg
 from functools import partial
 import DataAcquisition
 from DataAcquisition import data
+from DataAcquisition import data_import
 from Utilities.CustomWidgets.Plotting import CustomPlotWidget, GridPlotLayout
 from Scenes import DAATAScene
 import logging
+import time
 
 # Default plot configuration for pyqtgraph
 pg.setConfigOption('background', 'w')   # white
 pg.setConfigOption('foreground', 'k')   # black
 
 # load the .ui file from QT Designer
-uiFile, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__),
-                                        'MultiDataGraph.ui'))
+uiFile, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'multiDataGraph.ui'))
 
 logger = logging.getLogger("MultiDataGraph")
-
-# Todo List      ####################################
-# add warning dialog if trying to start recording data while teensy is not plugged in (checked with data.is_connected)
 
 
 class MultiDataGraph(DAATAScene, uiFile):
@@ -35,51 +33,27 @@ class MultiDataGraph(DAATAScene, uiFile):
         self.update_period = 3
 
         self.graph_objects = dict()
-        self.checkbox_objects = dict()
+
         # self.currentKeys = data.get_sensors(is_plottable=True)
         self.currentKeys = ["test_sensor_0", "test_sensor_1", "test_sensor_2",
-                            "test_sensor_3", "test_sensor_4", "test_sensor_5"]
+                             "test_sensor_3", "test_sensor_4", "test_sensor_5"]
 
         self.gridPlotLayout = GridPlotLayout(self.scrollAreaWidgetContents)
         self.gridPlotLayout.setObjectName("gridPlotLayout")
         self.scrollAreaWidgetContents.setLayout(self.gridPlotLayout)
 
-        self.create_sensor_checkboxes()
-        self.create_graph_dimension_combo_box()
         self.create_graphs()
         self.create_grid_plot_layout()
 
         from MainWindow import is_data_collecting
         self.is_data_collecting = is_data_collecting
 
+        self.is_sensors_attached = False
+
         self.connect_slots_and_signals()
-        self.configFile = QSettings('DAATA', 'MultiDataGraph')
-        self.configFile.clear()
-        self.load_settings()
-
-    # Create checkboxes based on a list of strings
-    def create_sensor_checkboxes(self):
-        # Create the checkbox for selecting all of the sensors
-        self.selectAll_checkbox = QtWidgets.QCheckBox(
-            "Select All",
-            self.scrollAreaWidgetContents_2,
-            objectName="selectAll_checkbox")
-        self.selectAll_checkbox.setToolTip(self.selectAll_checkbox.objectName())
-        self.gridLayout_2.addWidget(self.selectAll_checkbox)
-
-        # create a checkbox for each sensor in dictionary in self.scrollAreaWidgetContents_2
-        for key in self.currentKeys:
-            self.checkbox_objects[key] = QtWidgets.QCheckBox(
-                data.get_display_name(key),
-                self.scrollAreaWidgetContents_2,
-                objectName=key)
-            self.gridLayout_2.addWidget(self.checkbox_objects[key])
-
-        # Create a vertical spacer that forces checkboxes to the top
-        spacerItem1 = QtWidgets.QSpacerItem(20, 1000000,
-                                            QtWidgets.QSizePolicy.Minimum,
-                                            QtWidgets.QSizePolicy.Expanding)
-        self.gridLayout_2.addItem(spacerItem1)
+        self.configFile = QSettings('DAATA', 'data_collection')
+        # self.configFile.clear()
+        # self.load_settings()
 
     def create_graph_dimension_combo_box(self):
         """
@@ -119,31 +93,55 @@ class MultiDataGraph(DAATAScene, uiFile):
                     print(key + " is " + self.graph_objects[key].isVisible())
 
         for key in self.checkbox_objects.keys():
-            if self.checkbox_objects[key].isChecked():
-                if col == max_cols:
-                    col = 0
-                    row += 1
-                self.graph_objects[key].set_height(graphHeight)
-                self.gridPlotLayout.addWidget((self.graph_objects[key]), row, col, 1, 1)
-                self.graph_objects[key].show()
+            if col == max_cols:
+                col = 0
+                row += 1
+            self.graph_objects[key].set_height(graphHeight)
+            self.gridPlotLayout.addWidget((self.graph_objects[key]), row, col, 1, 1)
+            self.graph_objects[key].show()
 
-                col += 1
-            # TODO remove to enable more sensors
-            break
+            col += 1
 
         self.spacerItem_gridPlotLayout = QtWidgets.QSpacerItem(20, 1000000, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.gridPlotLayout.addItem(self.spacerItem_gridPlotLayout)
 
     def create_graphs(self):
+        """
+        This should make 4 graphs
+        1. RPM vs. Time scrolling graph, width as 15 seconds
+            - Should include both engine rpm and secondary rpm on same graph
+        2. Torque vs. Time scrolling graph, width as 15 seconds
+            - Should include torque output of engine
+        3. CVT Ratio vs. Time scrolling graph, width as 15 seconds
+            - Should include CVT ratio
+            - Y bounds should be [0, 5]
+        4. Power output vs. RPM
+            - Y axis is engine power
+            - X axis is engine rpm
+            - Probably default X bounds to [0, 4000], this will probably change
+
+        :return: None
+        """
+
         key = self.currentKeys[0]
+
         self.graph_objects[key] = CustomPlotWidget(key,
-                                       parent=self.scrollAreaWidgetContents,
-                                       layout=self.gridPlotLayout,
-                                       graph_width_seconds=8,
-                                       multi_sensors=self.currentKeys,
-                                       enable_multi_plot=True)
+                                           parent=self.scrollAreaWidgetContents,
+                                           layout=self.gridPlotLayout,
+                                           graph_width_seconds=8,
+                                           multi_sensors=self.currentKeys,
+                                           enable_multi_plot=True)
         self.graph_objects[key].setObjectName(key)
         self.graph_objects[key].show()
+
+        # for key in self.currentKeys:
+        #     self.graph_objects[key] = CustomPlotWidget(key, parent=self.graph_frame, layout=self.graph_layout, graph_width_seconds=8)
+        #     self.graph_objects[key].setObjectName(key)
+        #     self.graph_layout.addWidget(self.graph_objects[key], row, col, 1, 1)
+        #     self.graph_objects[key].show()
+        #     col = not col
+        #     if not col:
+        #         row = 1
 
     def slot_data_collecting_state_change(self):
         if self.button_display.isChecked():
@@ -157,34 +155,11 @@ class MultiDataGraph(DAATAScene, uiFile):
             self.button_display.setText("Start Collecting Data")
             self.is_data_collecting.clear()
             self.popup_dataSaveLocation()
-            # conf = self.popup_stopDataConfirmation()
-            # if conf == QtWidgets.QDialog.Accepted:
-            #     self.button_display.setText("Start Collecting Data")
-            #     self.is_data_collecting.clear()
-            #     self.popup_dataSaveLocation()
-
-    def slot_checkbox_state_change(self):
-        if self.selectAll_checkbox.isChecked():
-            for key in self.currentKeys:
-                self.checkbox_objects[key].setChecked(True)
-        else:
-            for key in self.currentKeys:
-                self.checkbox_objects[key].setChecked(False)
-        self.update_sensor_count()
-        self.create_grid_plot_layout()
-
-    def update_sensor_count(self):
-        self.active_sensor_count = 0
-        for key in self.checkbox_objects.keys():
-            if self.checkbox_objects[key].isVisible():
-                if self.checkbox_objects[key].isChecked():
-                    self.active_sensor_count = self.active_sensor_count + 1
-        self.label_active_sensor_count.setText('(' + str(self.active_sensor_count) + '/' + str(len(self.graph_objects)) + ')')
 
     def update_graphs(self):
-        for key in self.currentKeys:
-            if self.graph_objects[key].isVisible():
-                self.graph_objects[key].update_graph()
+
+        key = self.currentKeys[0]
+        self.graph_objects[key].update_multi_graphs()
 
     def update_time_elapsed(self):
         """
@@ -205,24 +180,6 @@ class MultiDataGraph(DAATAScene, uiFile):
             self.label_timeElapsed.setText(str_time)
         except TypeError:
             pass
-
-    def update_sensor_checkboxes(self):
-        """
-        Will update the sensor checkboxes if new sensors are added.
-
-        :return: None
-        """
-        connected_sensors = data.get_sensors(is_plottable=True, is_connected=True)
-        for key in connected_sensors:
-            if key not in self.currentKeys:
-                self.checkbox_objects[key].show()
-        for key in self.currentKeys:
-            if key not in connected_sensors:
-                try:
-                    self.checkbox_objects[key].hide()
-                except Exception:
-                    pass
-        self.currentKeys = connected_sensors
 
     def update_active(self):
         """
@@ -251,24 +208,20 @@ class MultiDataGraph(DAATAScene, uiFile):
             self.button_display.setChecked(False)
 
     def update_passive(self):
-        self.update_sensor_checkboxes()
+        pass
 
     def connect_slots_and_signals(self):
         self.button_display.clicked.connect(self.slot_data_collecting_state_change)
 
-        for key in self.currentKeys:
-            self.checkbox_objects[key].clicked.connect(self.create_grid_plot_layout)
-            self.checkbox_objects[key].clicked.connect(self.save_settings)
+        # self.load_cell_tare.clicked.connect(self.slot_tare_load_cell)
+        # self.load_cell_scale.valueChanged.connect(self.slot_set_load_cell_scale)
 
-        self.selectAll_checkbox.stateChanged.connect(self.slot_checkbox_state_change)
-
-        self.comboBox_graphDimension.currentTextChanged.connect(self.create_grid_plot_layout)
-        self.comboBox_graphDimension.currentTextChanged.connect(self.save_settings)
-
-        ## connections to GridPlotLayout
-        for key in self.graph_objects.keys():
-            widget = self.graph_objects[key]
-            settings = widget.button_settings.clicked.connect(partial(self.graph_objects[key].open_SettingsWindow))
+        # connections to GridPlotLayout
+        # for key in self.graph_objects.keys():
+        #     key = self.currentKeys[0]
+        #     widget = self.graph_objects[key]
+        #     settings = widget.button_settings.clicked.connect(partial(
+        #         self.graph_objects[key].open_SettingsWindow))
 
     def save_settings(self):
         """
@@ -277,8 +230,8 @@ class MultiDataGraph(DAATAScene, uiFile):
 
         :return: None
         """
-        self.configFile.setValue('graph_dimension', self.comboBox_graphDimension.currentText())
-        self.configFile.setValue('scrollArea_graphs_height', self.scrollArea_graphs.height())
+        # self.configFile.setValue('graph_dimension', self.comboBox_graphDimension.currentText())
+        # self.configFile.setValue('scrollArea_graphs_height', self.scrollArea_graphs.height())
 
         enabledSensors = []
         for key in self.graph_objects.keys():
@@ -308,7 +261,7 @@ class MultiDataGraph(DAATAScene, uiFile):
             logger.error("Possibly invalid key in config. May need to clear config file using self.configFile.clear()")
             pass
 
-        self.comboBox_graphDimension.setCurrentText(self.configFile.value('graph_dimension'))
+        # self.comboBox_graphDimension.setCurrentText(self.configFile.value('graph_dimension'))
         # self.slot_graphDimension()
         self.create_grid_plot_layout()
         logger.debug("Data Collection config files loaded")
@@ -332,8 +285,6 @@ class MultiDataGraph(DAATAScene, uiFile):
         self.save_settings()
         self.window().setWindowTitle('closed tab')
 
-## The line QtGui.QStyleOption() will throw an error
-    '''
     def paintEvent(self, pe):
         """
         This method allows the color scheme of the class to be changed by CSS stylesheets
@@ -346,4 +297,3 @@ class MultiDataGraph(DAATAScene, uiFile):
         p = QtGui.QPainter(self)
         s = self.style()
         s.drawPrimitive(QtGui.QStyle.PE_Widget, opt, p, self)
-    '''

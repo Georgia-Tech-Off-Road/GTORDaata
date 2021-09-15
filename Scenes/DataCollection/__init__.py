@@ -60,7 +60,7 @@ class DataCollection(DAATAScene, uiFile):
         self.selectAll_checkbox.setToolTip(self.selectAll_checkbox.objectName())
         self.gridLayout_2.addWidget(self.selectAll_checkbox)
 
-        ## create a checkbox for each sensor in dictionary in self.scrollAreaWidgetContents_2
+        # create a checkbox for each sensor in dictionary in self.scrollAreaWidgetContents_2
         for key in self.currentKeys:
             self.checkbox_objects[key] = QtWidgets.QCheckBox(data.get_display_name(key), self.scrollAreaWidgetContents_2, objectName=key)
             self.gridLayout_2.addWidget(self.checkbox_objects[key])
@@ -122,7 +122,10 @@ class DataCollection(DAATAScene, uiFile):
 
     def create_graphs(self):
         for key in self.currentKeys:
-            self.graph_objects[key] = CustomPlotWidget(key, parent=self.scrollAreaWidgetContents, layout=self.gridPlotLayout, graph_width_seconds = 8)
+            self.graph_objects[key] = CustomPlotWidget(key,
+                                           parent=self.scrollAreaWidgetContents,
+                                           layout=self.gridPlotLayout,
+                                           graph_width_seconds=8)
             self.graph_objects[key].setObjectName(key)
             self.graph_objects[key].hide()
 
@@ -246,7 +249,7 @@ class DataCollection(DAATAScene, uiFile):
         self.comboBox_graphDimension.currentTextChanged.connect(self.create_grid_plot_layout)
         self.comboBox_graphDimension.currentTextChanged.connect(self.save_settings)
 
-        ## connections to GridPlotLayout
+        # connections to GridPlotLayout
         for key in self.graph_objects.keys():
             widget = self.graph_objects[key]
             settings = widget.button_settings.clicked.connect(partial(self.graph_objects[key].open_SettingsWindow))

@@ -12,7 +12,11 @@ from DataAcquisition import data
 logger = logging.getLogger("Plotting")
 
 
-uiPlotWidget, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'graphWidget.ui'))  # loads the .ui file from QT Desginer
+# loads the .ui file from QT Designer
+uiPlotWidget, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__),
+                                              'graphWidget.ui'))
+
+
 class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
     def __init__(self, sensor_name, parent=None, **kwargs):
         super().__init__()
@@ -144,11 +148,14 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
         self.setMaximumSize(QtCore.QSize(16777215, height))
 
     def update_graph(self):
-        index_time = data.get_most_recent_index()
-        index_sensor = data.get_most_recent_index(sensor_name=self.sensor_name)
-        self.valueArray = data.get_values(self.sensor_name, index_sensor, self.graph_width)
-        self.timeArray = data.get_values("time_internal_seconds", index_time, self.graph_width)
-        self.plot.setData(self.timeArray, self.valueArray)
+        if self.enable_multi_plot:
+            self.update_multi_graphs()
+        else:
+            index_time = data.get_most_recent_index()
+            index_sensor = data.get_most_recent_index(sensor_name=self.sensor_name)
+            self.valueArray = data.get_values(self.sensor_name, index_sensor, self.graph_width)
+            self.timeArray = data.get_values("time_internal_seconds", index_time, self.graph_width)
+            self.plot.setData(self.timeArray, self.valueArray)
 
     def create_multi_graphs(self):
         # Maximum of 6 line graphs in one graph.
@@ -192,7 +199,10 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
             self.multi_plots[sensor_i].setData(self.timeArray, self.valueArray)
 
     def open_SettingsWindow(self):
-        PlotSettingsDialog(self, self.embedLayout, self.sensor_name)
+        if self.enable_multi_plot:
+            PlotSettingsDialogMDG(self, self.embedLayout, self.multi_sensors)
+        else:
+            PlotSettingsDialog(self, self.embedLayout, self.sensor_name)
 
     def connectSignalSlots(self):
         self.button_settings.clicked.connect(partial(self.open_SettingsWindow, self))
@@ -207,7 +217,6 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
             self.configFile.setValue("yMax","auto")
         self.set_graphWidth(self.configFile.value("graph_width"))
 
-
         self.set_yMinMax(self.configFile.value("yMin"), self.configFile.value("yMax"))
 
     # allow color scheme of class to be changed by CSS stylesheets
@@ -219,7 +228,11 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
         s.drawPrimitive(QtGui.QStyle.PE_Widget, opt, p, self)
 
 
-uiSettingsDialog, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'plotSettings.ui'))  # loads the .ui file from QT Desginer
+# loads the .ui file from QT Designer
+uiSettingsDialog, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__),
+                                                  'plotSettings.ui'))
+
+
 class PlotSettingsDialog(QtWidgets.QDialog, uiSettingsDialog):
     def __init__(self, parent, embedLayout, sensor_name):
         super().__init__()
@@ -301,6 +314,139 @@ class PlotSettingsDialog(QtWidgets.QDialog, uiSettingsDialog):
 
         self.button_resetYMax.clicked.connect(self.resetYMax)
         self.button_resetYMin.clicked.connect(self.resetYMin)
+
+    def closeEvent(self, e):
+        self.parent.setStyleSheet(self.parent.stylesheetDefault)
+        del self
+
+
+# loads the .ui file from QT Designer in case plotting a multi data graph
+uiSettingsDialogMDG, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__),
+                                             'plotSettingsMultiDataGraph.ui'))
+
+
+class PlotSettingsDialogMDG(QtWidgets.QDialog, uiSettingsDialogMDG):
+    def __init__(self, parent, embedLayout, multi_sensors):
+        super().__init__()
+        self.setupUi(self)
+        self.parent = parent
+        self.embedLayout = embedLayout
+
+        self.multi_sensors = multi_sensors
+        multi_graph_name = "Multi Sensors 1"
+        self.window().setWindowTitle(multi_graph_name + " Plot Settings")
+
+        # adds the sensor options for the x and y axis
+        self.x_radio_objects = dict()
+        self.addXSensorCheckboxes()
+        self.y_checkbox_objects = dict()
+        self.addYSensorCheckboxes()
+
+        self.connectSlotsSignals()
+        self.reposition()
+
+        self.configFile = QtCore.QSettings('DAATA_plot', multi_graph_name)
+        self.loadSettings()
+        self.parent.setStyleSheet(self.parent.stylesheetHighlight)
+        returnValue = self.exec()
+
+    def addXSensorCheckboxes(self):
+        # adds the time option radio button as one option for x axis
+        time_option = "Time"
+        self.x_radio_objects[time_option] = QtWidgets.QRadioButton(
+                time_option, self.xSensorContents, objectName=time_option)
+        self.xGridLayout.addWidget(self.x_radio_objects[time_option])
+
+        # creates a radio button for each sensor in dictionary in
+        # self.xSensorContents; only one sensor can be in the x axis
+        for key in self.multi_sensors:
+            self.x_radio_objects[key] = QtWidgets.QRadioButton(
+                data.get_display_name(key), self.xSensorContents,
+                objectName=key)
+            self.x_radio_objects[key].setToolTip(
+                self.x_radio_objects[key].objectName())
+            self.xGridLayout.addWidget(self.x_radio_objects[key])
+
+    def addYSensorCheckboxes(self):
+        # creates a checkbox button for each sensor in dictionary in
+        # self.ySensorsContents; multiple sensors can be plotted in the y axis
+        # NB: ySensorsContents has 's' after ySensor, but not xSensorContents
+        for key in self.multi_sensors:
+            self.y_checkbox_objects[key] = QtWidgets.QCheckBox(
+                data.get_display_name(key), self.ySensorsContents,
+                objectName=key)
+            self.x_radio_objects[key].setToolTip(
+                self.x_radio_objects[key].objectName())
+            self.yGridLayout.addWidget(self.y_checkbox_objects[key])
+
+    def loadSettings(self):
+        self.lineEdit_graph_width_seconds.setText(str(
+            self.parent.graph_width/self.parent.samplingFreq))
+        self.lineEdit_yMin.setText(self.configFile.value("yMin"))
+        self.lineEdit_yMax.setText(self.configFile.value("yMax"))
+
+    def applySettings(self):
+        self.saveSettings()
+        self.parent.set_yMinMax(self.configFile.value("yMin"),self.configFile.value("yMax"))
+        self.parent.set_graphWidth(self.configFile.value("graph_width"))
+        self.lineEdit_yMin.setText(self.configFile.value("yMin"))
+        self.lineEdit_yMax.setText(self.configFile.value("yMax"))
+
+    def saveSettings(self):
+        self.configFile.setValue("graph_width", self.lineEdit_graph_width_seconds.text())
+        self.configFile.setValue("yMin", self.lineEdit_yMin.text())
+        self.configFile.setValue("yMax", self.lineEdit_yMax.text())
+
+    # direction can be 'up','left','right','down'
+    def sendMoveSignal(self, direction):
+        self.embedLayout.moveWidget(self.parent, direction)
+
+    def reposition(self, **kwargs):
+        xOverride = kwargs.get("xOverride", 0)
+        yOverride = kwargs.get("yOverride", 0)
+
+        if xOverride == 0:
+            x = self.embedLayout.parent().mapToGlobal(QtCore.QPoint(0, 0)).x() + self.embedLayout.parent().width() + 20
+            # x = self.parent.mapToGlobal(QtCore.QPoint(0, 0)).x() + self.embedLayout.width()
+
+        else:
+            x = xOverride
+
+        if yOverride == 0:
+            y = self.embedLayout.parent().mapToGlobal(QtCore.QPoint(0, 0)).y() + self.embedLayout.parent().height()/3
+        else:
+            y = yOverride
+
+        self.move(x,y)
+
+    def resetYMax(self):
+        self.parent.enable_autoRange(True)
+        self.lineEdit_yMax.setText("auto")
+        self.configFile.setValue("yMax", self.lineEdit_yMax.text())
+        self.parent.set_yMinMax(self.configFile.value("yMin"),self.configFile.value("yMax"))
+
+        # self.lineEdit_yMin.setText(self.configFile.value("yMin"))
+
+    def resetYMin(self):
+        self.parent.enable_autoRange(True)
+        self.lineEdit_yMin.setText("auto")
+        self.configFile.setValue("yMin", self.lineEdit_yMin.text())
+        self.parent.set_yMinMax(self.configFile.value("yMin"),self.configFile.value("yMax"))
+
+        # self.lineEdit_yMax.setText(self.configFile.value("yMax"))
+
+    def connectSlotsSignals(self):
+        self.pushButton_apply.clicked.connect(self.applySettings)
+        self.button_moveDown.clicked.connect(partial(self.sendMoveSignal, 'down'))
+        self.button_moveLeft.clicked.connect(partial(self.sendMoveSignal, 'left'))
+        self.button_moveRight.clicked.connect(partial(self.sendMoveSignal, 'right'))
+        self.button_moveUp.clicked.connect(partial(self.sendMoveSignal, 'up'))
+
+        self.button_resetYMax.clicked.connect(self.resetYMax)
+        self.button_resetYMin.clicked.connect(self.resetYMin)
+
+        # for key in self.x_radio_objects:
+
 
     def closeEvent(self, e):
         self.parent.setStyleSheet(self.parent.stylesheetDefault)
