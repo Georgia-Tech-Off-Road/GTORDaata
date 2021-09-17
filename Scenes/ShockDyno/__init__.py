@@ -158,10 +158,16 @@ class ShockDyno(DAATAScene, uiFile):
             self.position_lcd.setEnabled(True)
         else:
             self.position_lcd.setEnabled(False)
+            
         if data.get_is_connected("force_shockdyno_lbs"):
             self.force_lcd.setEnabled(True)
         else:
             self.force_lcd.setEnabled(False)
+
+        if data.get_is_connected("command_motor_speed"):
+            self.motorspeed_lcd.setEnabled(True)
+        else:
+            self.motorspeed_lcd.setEnabled(False)
 
         # Attach or detach the load cell tare sensor based on if the tab is active
         if self.isVisible():
