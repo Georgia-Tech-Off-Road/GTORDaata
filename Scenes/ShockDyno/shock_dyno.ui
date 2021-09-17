@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>711</width>
+    <width>792</width>
     <height>599</height>
    </rect>
   </property>
@@ -299,7 +299,7 @@
             <item>
              <layout class="QHBoxLayout" name="horizontalLayout_6">
               <item>
-               <widget class="QPushButton" name="pushButton">
+               <widget class="QPushButton" name="sweep">
                 <property name="text">
                  <string>Sweep</string>
                 </property>
@@ -308,7 +308,21 @@
               <item>
                <widget class="QLCDNumber" name="lcdNumber"/>
               </item>
+              <item>
+               <widget class="QPushButton" name="send_speed">
+                <property name="text">
+                 <string>Send</string>
+                </property>
+               </widget>
+              </item>
              </layout>
+            </item>
+            <item>
+             <widget class="QPushButton" name="kill_motor">
+              <property name="text">
+               <string>Kill</string>
+              </property>
+             </widget>
             </item>
            </layout>
           </widget>

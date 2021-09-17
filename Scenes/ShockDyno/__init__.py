@@ -81,10 +81,17 @@ class ShockDyno(DAATAScene, uiFile):
         data.set_current_value("command_tare_load_cell", 1)
         self.load_cell_taring = True
 
-    def slot_set_motor_speed(self, motor_speed):
+    def slot_display_motor_speed(self, motor_speed):
         self.lcdNumber.display(motor_speed)
+
+    def slot_set_motor_speed(self):
         logger.info("Setting motor speed")
+        motor_speed = self.horizontalSlider.value()
         data.set_current_value("command_motor_speed", motor_speed)
+
+    def slot_kill_motor(self):
+        logger.info("Killing motor")
+        data.set_current_value("command_motor_speed", 0)
 
     def slot_set_load_cell_scale(self):
         logger.info("Changing load cell scale")
@@ -177,15 +184,18 @@ class ShockDyno(DAATAScene, uiFile):
         self.load_cell_tare.clicked.connect(self.slot_tare_load_cell)
         self.load_cell_scale.valueChanged.connect(self.slot_set_load_cell_scale)
 
-        self.horizontalSlider.valueChanged.connect(self.slot_set_motor_speed)
-        self.pushButton.clicked.connect(self.sweep)
+        self.horizontalSlider.valueChanged.connect(self.slot_display_motor_speed)
+        self.kill_motor.clicked.connect(self.slot_kill_motor) #set speed to 0
+        self.send_speed.clicked.connect(self.slot_set_motor_speed) #set speed to value from slider
+        self.sweep.clicked.connect(self.slot_sweep)
+
 
         # connections to GridPlotLayout
         # for key in self.graph_objects.keys():
         #     widget = self.graph_objects[key]
         #     settings = widget.button_settings.clicked.connect(partial(self.graph_objects[key].open_SettingsWindow))
 
-    def sweep(self):
+    def slot_sweep(self):
         for i in range(100):
             print(i)
             #self.lcdNumber.display(i)
