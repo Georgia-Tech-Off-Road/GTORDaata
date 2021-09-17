@@ -306,7 +306,7 @@
                </widget>
               </item>
               <item>
-               <widget class="QLCDNumber" name="lcdNumber"/>
+               <widget class="QLCDNumber" name="motorspeed_lcd"/>
               </item>
              </layout>
             </item>

@@ -82,7 +82,7 @@ class ShockDyno(DAATAScene, uiFile):
         self.load_cell_taring = True
 
     def slot_set_motor_speed(self, motor_speed):
-        self.lcdNumber.display(motor_speed)
+        self.motorspeed_lcd.display(motor_speed)
         logger.info("Setting motor speed")
         data.set_current_value("command_motor_speed", motor_speed)
 
@@ -151,10 +151,16 @@ class ShockDyno(DAATAScene, uiFile):
             self.position_lcd.setEnabled(True)
         else:
             self.position_lcd.setEnabled(False)
+            
         if data.get_is_connected("force_shockdyno_lbs"):
             self.force_lcd.setEnabled(True)
         else:
             self.force_lcd.setEnabled(False)
+
+        if data.get_is_connected("command_motor_speed"):
+            self.motorspeed_lcd.setEnabled(True)
+        else:
+            self.motorspeed_lcd.setEnabled(False)
 
         # Attach or detach the load cell tare sensor based on if the tab is active
         if self.isVisible():
