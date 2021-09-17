@@ -82,7 +82,7 @@ class ShockDyno(DAATAScene, uiFile):
         self.load_cell_taring = True
 
     def slot_display_motor_speed(self, motor_speed):
-        self.lcdNumber.display(motor_speed)
+        self.motorspeed_lcd.display(motor_speed)
 
     def slot_set_motor_speed(self):
         logger.info("Setting motor speed")
