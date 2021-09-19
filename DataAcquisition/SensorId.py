@@ -21,17 +21,6 @@ Optional parameters:
     - unit_short     (defaults to None)
     - is_plottable   (defaults to True)
     - is_external    (defaults to True)
-    - class          (defaults to None)
-
-
-Current classes:
-    - dashboard
-    - aux_daq
-    - differential
-    - engine_dyno
-    - shock_dyno
-
-
 """
 
 
@@ -228,29 +217,25 @@ SensorId = {
         "display_name": "Dashboard Time Since Start",
         "unit": "Miliseconds",
         "unit_short": "ms",
-        "is_float": False,
-        "class": "dashboard"
+        "is_float": False
     },
     103: {
         "name": "time_dash_us",
         "object": "Time",
         "num_bytes": 4,
-        "is_float": False,
-        "class": "dashboard"
+        "is_float": False
     },
     104: {
         "name": "time_auxdaq_ms",
         "object": "Time",
         "num_bytes": 2,
-        "is_float": False,
-        "class": "aux_daq"
+        "is_float": False
     },
     105: {
         "name": "time_auxdaq_us",
         "object": "Time",
         "num_bytes": 4,
-        "is_float": False,
-        "class": "aux_daq"
+        "is_float": False
     },
     106: {
         "name": "time_diff_ms",
@@ -291,16 +276,14 @@ SensorId = {
         "object": "Speed",
         "num_bytes": 2,
         "pulses_per_revolution": 1,
-        "is_float": False,
-        "display_name": "Speed"
+        "is_float": False
     },
     201: {
         "name": "position_generic",
         "object": "Position",
         "num_bytes": 4,
         "pulses_per_revolution": 1,
-        "is_float": False,
-        "display_name": "Position"
+        "is_float": False
     },
     202: {
         "name": "speed_position_generic4",
@@ -387,16 +370,14 @@ SensorId = {
             "object": "Speed",
             "display_name": "Speed Engine (600ppr Sensor)",
             "pulses_per_revolution": 600,
-            "is_float": False,
-            "class": "dashboard"
+            "is_float": False
         },
         1: {
             "name": "position_engine600",
             "object": "Position",
             "display_name": "Position Engine (600ppr Sensor)",
             "pulses_per_revolution": 600,
-            "is_float": False,
-            "class": "dashboard"
+            "is_float": False
         }
     },
     207: {
@@ -408,16 +389,14 @@ SensorId = {
             "object": "Speed",
             "display_name": "Speed",
             "pulses_per_revolution": 4,
-            "is_float": False,
-            "class": "dashboard"
+            "is_float": False
         },
         1: {
             "name": "position_engine4",
             "object": "Position",
             "display_name": "Position",
             "pulses_per_revolution": 4,
-            "is_float": False,
-            "class": "dashboard"
+            "is_float": False
         }
     },
     208: {
@@ -429,16 +408,14 @@ SensorId = {
             "object": "Speed",
             "display_name": "Speed",
             "pulses_per_revolution": 30,
-            "is_float": False,
-            "class": "dashboard"
+            "is_float": False
         },
         1: {
             "name": "position_secondary30",
             "object": "Position",
             "display_name": "Position",
             "pulses_per_revolution": 30,
-            "is_float": False,
-            "class": "dashboard"
+            "is_float": False
         }
     },
     209: {
@@ -450,8 +427,7 @@ SensorId = {
         "unit": "Revolutions Per Minutes",
         "unit_short": "RPM",
         "pulses_per_revolution": 600,
-        "is_float": False,
-        "class": "dashboard"
+        "is_float": False
     },
     210: {
         "name": "speed_engine4_rpm",
@@ -462,8 +438,7 @@ SensorId = {
         "unit": "Revolutions Per Minutes",
         "unit_short": "RPM",
         "pulses_per_revolution": 4,
-        "is_float": False,
-        "class": "dashboard"
+        "is_float": False
     },
     211: {
         "name": "speed_secondary30_rpm",
@@ -474,8 +449,7 @@ SensorId = {
         "unit": "Revolutions Per Minutes",
         "unit_short": "RPM",
         "pulses_per_revolution": 30,
-        "is_float": False,
-        "class": "dashboard"
+        "is_float": False
     },
     212: {
         "name": "speed_dynoengine600_rpm",
@@ -529,43 +503,37 @@ SensorId = {
         "name": "brake_sensor1",
         "object": "Pressure",
         "num_bytes": 4,
-        "is_float": False,
-        "class": "aux_daq"
+        "is_float": False
     },
     303: {
         "name": "brake_sensor2",
         "object": "Pressure",
         "num_bytes": 4,
-        "is_float": False,
-        "class": "aux_daq"
+        "is_float": False
     },
     304: {
         "name": "pressure_frontbrake_psi",
         "object": "Pressure",
         "num_bytes": 2,
-        "is_float": False,
-        "class": "aux_daq"
+        "is_float": False
     },
     305: {
         "name": "pressure_rearbrake_psi",
         "object": "Pressure",
         "num_bytes": 2,
-        "is_float": False,
-        "class": "aux_daq"
+        "is_float": False
     },
     306: {
         "name": "force_dyno_lbs",
         "object": "Force",
         "num_bytes": 4,
-        "is_float": True,
-        "class": "engine_dyno"
+        "is_float": True
     },
     306: {
         "name": "force_shockdyno_lbs",
         "object": "Force",
         "num_bytes": 4,
-        "is_float": True,
-        "class": "engine_dyno"
+        "is_float": True
     },
     307: {
         "name": "wheel_force_transducer_analog_1",
@@ -575,29 +543,25 @@ SensorId = {
             "name": "fx_analog",
             "object": "Force",
             "display_name": "Wheel Force X Analog",
-            "is_float": True,
-            "class": "aux_daq"
+            "is_float": True
         },
         1: {
             "name": "fy_analog",
             "object": "Force",
             "display_name": "Wheel Force Y Analog",
-            "is_float": True,
-            "class": "aux_daq"
+            "is_float": True
         },
         2: {
             "name": "fz_analog",
             "object": "Force",
             "display_name": "Wheel Force Z Analog",
-            "is_float": True,
-            "class": "aux_daq"
+            "is_float": True
         },
         3: {
             "name": "mx_analog",
             "object": "Gyro",
             "display_name": "Wheel Gyro X Analog",
-            "is_float": True,
-            "class": "aux_daq"
+            "is_float": True
         }
     },
     308: {
@@ -608,31 +572,27 @@ SensorId = {
             "name": "my_analog",
             "object": "Gyro",
             "display_name": "Wheel Gyro Y Analog",
-            "is_float": True,
-            "class": "aux_daq"
+            "is_float": True
         },
         1: {
             "name": "mz_analog",
             "object": "Gyro",
             "display_name": "Wheel Gyro Z Analog",
-            "is_float": True,
-            "class": "aux_daq"
+            "is_float": True
         },
         2: {
             "name": "velocity_analog",
             "object": "Speed",
             "pulses_per_revolution": 1,
             "display_name": "Wheel Velocity Analog",
-            "is_float": True,
-            "class": "aux_daq"
+            "is_float": True
         },
         3: {
             "name": "position_analog",
             "object": "Position",
             "pulses_per_revolution": 1,
             "display_name": "Wheel Position Analog",
-            "is_float": True,
-            "class": "aux_daq"
+            "is_float": True
         }
     },
     309: {
@@ -643,29 +603,25 @@ SensorId = {
             "name": "accel_x_analog",
             "object": "Acceleration",
             "display_name": "Wheel Accel X Analog",
-            "is_float": True,
-            "class": "aux_daq"
+            "is_float": True
         },
         1: {
             "name": "accel_z_analog",
             "object": "Acceleration",
             "display_name": "Wheel Accel Z Analog",
-            "is_float": True,
-            "class": "aux_daq"
+            "is_float": True
         },
         2: {
             "name": "no_connect_1",
             "object": "Acceleration",
             "display_name": "No Connect 1",
-            "is_float": True,
-            "class": "aux_daq"
+            "is_float": True
         },
         3: {
             "name": "no_connect_2",
             "object": "Acceleration",
             "display_name": "No Connect 2",
-            "is_float": True,
-            "class": "aux_daq"
+            "is_float": True
         }
     },
 
@@ -683,32 +639,28 @@ SensorId = {
         "object": "LDS",
         "num_bytes": 1,
         "stroke_length": 200,
-        "is_float": False,
-        "class": "aux_daq"
+        "is_float": False
     },
     402: {
         "name": "lds_frontrightshock_mm",
         "object": "LDS",
         "num_bytes": 1,
         "stroke_length": 200,
-        "is_float": False,
-        "class": "aux_daq"
+        "is_float": False
     },
     403: {
         "name": "lds_backleftshock_mm",
         "object": "LDS",
         "num_bytes": 1,
         "stroke_length": 225,
-        "is_float": False,
-        "class": "aux_daq"
+        "is_float": False
     },
     404: {
         "name": "lds_backrightshock_mm",
         "object": "LDS",
         "num_bytes": 1,
         "stroke_length": 225,
-        "is_float": False,
-        "class": "aux_daq"
+        "is_float": False
     },
     405: {
         "name": "lds_shockdyno_mm",
@@ -728,50 +680,43 @@ SensorId = {
             "name": "imu_acceleration_x",
             "object": "Acceleration",
             "display_name": "IMU X Acceleration",
-            "is_float": True,
-            "class": "aux_daq"
+            "is_float": True
         },
         1: {
             "name": "imu_acceleration_y",
             "object": "Acceleration",
             "display_name": "IMU Y Acceleration",
-            "is_float": True,
-            "class": "aux_daq"
+            "is_float": True
         },
         2: {
             "name": "imu_acceleration_z",
             "object": "Acceleration",
             "display_name": "IMU Z Acceleration",
-            "is_float": True,
-            "class": "aux_daq"
+            "is_float": True
         },
         3: {
             "name": "imu_gyro_x",
             "object": "Gyro",
             "display_name": "IMU X Gyro",
-            "is_float": True,
-            "class": "aux_daq"
+            "is_float": True
         },
         4: {
             "name": "imu_gyro_y",
             "object": "Gyro",
             "display_name": "IMU Y Gyro",
-            "is_float": True,
-            "class": "aux_daq"
+            "is_float": True
         },
         5: {
             "name": "imu_gyro_z",
             "object": "Gyro",
             "display_name": "IMU Z Gyro",
-            "is_float": True,
-            "class": "aux_daq"
+            "is_float": True
         },
         6: {
             "name": "imu_temperature",
             "object": "Temperature",
             "display_name": "IMU Temperature",
-            "is_float": True,
-            "class": "aux_daq"
+            "is_float": True
         }
     }
 }
