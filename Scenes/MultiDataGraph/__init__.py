@@ -224,6 +224,10 @@ class MultiDataGraph(DAATAScene, uiFile):
                     pass
         self.currentKeys = connected_sensors
 
+        # updates the list of connected sensors for x and y sensor plotting
+        for graph_object in self.graph_objects.values():
+            graph_object.update_connected_sensors(connected_sensors)
+
     def update_active(self):
         """
         This function will update only if the Data Collection tab is the current tab. This function will get called
@@ -265,7 +269,7 @@ class MultiDataGraph(DAATAScene, uiFile):
         self.comboBox_graphDimension.currentTextChanged.connect(self.create_grid_plot_layout)
         self.comboBox_graphDimension.currentTextChanged.connect(self.save_settings)
 
-        ## connections to GridPlotLayout
+        # connections to GridPlotLayout
         for key in self.graph_objects.keys():
             widget = self.graph_objects[key]
             settings = widget.button_settings.clicked.connect(partial(self.graph_objects[key].open_SettingsWindow))

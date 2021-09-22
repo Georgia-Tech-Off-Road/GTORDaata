@@ -24,12 +24,20 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
         self.sensor_name = sensor_name
 
         self.enable_multi_plot = kwargs.get("enable_multi_plot", False)
-        self.multi_sensors = kwargs.get("multi_sensors", None)
+
+        # sets the current x and y sensors plotted on the graph
+        self.y_sensors = kwargs.get("multi_sensors", None)
+        self.x_sensor = kwargs.get("x_sensor", "Time")
 
         self.setMinimumSize(QtCore.QSize(200, 200))
         self.setMaximumSize(QtCore.QSize(16777215, 400))
 
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.MinimumExpanding)
+        # all connected sensors, periodically updated from Scenes/<a scene>
+        self.connected_sensors = []
+
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.MinimumExpanding,
+            QtWidgets.QSizePolicy.MinimumExpanding)
         sizePolicy.setVerticalStretch(4)
         sizePolicy.setHorizontalStretch(4)
         self.setSizePolicy(sizePolicy)
@@ -39,6 +47,7 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
 
         # adds a legend describing what each line represents based on the 'name'
         self.plotWidget.addLegend()
+
 
         if self.enable_multi_plot:
             # set title and axes
@@ -118,6 +127,10 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
         """
         self.setStyleSheet(self.stylesheetDefault)
 
+    # updates all connected sensors
+    def update_connected_sensors(self, connected_sensors):
+        self.connected_sensors = connected_sensors
+
     def set_graphWidth(self, seconds):
         try:
             self.graph_width = int(seconds) * self.samplingFreq
@@ -158,38 +171,36 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
             self.plot.setData(self.timeArray, self.valueArray)
 
     def create_multi_graphs(self):
-        # Maximum of 6 line graphs in one graph.
-        # Colors should be colorblind-friendly where possible.
+        # Maximum of 10 colors in one graph. Colors will be rotated if > 10
+        # line graphs are present. Colors should be colorblind-friendly
         red_pen = pg.mkPen(color="#FF0000")
         orange_pen = pg.mkPen(color="#FFA500")
         green_pen = pg.mkPen(color="#9ACD32")
         blue_pen = pg.mkPen(color="#0000FF")
         purple_pen = pg.mkPen(color="#DA70D6")
         black_pen = pg.mkPen(color="#000000")
-        six_pens = \
-            [red_pen, orange_pen, green_pen, blue_pen, purple_pen, black_pen]
+        pink_pen = pg.mkPen(color="#FFC0CB")
+        brown_pen = pg.mkPen(color="#964B00")
+        gray_pen = pg.mkPen(color="#797979")
+        blue_green_pen = pg.mkPen(color="#0d98ba")
+        pens = \
+            [red_pen, orange_pen, green_pen, blue_pen, purple_pen, black_pen,
+             pink_pen, brown_pen, gray_pen, blue_green_pen]
 
-        # Additional colors for future use
-        # pink_pen = pg.mkPen(color="#FFC0CB")
-        # brown_pen = pg.mkPen(color="#964B00")
-        # gray_pen = pg.mkPen(color="#797979")
+        self.multi_plots.clear()
 
-        if len(self.multi_sensors) != 6:
-            logger.error("Less or more than 6 sensors plotted in one graph. "
-                         "Functionality not established yet.")
-            exit(0)
-
-        for sensor_i in range(len(self.multi_sensors)):
-            sensor = self.multi_sensors[sensor_i]
+        # creates the individual line plots on the graph and adds them to a list
+        for sensor_i in range(len(self.y_sensors)):
+            sensor = self.y_sensors[sensor_i]
             plot = self.plotWidget.plot(self.valueArray,
                                         name=sensor,
-                                        pen=six_pens[sensor_i],
+                                        pen=pens[sensor_i % len(pens)],
                                         width=1)
             self.multi_plots.append(plot)
 
     def update_multi_graphs(self):
-        for sensor_i in range(len(self.multi_sensors)):
-            sensor = self.multi_sensors[sensor_i]
+        for sensor_i in range(len(self.y_sensors)):
+            sensor = self.y_sensors[sensor_i]
             index_time = data.get_most_recent_index()
             index_sensor = data.get_most_recent_index(sensor_name=sensor)
             self.valueArray = data.get_values(sensor, index_sensor,
@@ -200,7 +211,7 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
 
     def open_SettingsWindow(self):
         if self.enable_multi_plot:
-            PlotSettingsDialogMDG(self, self.embedLayout, self.multi_sensors)
+            PlotSettingsDialogMDG(self, self.embedLayout)
         else:
             PlotSettingsDialog(self, self.embedLayout, self.sensor_name)
 
@@ -243,7 +254,6 @@ class PlotSettingsDialog(QtWidgets.QDialog, uiSettingsDialog):
         self.window().setWindowTitle(data.get_display_name(sensor_name) + " Plot Settings")
         self.connectSlotsSignals()
         self.reposition()
-
 
         self.configFile = QtCore.QSettings('DAATA_plot', self.sensor_name)
         self.loadSettings()
@@ -326,20 +336,28 @@ uiSettingsDialogMDG, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__),
 
 
 class PlotSettingsDialogMDG(QtWidgets.QDialog, uiSettingsDialogMDG):
-    def __init__(self, parent, embedLayout, multi_sensors):
+    def __init__(self, parent, embedLayout):
         super().__init__()
         self.setupUi(self)
         self.parent = parent
         self.embedLayout = embedLayout
 
-        self.multi_sensors = multi_sensors
         multi_graph_name = "Multi Sensors 1"
         self.window().setWindowTitle(multi_graph_name + " Plot Settings")
 
-        # adds the sensor options for the x and y axis
+        self.connected_sensors = parent.connected_sensors
+
+        # Adds the sensor options for the x and y axis.
+        # x and y dict() is in form sensor_1:<RadioButton object>.
+        # self.checked_x_key  is currently selected x sensor key and
+        # self.checked_y_keys are currently selected y sensor keys; updated
+        # every time the Apply button is clicked
         self.x_radio_objects = dict()
+        self.checked_x_key = parent.x_sensor
         self.addXSensorCheckboxes()
+
         self.y_checkbox_objects = dict()
+        self.checked_y_keys = parent.y_sensors
         self.addYSensorCheckboxes()
 
         self.connectSlotsSignals()
@@ -348,18 +366,29 @@ class PlotSettingsDialogMDG(QtWidgets.QDialog, uiSettingsDialogMDG):
         self.configFile = QtCore.QSettings('DAATA_plot', multi_graph_name)
         self.loadSettings()
         self.parent.setStyleSheet(self.parent.stylesheetHighlight)
+
+        self.lineEdit_yMin.setText("auto")  # TODO REMOVE
+        self.lineEdit_yMax.setText("auto")  # TODO REMOVE
+
         returnValue = self.exec()
 
+    # adds all sensor checkboxes for x axis representing all connected
+    # sensors; the currently plotted x sensors are selected.
     def addXSensorCheckboxes(self):
         # adds the time option radio button as one option for x axis
         time_option = "Time"
         self.x_radio_objects[time_option] = QtWidgets.QRadioButton(
                 time_option, self.xSensorContents, objectName=time_option)
+
         self.xGridLayout.addWidget(self.x_radio_objects[time_option])
 
-        # creates a radio button for each sensor in dictionary in
+        # by default, time is selected as x axis domain
+        self.x_radio_objects[time_option].setChecked(True)
+        self.checked_x_key = time_option
+
+        # creates a radio button for each connected sensors in dictionary in
         # self.xSensorContents; only one sensor can be in the x axis
-        for key in self.multi_sensors:
+        for key in self.connected_sensors:
             self.x_radio_objects[key] = QtWidgets.QRadioButton(
                 data.get_display_name(key), self.xSensorContents,
                 objectName=key)
@@ -367,17 +396,36 @@ class PlotSettingsDialogMDG(QtWidgets.QDialog, uiSettingsDialogMDG):
                 self.x_radio_objects[key].objectName())
             self.xGridLayout.addWidget(self.x_radio_objects[key])
 
+    # adds all sensor checkboxes for y axis representing Time and all connected
+    # sensors; Time is selected by default.
     def addYSensorCheckboxes(self):
         # creates a checkbox button for each sensor in dictionary in
         # self.ySensorsContents; multiple sensors can be plotted in the y axis
         # NB: ySensorsContents has 's' after ySensor, but not xSensorContents
-        for key in self.multi_sensors:
+        for key in self.connected_sensors:
             self.y_checkbox_objects[key] = QtWidgets.QCheckBox(
                 data.get_display_name(key), self.ySensorsContents,
                 objectName=key)
-            self.x_radio_objects[key].setToolTip(
-                self.x_radio_objects[key].objectName())
+            self.y_checkbox_objects[key].setToolTip(
+                self.y_checkbox_objects[key].objectName())
             self.yGridLayout.addWidget(self.y_checkbox_objects[key])
+
+        # checks all the currently plotted y sensors on this graph
+        for key in self.checked_y_keys:
+            self.y_checkbox_objects[key].setChecked(True)
+
+    # updates the current stored selection of x and y sensors
+    def update_xy_sensors(self):
+        self.checked_y_keys.clear()
+        for key in self.connected_sensors:
+            # adds selected y sensors to the checked_y_keys list, removes
+            # unselected sensors
+            if self.y_checkbox_objects[key].isChecked():
+                self.checked_y_keys.append(key)
+
+            # updates the selected x sensor to a variable
+            if self.x_radio_objects[key].isChecked():
+                self.checked_x_key = key
 
     def loadSettings(self):
         self.lineEdit_graph_width_seconds.setText(str(
@@ -391,6 +439,22 @@ class PlotSettingsDialogMDG(QtWidgets.QDialog, uiSettingsDialogMDG):
         self.parent.set_graphWidth(self.configFile.value("graph_width"))
         self.lineEdit_yMin.setText(self.configFile.value("yMin"))
         self.lineEdit_yMax.setText(self.configFile.value("yMax"))
+
+        # updates the plot graph based on selections of x and y sensors
+        self.update_this_MDG()
+
+    # updates this multi data graph with the newly selected x-y sensors
+    def update_this_MDG(self):
+        self.parent.plotWidget.clear()
+        self.update_xy_sensors()
+
+        self.parent.y_sensors = self.checked_y_keys
+        self.parent.x_sensor = self.checked_x_key
+        print(self.parent.y_sensors)
+        print(self.parent.x_sensor)
+        self.parent.multi_plots[0].clear()
+        self.parent.create_multi_graphs()
+        pass
 
     def saveSettings(self):
         self.configFile.setValue("graph_width", self.lineEdit_graph_width_seconds.text())
@@ -437,6 +501,7 @@ class PlotSettingsDialogMDG(QtWidgets.QDialog, uiSettingsDialogMDG):
 
     def connectSlotsSignals(self):
         self.pushButton_apply.clicked.connect(self.applySettings)
+        self.pushButton_ok.clicked.connect(self.closeSavePlotSettings)
         self.button_moveDown.clicked.connect(partial(self.sendMoveSignal, 'down'))
         self.button_moveLeft.clicked.connect(partial(self.sendMoveSignal, 'left'))
         self.button_moveRight.clicked.connect(partial(self.sendMoveSignal, 'right'))
@@ -447,10 +512,13 @@ class PlotSettingsDialogMDG(QtWidgets.QDialog, uiSettingsDialogMDG):
 
         # for key in self.x_radio_objects:
 
-
     def closeEvent(self, e):
         self.parent.setStyleSheet(self.parent.stylesheetDefault)
         del self
+
+    def closeSavePlotSettings(self):
+        self.applySettings()
+        self.close()
 
 
 class GridPlotLayout(QGridLayout):
