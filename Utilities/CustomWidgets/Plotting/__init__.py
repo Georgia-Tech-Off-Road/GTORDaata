@@ -18,29 +18,48 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
         super().__init__()
         self.setupUi(self)
         self.sensor_name = sensor_name
+
+        self.enable_multi_plot = kwargs.get("enable_multi_plot", False)
+        self.multi_sensors = kwargs.get("multi_sensors", None)
+
         self.setMinimumSize(QtCore.QSize(200, 200))
         self.setMaximumSize(QtCore.QSize(16777215, 400))
-
 
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.MinimumExpanding)
         sizePolicy.setVerticalStretch(4)
         sizePolicy.setHorizontalStretch(4)
         self.setSizePolicy(sizePolicy)
 
+        # disable mouse-scroll zooming on the graph
+        self.plotWidget.setMouseEnabled(False, False)
 
+        # adds a legend describing what each line represents based on the 'name'
+        self.plotWidget.addLegend()
 
+        if self.enable_multi_plot:
+            # set title and axes
+            self.plotWidget.setLabels(bottom='Time (s)',
+                                      title="Multi Sensor 1 Graph")
+        else:
+            # set title and axes
+            self.plotWidget.setLabels(
+                left=str(data.get_display_name(sensor_name))
+                     + " ("
+                     + str(data.get_unit_short(sensor_name))
+                     + ")",
+                bottom='Time (s)',
+                title=str(data.get_display_name(sensor_name))
+                      + ' Graph')
 
-        self.plotWidget.setMouseEnabled(False, False)  # disable mouse-scroll zooming on the graph
-        self.plotWidget.setLabels(left=str(data.get_display_name(sensor_name))+" ("+str(data.get_unit_short(sensor_name))+")",
-                                  bottom='Time (s)',
-                                  title=str(data.get_display_name(sensor_name)) + ' Graph')  # set title and axes
         self.plotWidget.showGrid(x=True, y=True, alpha=.2)
         self.plotWidget.setBackground(None)
         # Number of value to show on the x_axis
         self.samplingFreq = 200
-        self.graph_width = kwargs.get("graph_width_seconds", 10) * self.samplingFreq
+        self.graph_width = kwargs.get("graph_width_seconds", 10) \
+                           * self.samplingFreq
 
-        self.embedLayout = kwargs.get("layout", None)      # the layout object the plot is embedded within
+        # the layout object the plot is embedded within
+        self.embedLayout = kwargs.get("layout", None)
 
         # Frequency of values to show (if set to 5 will show every 5th value collected)
         self.show_width = kwargs.get("show_width", 5)
@@ -49,9 +68,17 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
         self.rowSpan = kwargs.get("rowspan", 1)
         self.rowSpan = kwargs.get("columnspan", 1)
 
-
         self.valueArray = numpy.zeros(self.graph_width)
-        self.plot = self.plotWidget.plot(self.valueArray, pen='b', width = 1)
+
+        self.multi_plots = []
+        if self.enable_multi_plot:
+            self.create_multi_graphs()
+        else:
+            self.plot = self.plotWidget.plot(self.valueArray,
+                                             name=self.sensor_name,
+                                             pen='b',
+                                             width=1)
+
         self.initialCounter = 0
 
         self.configFile = QtCore.QSettings('DAATA_plot', self.sensor_name)
@@ -93,7 +120,6 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
         except:
             self.graph_width = 10 * self.samplingFreq
 
-
     def set_yMinMax(self, yMin, yMax):
         self.plotWidget.setYRange(0, 100)
         self.enable_autoRange(True)
@@ -124,6 +150,47 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
         self.timeArray = data.get_values("time_internal_seconds", index_time, self.graph_width)
         self.plot.setData(self.timeArray, self.valueArray)
 
+    def create_multi_graphs(self):
+        # Maximum of 6 line graphs in one graph.
+        # Colors should be colorblind-friendly where possible.
+        red_pen = pg.mkPen(color="#FF0000")
+        orange_pen = pg.mkPen(color="#FFA500")
+        green_pen = pg.mkPen(color="#9ACD32")
+        blue_pen = pg.mkPen(color="#0000FF")
+        purple_pen = pg.mkPen(color="#DA70D6")
+        black_pen = pg.mkPen(color="#000000")
+        six_pens = \
+            [red_pen, orange_pen, green_pen, blue_pen, purple_pen, black_pen]
+
+        # Additional colors for future use
+        # pink_pen = pg.mkPen(color="#FFC0CB")
+        # brown_pen = pg.mkPen(color="#964B00")
+        # gray_pen = pg.mkPen(color="#797979")
+
+        if len(self.multi_sensors) != 6:
+            logger.error("Less or more than 6 sensors plotted in one graph. "
+                         "Functionality not established yet.")
+            exit(0)
+
+        for sensor_i in range(len(self.multi_sensors)):
+            sensor = self.multi_sensors[sensor_i]
+            plot = self.plotWidget.plot(self.valueArray,
+                                        name=sensor,
+                                        pen=six_pens[sensor_i],
+                                        width=1)
+            self.multi_plots.append(plot)
+
+    def update_multi_graphs(self):
+        for sensor_i in range(len(self.multi_sensors)):
+            sensor = self.multi_sensors[sensor_i]
+            index_time = data.get_most_recent_index()
+            index_sensor = data.get_most_recent_index(sensor_name=sensor)
+            self.valueArray = data.get_values(sensor, index_sensor,
+                                              self.graph_width)
+            self.timeArray = data.get_values("time_internal_seconds",
+                                             index_time, self.graph_width)
+            self.multi_plots[sensor_i].setData(self.timeArray, self.valueArray)
+
     def open_SettingsWindow(self):
         PlotSettingsDialog(self, self.embedLayout, self.sensor_name)
 
@@ -143,7 +210,7 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
 
         self.set_yMinMax(self.configFile.value("yMin"), self.configFile.value("yMax"))
 
-    ## allow color scheme of class to be changed by CSS stylesheets
+    # allow color scheme of class to be changed by CSS stylesheets
     def paintEvent(self, pe):
         opt = QtGui.QStyleOption()
         opt.initFrom(self)
