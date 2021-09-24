@@ -524,7 +524,7 @@ SensorId = {
         "is_float": False
     },
     306: {
-        "name": "force_dyno_lbs",
+        "name": "force_enginedyno_lbs",
         "object": "Force",
         "num_bytes": 4,
         "is_float": True
