@@ -26,6 +26,8 @@ class DataImport:
         self.input_mode = ""
 
         # Connect to the Teensy
+        self.teensy_found = False
+
         #self.connect_serial() #being called too soon.
 
         # Variables that are used for reading/parsing incoming packets
@@ -78,7 +80,7 @@ class DataImport:
 
         try:
             self.teensy_port = self.input_mode
-            self.teensy_ser = serial.Serial(baudrate=115200, port=self.teensy_port, timeout=2,
+            self.teensy_ser = serial.Serial(baudrate=115200, port='COM8', timeout=2,
                                             write_timeout=1)
             logger.info("Teensy found on port {}".format(self.teensy_ser.port))
             self.teensy_found = True

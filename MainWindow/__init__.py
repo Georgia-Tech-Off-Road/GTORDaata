@@ -276,9 +276,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         if not self.data_reading_thread.is_alive():
             self.data_reading_thread.start()
         if "COM" in data_import.input_mode:
-            DataImport.connect_serial(data_import)
-            if not self.data_sending_thread.is_alive():
+            data_import.connect_serial()
+            if not self.data_sending_thread.isActive():
                 self.data_sending_thread.start(100)
+                print("We did it!")
         else:
             # implement the CSV and BIN Parsers depending on the input mode value
             pass
