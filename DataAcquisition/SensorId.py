@@ -529,13 +529,13 @@ SensorId = {
         "num_bytes": 4,
         "is_float": True
     },
-    306: {
+    307: {
         "name": "force_shockdyno_lbs",
         "object": "Force",
         "num_bytes": 4,
         "is_float": True
     },
-    307: {
+    308: {
         "name": "wheel_force_transducer_analog_1",
         "num_bytes": [4, 4, 4, 4],
         "h_file_comment": "FX, FY, FZ, MX",
@@ -564,7 +564,7 @@ SensorId = {
             "is_float": True
         }
     },
-    308: {
+    309: {
         "name": "wheel_force_transducer_analog_2",
         "num_bytes": [4, 4, 4, 4],
         "h_file_comment": "MY, MZ, Vel, Pos",
@@ -595,7 +595,7 @@ SensorId = {
             "is_float": True
         }
     },
-    309: {
+    310: {
         "name": "wheel_force_transducer_analog_3",
         "num_bytes": [4, 4, 4, 4],
         "h_file_comment": "AccelX, AccelY",
