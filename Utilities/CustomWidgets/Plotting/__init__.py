@@ -216,7 +216,7 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
             index_sensor = data.get_most_recent_index(sensor_name=sensor)
             valueArrayY = data.get_values(sensor, index_sensor,
                                               self.graph_width)
-            if self.x_sensor == "Time":
+            if self.x_sensor == self.time_option:
                 timeArray = data.get_values("time_internal_seconds",
                                             index_time, self.graph_width)
                 self.multi_plots[sensor_i].setData(timeArray, valueArrayY)
@@ -398,7 +398,8 @@ class PlotSettingsDialogMDG(QtWidgets.QDialog, uiSettingsDialogMDG):
         self.x_radio_objects[self.time_option] = QtWidgets.QRadioButton(
             self.time_option, self.xSensorContents,
             objectName=self.time_option)
-
+        self.x_radio_objects[self.time_option].setToolTip(
+            self.x_radio_objects[self.time_option].objectName())
         self.xGridLayout.addWidget(self.x_radio_objects[self.time_option])
 
         # creates a radio button for each connected sensors in dictionary in
@@ -433,16 +434,30 @@ class PlotSettingsDialogMDG(QtWidgets.QDialog, uiSettingsDialogMDG):
 
     # updates the current stored selection of x and y sensors
     def update_xy_sensors(self):
-        self.checked_y_keys.clear()
-        for key in self.connected_sensors:
-            # adds selected y sensors to the checked_y_keys list, removes
-            # unselected sensors
-            if self.y_checkbox_objects[key].isChecked():
-                self.checked_y_keys.append(key)
+        # if time_option is selected, then the checked_x_key will be the
+        # time_option and we won't check the rest of x sensor options.
+        # This is important because time_option is not part of connected_sensors
+        if self.x_radio_objects[self.time_option].isChecked():
+            self.checked_x_key = self.time_option
 
-            # updates the selected x sensor to a variable
-            if self.x_radio_objects[key].isChecked():
-                self.checked_x_key = key
+            self.checked_y_keys.clear()
+            for key in self.connected_sensors:
+                # adds selected y sensors to the checked_y_keys list, removes
+                # unselected sensors
+                if self.y_checkbox_objects[key].isChecked():
+                    self.checked_y_keys.append(key)
+
+        else:
+            self.checked_y_keys.clear()
+            for key in self.connected_sensors:
+                # adds selected y sensors to the checked_y_keys list, removes
+                # unselected sensors
+                if self.y_checkbox_objects[key].isChecked():
+                    self.checked_y_keys.append(key)
+
+                # updates the selected x sensor to a variable
+                if self.x_radio_objects[key].isChecked():
+                    self.checked_x_key = key
 
     def loadSettings(self):
         self.lineEdit_graph_width_seconds.setText(str(
@@ -462,8 +477,8 @@ class PlotSettingsDialogMDG(QtWidgets.QDialog, uiSettingsDialogMDG):
 
     # updates this multi data graph with the newly selected x-y sensors
     def update_this_MDG(self):
-        self.parent.plotWidget.clear()
         self.update_xy_sensors()
+        self.parent.plotWidget.clear()
 
         self.parent.y_sensors = self.checked_y_keys
         self.parent.x_sensor = self.checked_x_key
