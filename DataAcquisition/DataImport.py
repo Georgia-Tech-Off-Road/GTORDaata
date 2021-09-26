@@ -94,7 +94,6 @@ class DataImport:
 
         :return: None
         """
-
         while self.teensy_ser.in_waiting != 0:  # if there are bytes waiting in input buffer
             self.current_packet.append(self.teensy_ser.read(1))  # read in a single byte
             packet_length = len(self.current_packet)

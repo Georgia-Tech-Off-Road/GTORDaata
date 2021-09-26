@@ -173,10 +173,12 @@ class ShockDyno(DAATAScene, uiFile):
         if self.isVisible():
             if not self.is_sensors_attached:
                 data_import.attach_output_sensor(data.get_id("command_tare_load_cell"))
+                data_import.attach_output_sensor(data.get_id("command_motor_speed"))
                 self.is_sensors_attached = True
         else:
             if self.is_sensors_attached:
                 data_import.detach_output_sensor(data.get_id("command_tare_load_cell"))
+                data_import.attach_output_sensor(data.get_id("command_motor_speed"))
                 self.is_sensors_attached = False
 
         if self.load_cell_taring:

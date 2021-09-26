@@ -256,6 +256,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def import_coms(self):
         self.dict_ports["Auto"] = None #adds the Auto option no matter what
         for portName in self.enumerate_serial_ports():
+            print(portName)
             self.dict_ports[portName] = None
 
     def create_homepage(self):

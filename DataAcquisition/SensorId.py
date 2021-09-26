@@ -554,20 +554,20 @@ SensorId = {
         "class": "aux_daq"
     },
     306: {
-        "name": "force_dyno_lbs",
-        "object": "Force",
-        "num_bytes": 4,
-        "is_float": True,
-        "class": "engine_dyno"
-    },
-    306: {
-        "name": "force_shockdyno_lbs",
+        "name": "force_enginedyno_lbs",
         "object": "Force",
         "num_bytes": 4,
         "is_float": True,
         "class": "engine_dyno"
     },
     307: {
+        "name": "force_shockdyno_lbs",
+        "object": "Force",
+        "num_bytes": 4,
+        "is_float": True,
+        "class": "engine_dyno"
+    },
+    308: {
         "name": "wheel_force_transducer_analog_1",
         "num_bytes": [4, 4, 4, 4],
         "h_file_comment": "FX, FY, FZ, MX",
@@ -600,7 +600,7 @@ SensorId = {
             "class": "aux_daq"
         }
     },
-    308: {
+    309: {
         "name": "wheel_force_transducer_analog_2",
         "num_bytes": [4, 4, 4, 4],
         "h_file_comment": "MY, MZ, Vel, Pos",
@@ -635,7 +635,7 @@ SensorId = {
             "class": "aux_daq"
         }
     },
-    309: {
+    310: {
         "name": "wheel_force_transducer_analog_3",
         "num_bytes": [4, 4, 4, 4],
         "h_file_comment": "AccelX, AccelY",
