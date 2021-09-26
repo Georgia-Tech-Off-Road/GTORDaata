@@ -96,7 +96,7 @@ class EngineDyno(DAATAScene, uiFile):
 
     def slot_set_load_cell_scale(self):
         logger.info("Changing load cell scale")
-        data.set_sensor_scale("force_dyno_lbs", self.load_cell_scale.value())
+        data.set_sensor_scale("force_enginedyno_lbs", self.load_cell_scale.value())
 
     def update_graphs(self):
         for key in self.current_keys:
@@ -135,7 +135,7 @@ class EngineDyno(DAATAScene, uiFile):
         if self.secondary_speed_lcd.isEnabled():
             self.secondary_speed_lcd.display(data.get_current_value("dyno_secondary_speed"))
         if self.force_lcd.isEnabled():
-            self.force_lcd.display(data.get_current_value("force_dyno_lbs"))
+            self.force_lcd.display(data.get_current_value("force_enginedyno_lbs"))
         if self.torque_lcd.isEnabled():
             self.torque_lcd.display(data.get_current_value("dyno_torque_ftlbs"))
         if self.power_lcd.isEnabled():
@@ -172,7 +172,7 @@ class EngineDyno(DAATAScene, uiFile):
         else:
             self.secondary_speed_lcd.setEnabled(False)
 
-        if data.get_is_connected("force_dyno_lbs"):
+        if data.get_is_connected("force_enginedyno_lbs"):
             self.force_lcd.setEnabled(True)
         else:
             self.force_lcd.setEnabled(False)
