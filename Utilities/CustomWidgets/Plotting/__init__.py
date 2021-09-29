@@ -1,12 +1,13 @@
 import logging
 import sys, os
 import time
+from enum import Enum
+
 import pyqtgraph as pg
 from functools import partial
 from PyQt5 import QtCore, QtWidgets, uic, QtGui
 import numpy
 from PyQt5.QtWidgets import QGridLayout
-
 from DataAcquisition import data
 
 logger = logging.getLogger("Plotting")
@@ -18,15 +19,25 @@ uiPlotWidget, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__),
 
 
 class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
+    class PlotTypes(Enum):
+        Line_Graph = 1
+        Scatter_plot = 2
+
     def __init__(self, sensor_name, parent=None, **kwargs):
         super().__init__()
         self.setupUi(self)
         self.sensor_name = sensor_name
 
+        self.line_graph = "line_graph"
+        self.scatter_plot = "scatter_plot"
+
         self.enable_multi_plot = kwargs.get("enable_multi_plot", False)
+
+        self.plot_type = kwargs.get("plot_type", self.line_graph)
 
         # a common arbitrarily key for the time option for x axis
         self.time_option = "Time"
+        self.DEF_BRUSH_SIZE = 10
 
         # sets the current x and y sensors plotted on the graph
         self.y_sensors = kwargs.get("multi_sensors", None)
@@ -56,7 +67,6 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
             # create_multi_graphs
             self.plotWidget.setLabels(bottom='Time (s)',
                                       title="Multi Sensor 1 Graph")
-
 
         self.plotWidget.showGrid(x=True, y=True, alpha=.2)
         self.plotWidget.setBackground(None)
@@ -165,23 +175,26 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
             timeArray = data.get_values("time_internal_seconds", index_time, self.graph_width)
             self.plot.setData(timeArray, valueArray)
 
-    def create_multi_graphs(self):
-        # Maximum of 10 colors in one graph. Colors will be rotated if > 10
-        # line graphs are present. Colors should be colorblind-friendly
-        red_pen = pg.mkPen(color="#FF0000")
-        orange_pen = pg.mkPen(color="#FFA500")
-        green_pen = pg.mkPen(color="#9ACD32")
-        blue_pen = pg.mkPen(color="#0000FF")
-        purple_pen = pg.mkPen(color="#DA70D6")
-        black_pen = pg.mkPen(color="#000000")
-        pink_pen = pg.mkPen(color="#FFC0CB")
-        brown_pen = pg.mkPen(color="#964B00")
-        gray_pen = pg.mkPen(color="#797979")
-        blue_green_pen = pg.mkPen(color="#0d98ba")
-        pens = \
-            [red_pen, orange_pen, green_pen, blue_pen, purple_pen, black_pen,
-             pink_pen, brown_pen, gray_pen, blue_green_pen]
+    """
+        Returns a pyqtgraph 'pg' pen or brush object of a color depending on the
+        color_choice input integer. Colors should be colorblind-friendly
+        :param color_choice: an integer to choose which color, value will be 
+        reduce modulated (%) to the number of possible colors
+        :param create_pen: True if you want to return a pen object, False if want a 
+        brush 
+        :return: A brush or a pen depending on create_pen
+    """
+    def create_pen_brush(self, color_choice=0, create_pen=True):
+        # 10 colors = green, red, blue, orange, purple,
+        # black, pink, brown, gray, blue-green
+        colors = ["#9ACD32", "#FFA500", "#0000FF", "#FF0000", "#DA70D6",
+                  "#000000", "#FFC0CB", "#964B00", "#797979", "#0d98ba"]
+        if create_pen:
+            return pg.mkPen(color=colors[color_choice % len(colors)])
+        else:
+            return pg.mkBrush(color=colors[color_choice % len(colors)])
 
+    def create_multi_graphs(self):
         # clears all of the plots listed made after x-y sensor selection changes
         self.multi_plots.clear()
 
@@ -197,35 +210,69 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
 
         valueArray = numpy.zeros(self.graph_width)
 
-        # creates the individual line plots on the graph and adds them to a list
-        for sensor_i in range(len(self.y_sensors)):
-            sensor = self.y_sensors[sensor_i]
-            plot = self.plotWidget.plot(valueArray,
-                                        name=sensor,
-                                        pen=pens[sensor_i % len(pens)],
-                                        width=1)
-            self.multi_plots.append(plot)
+        if self.plot_type == self.line_graph:
+            # creates the individual line plots on the graph and adds them to a
+            # list
+            for sensor_i in range(len(self.y_sensors)):
+                sensor = self.y_sensors[sensor_i]
+                pen = self.create_pen_brush(sensor_i, True)
+                plot = self.plotWidget.plot(valueArray,
+                                            name=sensor,
+                                            pen=pen,
+                                            width=1)
+                self.multi_plots.append(plot)
+        elif self.plot_type == self.scatter_plot:
+            # creates the individual line plots on the graph and adds them to a
+            # list
+            for sensor_i in range(len(self.y_sensors)):
+                brush = self.create_pen_brush(sensor_i, False)
+                scatter = pg.ScatterPlotItem(size=self.DEF_BRUSH_SIZE,
+                                             brush=brush)
+                self.plotWidget.addItem(scatter)
+                self.multi_plots.append(scatter)
 
     # updates all line plots contained in list self.multi_plots according to
     # which x-y sensors are selected
     def update_multi_graphs(self):
+        if self.plot_type == self.line_graph:
+            for sensor_i in range(len(self.y_sensors)):
+                sensor = self.y_sensors[sensor_i]
+                index_time = data.get_most_recent_index()
+                index_sensor = data.get_most_recent_index(sensor_name=sensor)
+                valueArrayY = data.get_values(sensor, index_sensor,
+                                                  self.graph_width)
+                if self.x_sensor == self.time_option:
+                    timeArray = data.get_values("time_internal_seconds",
+                                                index_time, self.graph_width)
+                    self.multi_plots[sensor_i].setData(timeArray, valueArrayY)
+                else:
+                    index_sensorX = data.get_most_recent_index(
+                        sensor_name=self.x_sensor)
+                    valueArrayX = data.get_values(self.x_sensor, index_sensorX,
+                                                  self.graph_width)
+                    self.multi_plots[sensor_i].setData(valueArrayX, valueArrayY)
+        elif self.plot_type == self.scatter_plot:
+            for sensor_i in range(len(self.y_sensors)):
+                sensor = self.y_sensors[sensor_i]
+                index_time = data.get_most_recent_index()
+                index_sensor = data.get_most_recent_index(sensor_name=sensor)
+                valueArrayY = data.get_values(sensor, index_sensor,
+                                              self.graph_width)
+                if self.x_sensor == self.time_option:
+                    # get time values
+                    timeArray = data.get_values("time_internal_seconds",
+                                                index_time, self.graph_width)
+                    # add points
+                    self.multi_plots[sensor_i].addPoints(timeArray,
+                                                         valueArrayY)
+                else:
+                    index_sensorX = data.get_most_recent_index(
+                        sensor_name=self.x_sensor)
+                    valueArrayX = data.get_values(self.x_sensor, index_sensorX,
+                                                  self.graph_width)
+                    self.multi_plots[sensor_i].addPoints(valueArrayX,
+                                                         valueArrayY)
 
-        for sensor_i in range(len(self.y_sensors)):
-            sensor = self.y_sensors[sensor_i]
-            index_time = data.get_most_recent_index()
-            index_sensor = data.get_most_recent_index(sensor_name=sensor)
-            valueArrayY = data.get_values(sensor, index_sensor,
-                                              self.graph_width)
-            if self.x_sensor == self.time_option:
-                timeArray = data.get_values("time_internal_seconds",
-                                            index_time, self.graph_width)
-                self.multi_plots[sensor_i].setData(timeArray, valueArrayY)
-            else:
-                index_sensorX = data.get_most_recent_index(
-                    sensor_name=self.x_sensor)
-                valueArrayX = data.get_values(self.x_sensor, index_sensorX,
-                                              self.graph_width)
-                self.multi_plots[sensor_i].setData(valueArrayX, valueArrayY)
 
     def open_SettingsWindow(self):
         if self.enable_multi_plot:

@@ -1,3 +1,5 @@
+from enum import Enum
+
 from PyQt5 import QtWidgets, uic, QtGui, QtCore
 from PyQt5.QtCore import QSettings
 from PyQt5.QtGui import QPalette
@@ -135,13 +137,16 @@ class MultiDataGraph(DAATAScene, uiFile):
         self.gridPlotLayout.addItem(self.spacerItem_gridPlotLayout)
 
     def create_graphs(self):
+        self.line_graph = "line_graph"
+        self.scatter_plot = "scatter_plot"
         key = self.currentKeys[0]
         self.graph_objects[key] = CustomPlotWidget(key,
                                        parent=self.scrollAreaWidgetContents,
                                        layout=self.gridPlotLayout,
                                        graph_width_seconds=8,
                                        multi_sensors=self.currentKeys,
-                                       enable_multi_plot=True)
+                                       enable_multi_plot=True,
+                                        plot_type=self.line_graph)
         self.graph_objects[key].setObjectName(key)
         self.graph_objects[key].show()
 
