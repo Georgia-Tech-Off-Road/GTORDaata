@@ -411,6 +411,13 @@ class PlotSettingsDialogMDG(QtWidgets.QDialog, uiSettingsDialogMDG):
         multi_graph_name = "Multi Sensors 1"
         self.window().setWindowTitle(multi_graph_name + " Plot Settings")
 
+        self.line_graph_name = "Line Graph"
+        self.scatter_plot_name = "Scatter Plot"
+        if self.parent.plot_type == "line_graph":
+            self.scatterOrLineBtn.setText(self.scatter_plot_name)
+        elif self.parent.plot_type == "scatter_plot":
+            self.scatterOrLineBtn.setText(self.line_graph_name)
+
         self.connected_sensors = parent.connected_sensors
 
         # Adds the sensor options for the x and y axis.
@@ -467,6 +474,16 @@ class PlotSettingsDialogMDG(QtWidgets.QDialog, uiSettingsDialogMDG):
         # creates a checkbox button for each sensor in dictionary in
         # self.ySensorsContents; multiple sensors can be plotted in the y axis
         # NB: ySensorsContents has 's' after ySensor, but not xSensorContents
+
+        # Create the checkbox for selecting all of the sensors
+        self.select_all_y_checkbox = QtWidgets.QCheckBox(
+            "Select All",
+            self.ySensorsContents,
+            objectName="select_all_y_checkbox")
+        self.select_all_y_checkbox.setToolTip(
+            self.select_all_y_checkbox.objectName())
+        self.yGridLayout.addWidget(self.select_all_y_checkbox)
+
         for key in self.connected_sensors:
             self.y_checkbox_objects[key] = QtWidgets.QCheckBox(
                 data.get_display_name(key), self.ySensorsContents,
@@ -476,8 +493,21 @@ class PlotSettingsDialogMDG(QtWidgets.QDialog, uiSettingsDialogMDG):
             self.yGridLayout.addWidget(self.y_checkbox_objects[key])
 
         # checks all the currently plotted y sensors on this graph
+        if len(self.checked_y_keys) == len(self.connected_sensors):
+            # if all connected sensors are checked, set select all checkbox to
+            # checked
+            self.select_all_y_checkbox.setChecked(True)
         for key in self.checked_y_keys:
             self.y_checkbox_objects[key].setChecked(True)
+
+    def select_all_btn_change(self):
+        if self.select_all_y_checkbox.isChecked():
+            for key in self.connected_sensors:
+                self.y_checkbox_objects[key].setChecked(True)
+        else:
+            for key in self.connected_sensors:
+                self.y_checkbox_objects[key].setChecked(False)
+        self.update_xy_sensors()
 
     # updates the current stored selection of x and y sensors
     def update_xy_sensors(self):
@@ -487,13 +517,17 @@ class PlotSettingsDialogMDG(QtWidgets.QDialog, uiSettingsDialogMDG):
         if self.x_radio_objects[self.time_option].isChecked():
             self.checked_x_key = self.time_option
 
+            # if selected Select All y sensors, all connected sensors will be
+            # added to the self.checked_y_keys list
             self.checked_y_keys.clear()
-            for key in self.connected_sensors:
+            if self.select_all_y_checkbox.isChecked():
+                self.checked_y_keys.extend(self.connected_sensors)
+            else:
                 # adds selected y sensors to the checked_y_keys list, removes
                 # unselected sensors
-                if self.y_checkbox_objects[key].isChecked():
-                    self.checked_y_keys.append(key)
-
+                for key in self.connected_sensors:
+                    if self.y_checkbox_objects[key].isChecked():
+                        self.checked_y_keys.append(key)
         else:
             self.checked_y_keys.clear()
             for key in self.connected_sensors:
@@ -522,7 +556,8 @@ class PlotSettingsDialogMDG(QtWidgets.QDialog, uiSettingsDialogMDG):
         # updates the plot graph based on selections of x and y sensors
         self.update_this_MDG()
 
-    # updates this multi data graph with the newly selected x-y sensors
+    # clears and updates this multi data graph with the newly selected
+    # x-y sensors and plot type option
     def update_this_MDG(self):
         self.update_xy_sensors()
         self.parent.plotWidget.clear()
@@ -576,6 +611,19 @@ class PlotSettingsDialogMDG(QtWidgets.QDialog, uiSettingsDialogMDG):
 
         # self.lineEdit_yMax.setText(self.configFile.value("yMax"))
 
+    # changes the plot type from scatter plot to line graph or vice versa and
+    # updates the MDG
+    def changePlotType(self):
+        if self.scatterOrLineBtn.text() == self.scatter_plot_name:
+            # change plot type to scatter plot
+            self.scatterOrLineBtn.setText(self.line_graph_name)
+            self.parent.plot_type = "scatter_plot"
+        elif self.scatterOrLineBtn.text() == self.line_graph_name:
+            # change plot type to line graph
+            self.scatterOrLineBtn.setText(self.scatter_plot_name)
+            self.parent.plot_type = "line_graph"
+        # self.update_this_MDG()
+
     def connectSlotsSignals(self):
         self.pushButton_apply.clicked.connect(self.applySettings)
         self.pushButton_ok.clicked.connect(self.closeSavePlotSettings)
@@ -583,6 +631,9 @@ class PlotSettingsDialogMDG(QtWidgets.QDialog, uiSettingsDialogMDG):
         self.button_moveLeft.clicked.connect(partial(self.sendMoveSignal, 'left'))
         self.button_moveRight.clicked.connect(partial(self.sendMoveSignal, 'right'))
         self.button_moveUp.clicked.connect(partial(self.sendMoveSignal, 'up'))
+        self.scatterOrLineBtn.clicked.connect(self.changePlotType)
+
+        self.select_all_y_checkbox.clicked.connect(self.select_all_btn_change)
 
         self.button_resetYMax.clicked.connect(self.resetYMax)
         self.button_resetYMin.clicked.connect(self.resetYMin)
