@@ -2,6 +2,7 @@ from PyQt5 import QtWidgets, QtGui, uic, QtCore
 import os
 import json
 from Utilities.DataExport.GTORNetwork import get_GTORNetworkDrive#, generate_data_save_location
+from pathlib import Path
 
 ''' "saveLocationDialog" configFile settings
 
@@ -11,8 +12,9 @@ from Utilities.DataExport.GTORNetwork import get_GTORNetworkDrive#, generate_dat
 
 uiFile, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'saveLocationDialog.ui'))  # loads the .ui file from QT Designer
 class popup_dataSaveLocation(QtWidgets.QDialog, uiFile):
-    def __init__(self):
+    def __init__(self, scene_name):
         super().__init__()
+        self.scene_name = scene_name
         self.setupUi(self)
         self.setWindowFlags(QtCore.Qt.WindowCloseButtonHint)     # hide the question mark in title bar
         self.configFile = QtCore.QSettings('DAATA', 'saveLocationDialog')
@@ -99,7 +101,13 @@ class popup_dataSaveLocation(QtWidgets.QDialog, uiFile):
             SDFile.write("this is a test file for saving to the SD Card")
             SDFile.close()
 
-            self.configFile.setValue("default_SDFolder", SDFolder)
+            self.configFile.setValue("default_SDFolder", SDFolder)   
+
+        # default directory for auto appdata saving        
+        default_path = str(Path.home()) + '\AppData\Local\GTOffRoad'
+
+        self.saveCSV(self.scene_name,default_path)
+        self.saveMAT(self.scene_name,default_path)
 
         self.configFile.setValue("checkBox_local", self.checkBox_local.isChecked())
         self.configFile.setValue("checkBox_ND", self.checkBox_networkDrive.isChecked())

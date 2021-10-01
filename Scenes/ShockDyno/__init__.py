@@ -87,7 +87,7 @@ class EngineDyno(DAATAScene, uiFile):
             self.indicator_onOrOff.setStyleSheet("color: red;")
             self.button_display.setText("Start Collecting Data")
             self.is_data_collecting.clear()
-            self.popup_dataSaveLocation()
+            self.popup_dataSaveLocation("ShockDynoTest")
 
     def slot_tare_load_cell(self):
         logger.info("Taring load cell")

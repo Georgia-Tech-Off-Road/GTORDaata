@@ -11,5 +11,6 @@ pip install matplotlib
 pip install pywin32
 pip install func_timeout
 pip install typing_extensions
+pip install --upgrade google-api-python-client google-auth-httplib2 google-auth-oauthlib
 
 cmd /k

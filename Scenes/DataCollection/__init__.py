@@ -137,7 +137,7 @@ class DataCollection(DAATAScene, uiFile):
             self.indicator_onOrOff.setStyleSheet("color: red;")
             self.button_display.setText("Start Collecting Data")
             self.is_data_collecting.clear()
-            self.popup_dataSaveLocation()
+            self.popup_dataSaveLocation("DataCollection")
             # conf = self.popup_stopDataConfirmation()
             # if conf == QtWidgets.QDialog.Accepted:
             #     self.button_display.setText("Start Collecting Data")
