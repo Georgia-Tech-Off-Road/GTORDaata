@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>564</width>
+    <width>578</width>
     <height>644</height>
    </rect>
   </property>
@@ -356,35 +356,6 @@ color: white
       </property>
       <property name="text">
        <string>OAuth File:</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-      </property>
-     </widget>
-     <widget class="QLineEdit" name="lineEdit_foldernameGD">
-      <property name="geometry">
-       <rect>
-        <x>170</x>
-        <y>90</y>
-        <width>341</width>
-        <height>22</height>
-       </rect>
-      </property>
-      <property name="toolTip">
-       <string>Must be less than 12 characters</string>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label_folderGD">
-      <property name="geometry">
-       <rect>
-        <x>-10</x>
-        <y>90</y>
-        <width>171</width>
-        <height>22</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Temp Folder:</string>
       </property>
       <property name="alignment">
        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
