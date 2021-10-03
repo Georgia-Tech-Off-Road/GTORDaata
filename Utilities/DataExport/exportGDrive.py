@@ -1,9 +1,10 @@
+import httplib2
 from googleapiclient.http import MediaFileUpload
 from Utilities.DataExport.Google import Create_Service
 import os
 import logging
 
-logger = logging.getLogger("DataExport")
+logger = logging.getLogger("Utilities")
 
 
 def upload_to_g_drive(self, filename, directory, g_drive_folder_id,
@@ -53,8 +54,13 @@ def upload_to_g_drive(self, filename, directory, g_drive_folder_id,
             full_filepath,
             mimetype=mime_type)
 
-        service.files().create(
-            body=file_metadata,
-            media_body=media,
-            fields='id'
-        ).execute()
+        try:
+            service.files().create(
+                body=file_metadata,
+                media_body=media,
+                fields='id'
+            ).execute()
+            logger.info("Files successfully saved to Google Drive")
+        except httplib2.error.ServerNotFoundError:
+            logger.error("Failed to find Google Drive server. "
+                         "Possibly due to internet problems.")
