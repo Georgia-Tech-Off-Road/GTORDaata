@@ -288,9 +288,9 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
 
     def loadSettings(self):
         if self.configFile.value("yMin") == None:
-            self.configFile.setValue("yMin","auto")
+            self.configFile.setValue("yMin", "auto")
         if self.configFile.value("yMax") == None:
-            self.configFile.setValue("yMax","auto")
+            self.configFile.setValue("yMax", "auto")
         self.set_graphWidth(self.configFile.value("graph_width"))
 
         self.set_yMinMax(self.configFile.value("yMin"), self.configFile.value("yMax"))

@@ -133,7 +133,9 @@ class MultiDataGraph(DAATAScene, uiFile):
             # TODO remove to enable more sensors
             break
 
-        self.spacerItem_gridPlotLayout = QtWidgets.QSpacerItem(20, 1000000, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        self.spacerItem_gridPlotLayout = \
+            QtWidgets.QSpacerItem(20, 1000000, QtWidgets.QSizePolicy.Minimum,
+                                  QtWidgets.QSizePolicy.Expanding)
         self.gridPlotLayout.addItem(self.spacerItem_gridPlotLayout)
 
     def create_graphs(self):
@@ -262,17 +264,40 @@ class MultiDataGraph(DAATAScene, uiFile):
     def update_passive(self):
         self.update_sensor_checkboxes()
 
+    """
+    Adds one more independent multi data graph to the scene
+    """
+    def addMDG(self):
+        newMDGNumber = int(self.mdgNumber.text()) + 1
+        self.mdgNumber.setText(str(newMDGNumber))
+
+    """
+    Removes the most recently added multi data graph from the scene
+    """
+    def removeMDG(self):
+        newMDGNumber = int(self.mdgNumber.text()) - 1
+        if newMDGNumber < 0:
+            newMDGNumber = 0
+        self.mdgNumber.setText(str(newMDGNumber))
+
     def connect_slots_and_signals(self):
-        self.button_display.clicked.connect(self.slot_data_collecting_state_change)
+        self.button_display.clicked.connect(
+            self.slot_data_collecting_state_change)
 
         for key in self.currentKeys:
             self.checkbox_objects[key].clicked.connect(self.create_grid_plot_layout)
             self.checkbox_objects[key].clicked.connect(self.save_settings)
 
-        self.selectAll_checkbox.stateChanged.connect(self.slot_checkbox_state_change)
+        self.selectAll_checkbox.stateChanged.connect(
+            self.slot_checkbox_state_change)
 
-        self.comboBox_graphDimension.currentTextChanged.connect(self.create_grid_plot_layout)
-        self.comboBox_graphDimension.currentTextChanged.connect(self.save_settings)
+        self.comboBox_graphDimension.currentTextChanged.connect(
+            self.create_grid_plot_layout)
+        self.comboBox_graphDimension.currentTextChanged.connect(
+            self.save_settings)
+
+        self.plusMDGButton.clicked.connect(self.addMDG)
+        self.minusMDGButton.clicked.connect(self.removeMDG)
 
         # connections to GridPlotLayout
         for key in self.graph_objects.keys():
@@ -290,10 +315,10 @@ class MultiDataGraph(DAATAScene, uiFile):
         self.configFile.setValue('scrollArea_graphs_height', self.scrollArea_graphs.height())
 
         enabledSensors = []
-        for key in self.graph_objects.keys():
-            if self.checkbox_objects[key].isChecked():
-                enabledSensors.append(key)
-        self.configFile.setValue('enabledSensors', enabledSensors)
+        # for key in self.graph_objects.keys():
+        #     if self.checkbox_objects[key].isChecked():
+        #         enabledSensors.append(key)
+        # self.configFile.setValue('enabledSensors', enabledSensors)
 
         logger.debug("Data Collection config files saved")
         # self.debug_settings()
