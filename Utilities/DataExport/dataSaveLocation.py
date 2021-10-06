@@ -109,11 +109,11 @@ class popup_dataSaveLocation(QtWidgets.QDialog, uiFile):
 
             self.configFile.setValue("default_SDFolder", SDFolder)
 
-        # default directory for auto appdata saving
+        # Saves a temporary copy of the CSV and MAT data files to a default
+        # directory every time the "Save" button is clicked, no matter which
+        # location to save is chosen (or not chosen).
+        # Default directory for auto appdata saving
         default_path = str(Path.home()) + '\\AppData\\Local\\GTOffRoad\\'
-
-        # TODO CONFIRM with Ben whether want to save offline files every time
-        #  or only when GD option enabled
         if not os.path.exists(default_path):
             logger.info(
                 "Default path " + default_path + " not found. Making "
@@ -127,19 +127,21 @@ class popup_dataSaveLocation(QtWidgets.QDialog, uiFile):
             GDFilename = self.lineEdit_filenameGD.text()
             GD_oAuth_client_file = self.lineEdit_oAuthGD.text()
             GD_url = self.lineEdit_GDriveURL.text()
-            # GD_temp_folder = ".\\Utilities\\DataExport\\temp\\"
-            #
-            # # if temp folder doesn't exist, make one
-            # if not os.path.exists(GD_temp_folder):
-            #     os.mkdir(GD_temp_folder)
 
             # if all fields are good, proceed to making temp csv and mat files
             # and uploading them to the Google Drive URL link
             if GD_url[:43] == "https://drive.google.com/drive/u/0/folders/":
-                if GDFilename == "" or GD_oAuth_client_file == "" or \
-                        GD_url == "":
-                    logger.error("One or more Google Drive fields are empty")
+                if GD_oAuth_client_file == "" \
+                        or not os.path.exists(GD_oAuth_client_file):
+                    logger.error("Missing oAuth file for Google Drive")
                 else:
+                    # Creates and saves the CSV and MAT files to the default
+                    # path. This will create two identical sets of files with
+                    # different names if the entered filename is not equal to
+                    # the default name.
+                    if GDFilename == "":
+                        GDFilename = self.scene_name
+
                     self.saveCSV(GDFilename, default_path)
                     self.saveMAT(GDFilename, default_path)
 
@@ -161,7 +163,8 @@ class popup_dataSaveLocation(QtWidgets.QDialog, uiFile):
                     #     logger.debug("Temp files are in use and cannot be "
                     #                  "deleted.")
             else:
-                logger.error("Invalid Google Drive URL")
+                logger.error("Invalid Google Drive URL. Files not saved to "
+                             "Google Drive")
 
                 # self.configFile.setValue("default_GDFolder", GD_temp_folder)
 
