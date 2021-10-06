@@ -64,3 +64,5 @@ def upload_to_g_drive(self, filename, directory, g_drive_folder_id,
         except httplib2.error.ServerNotFoundError:
             logger.error("Failed to find Google Drive server. "
                          "Possibly due to internet problems.")
+
+        logger.info("Files saving to Google Drive (success/failed) completed.")
