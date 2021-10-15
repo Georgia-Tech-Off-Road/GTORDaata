@@ -37,19 +37,22 @@ class MultiDataGraph(DAATAScene, uiFile):
         self.update_period = 3
 
         self.graph_objects = dict()
-        self.checkbox_objects = dict()
+        # self.checkbox_objects = dict()
         # self.currentKeys = data.get_sensors(is_plottable=True)
         self.currentKeys = ["test_sensor_0", "test_sensor_1", "test_sensor_2",
                             "test_sensor_3", "test_sensor_4", "test_sensor_5"]
+
+        self.line_graph = "line_graph"
+        self.scatter_plot = "scatter_plot"
 
         self.gridPlotLayout = GridPlotLayout(self.scrollAreaWidgetContents)
         self.gridPlotLayout.setObjectName("gridPlotLayout")
         self.scrollAreaWidgetContents.setLayout(self.gridPlotLayout)
 
-        self.create_sensor_checkboxes()
+        # self.create_sensor_checkboxes()
         self.create_graph_dimension_combo_box()
-        self.create_graphs()
-        self.create_grid_plot_layout()
+        self.create_graph(0)
+        # self.create_grid_plot_layout()
 
         from MainWindow import is_data_collecting
         self.is_data_collecting = is_data_collecting
@@ -58,30 +61,30 @@ class MultiDataGraph(DAATAScene, uiFile):
         self.configFile = QSettings('DAATA', 'MultiDataGraph')
         self.configFile.clear()
         self.load_settings()
-
-    # Create checkboxes based on a list of strings
-    def create_sensor_checkboxes(self):
-        # Create the checkbox for selecting all of the sensors
-        self.selectAll_checkbox = QtWidgets.QCheckBox(
-            "Select All",
-            self.scrollAreaWidgetContents_2,
-            objectName="selectAll_checkbox")
-        self.selectAll_checkbox.setToolTip(self.selectAll_checkbox.objectName())
-        self.gridLayout_2.addWidget(self.selectAll_checkbox)
-
-        # create a checkbox for each sensor in dictionary in self.scrollAreaWidgetContents_2
-        for key in self.currentKeys:
-            self.checkbox_objects[key] = QtWidgets.QCheckBox(
-                data.get_display_name(key),
-                self.scrollAreaWidgetContents_2,
-                objectName=key)
-            self.gridLayout_2.addWidget(self.checkbox_objects[key])
-
-        # Create a vertical spacer that forces checkboxes to the top
-        spacerItem1 = QtWidgets.QSpacerItem(20, 1000000,
-                                            QtWidgets.QSizePolicy.Minimum,
-                                            QtWidgets.QSizePolicy.Expanding)
-        self.gridLayout_2.addItem(spacerItem1)
+    #
+    # # Create checkboxes based on a list of strings
+    # def create_sensor_checkboxes(self):
+    #     # Create the checkbox for selecting all of the sensors
+    #     self.selectAll_checkbox = QtWidgets.QCheckBox(
+    #         "Select All",
+    #         self.scrollAreaWidgetContents_2,
+    #         objectName="selectAll_checkbox")
+    #     self.selectAll_checkbox.setToolTip(self.selectAll_checkbox.objectName())
+    #     self.gridLayout_2.addWidget(self.selectAll_checkbox)
+    #
+    #     # create a checkbox for each sensor in dictionary in self.scrollAreaWidgetContents_2
+    #     for key in self.currentKeys:
+    #         self.checkbox_objects[key] = QtWidgets.QCheckBox(
+    #             data.get_display_name(key),
+    #             self.scrollAreaWidgetContents_2,
+    #             objectName=key)
+    #         self.gridLayout_2.addWidget(self.checkbox_objects[key])
+    #
+    #     # Create a vertical spacer that forces checkboxes to the top
+    #     spacerItem1 = QtWidgets.QSpacerItem(20, 1000000,
+    #                                         QtWidgets.QSizePolicy.Minimum,
+    #                                         QtWidgets.QSizePolicy.Expanding)
+    #     self.gridLayout_2.addItem(spacerItem1)
 
     def create_graph_dimension_combo_box(self):
         """
@@ -107,29 +110,36 @@ class MultiDataGraph(DAATAScene, uiFile):
         row = 0
         col = 0
 
-        leftMar, topMar, rightMar, botMar = self.gridPlotLayout.getContentsMargins()
+        leftMar, topMar, rightMar, botMar = \
+            self.gridPlotLayout.getContentsMargins()
         hSpace = self.gridPlotLayout.horizontalSpacing()
         vSpace = self.gridPlotLayout.verticalSpacing()
-        graphHeight = (self.scrollArea_graphs.height()-topMar-botMar-vSpace*(max_rows-1)) / max_rows
+        scroll_area_height = self.scrollArea_graphs.height()
+        if scroll_area_height <= 30:
+            scroll_area_height = 646  # an arbitrary number
+
+        graphHeight = (scroll_area_height
+                       - topMar - botMar
+                       - vSpace * (max_rows - 1)) / max_rows
 
         for key in self.graph_objects.keys():
-            if self.graph_objects[key].isVisible():
-                try:
-                    self.gridPlotLayout.removeWidget(self.graph_objects[key])
-                    self.graph_objects[key].hide()
-                except:
-                    print(key + " is " + self.graph_objects[key].isVisible())
+            # if self.graph_objects[key].isVisible():
+            try:
+                self.gridPlotLayout.removeWidget(self.graph_objects[key])
+                self.graph_objects[key].hide()
+            except:
+                print(key + " is " + self.graph_objects[key].isVisible())
 
-        for key in self.checkbox_objects.keys():
-            if self.checkbox_objects[key].isChecked():
-                if col == max_cols:
-                    col = 0
-                    row += 1
-                self.graph_objects[key].set_height(graphHeight)
-                self.gridPlotLayout.addWidget((self.graph_objects[key]), row, col, 1, 1)
-                self.graph_objects[key].show()
+        for key in self.graph_objects.keys():
+            # if self.checkbox_objects[key].isChecked():
+            if col == max_cols:
+                col = 0
+                row += 1
+            self.graph_objects[key].set_height(graphHeight)
+            self.gridPlotLayout.addWidget((self.graph_objects[key]), row, col, 1, 1)
+            self.graph_objects[key].show()
 
-                col += 1
+            col += 1
             # TODO remove to enable more sensors
             break
 
@@ -138,19 +148,19 @@ class MultiDataGraph(DAATAScene, uiFile):
                                   QtWidgets.QSizePolicy.Expanding)
         self.gridPlotLayout.addItem(self.spacerItem_gridPlotLayout)
 
-    def create_graphs(self):
-        self.line_graph = "line_graph"
-        self.scatter_plot = "scatter_plot"
-        key = self.currentKeys[0]
+    def create_graph(self, key):
+        # key = self.currentKeys[0]
         self.graph_objects[key] = CustomPlotWidget(key,
                                        parent=self.scrollAreaWidgetContents,
                                        layout=self.gridPlotLayout,
                                        graph_width_seconds=8,
                                        multi_sensors=self.currentKeys,
                                        enable_multi_plot=True,
-                                        plot_type=self.line_graph)
-        self.graph_objects[key].setObjectName(key)
+                                       plot_type=self.line_graph)
+        self.graph_objects[key].setObjectName("MDG #" + str(key))
         self.graph_objects[key].show()
+
+        self.create_grid_plot_layout()
 
     def slot_data_collecting_state_change(self):
         if self.button_display.isChecked():
@@ -170,28 +180,28 @@ class MultiDataGraph(DAATAScene, uiFile):
             #     self.is_data_collecting.clear()
             #     self.popup_dataSaveLocation()
 
-    def slot_checkbox_state_change(self):
-        if self.selectAll_checkbox.isChecked():
-            for key in self.currentKeys:
-                self.checkbox_objects[key].setChecked(True)
-        else:
-            for key in self.currentKeys:
-                self.checkbox_objects[key].setChecked(False)
-        self.update_sensor_count()
-        self.create_grid_plot_layout()
+    # def slot_checkbox_state_change(self):
+    #     # if self.selectAll_checkbox.isChecked():
+    #     #     for key in self.currentKeys:
+    #     #         self.checkbox_objects[key].setChecked(True)
+    #     # else:
+    #     #     for key in self.currentKeys:
+    #     #         self.checkbox_objects[key].setChecked(False)
+    #     self.update_sensor_count()
+    #     self.create_grid_plot_layout()
 
     def update_sensor_count(self):
         self.active_sensor_count = 0
-        for key in self.checkbox_objects.keys():
-            if self.checkbox_objects[key].isVisible():
-                if self.checkbox_objects[key].isChecked():
-                    self.active_sensor_count = self.active_sensor_count + 1
+        # for key in self.checkbox_objects.keys():
+        #     if self.checkbox_objects[key].isVisible():
+        #         if self.checkbox_objects[key].isChecked():
+        #             self.active_sensor_count = self.active_sensor_count + 1
         self.label_active_sensor_count.setText('(' + str(self.active_sensor_count) + '/' + str(len(self.graph_objects)) + ')')
 
     def update_graphs(self):
-        for key in self.currentKeys:
-            if self.graph_objects[key].isVisible():
-                self.graph_objects[key].update_graph()
+        for key in self.graph_objects.keys():
+            # if self.graph_objects[key].isVisible():
+            self.graph_objects[key].update_graph()
 
     def update_time_elapsed(self):
         """
@@ -213,27 +223,27 @@ class MultiDataGraph(DAATAScene, uiFile):
         except TypeError:
             pass
 
-    def update_sensor_checkboxes(self):
-        """
-        Will update the sensor checkboxes if new sensors are added.
-
-        :return: None
-        """
-        connected_sensors = data.get_sensors(is_plottable=True, is_connected=True)
-        for key in connected_sensors:
-            if key not in self.currentKeys:
-                self.checkbox_objects[key].show()
-        for key in self.currentKeys:
-            if key not in connected_sensors:
-                try:
-                    self.checkbox_objects[key].hide()
-                except Exception:
-                    pass
-        self.currentKeys = connected_sensors
-
-        # updates the list of connected sensors for x and y sensor plotting
-        for graph_object in self.graph_objects.values():
-            graph_object.update_connected_sensors(connected_sensors)
+    # def update_sensor_checkboxes(self):
+    #     """
+    #     Will update the sensor checkboxes if new sensors are added.
+    #
+    #     :return: None
+    #     """
+    #     connected_sensors = data.get_sensors(is_plottable=True, is_connected=True)
+    #     for key in connected_sensors:
+    #         if key not in self.currentKeys:
+    #             self.checkbox_objects[key].show()
+    #     for key in self.currentKeys:
+    #         if key not in connected_sensors:
+    #             try:
+    #                 self.checkbox_objects[key].hide()
+    #             except Exception:
+    #                 pass
+    #     self.currentKeys = connected_sensors
+    #
+    #     # updates the list of connected sensors for x and y sensor plotting
+    #     for graph_object in self.graph_objects.values():
+    #         graph_object.update_connected_sensors(connected_sensors)
 
     def update_active(self):
         """
@@ -262,7 +272,8 @@ class MultiDataGraph(DAATAScene, uiFile):
             self.button_display.setChecked(False)
 
     def update_passive(self):
-        self.update_sensor_checkboxes()
+        pass
+        # self.update_sensor_checkboxes()
 
     """
     Adds one more independent multi data graph to the scene
@@ -270,6 +281,10 @@ class MultiDataGraph(DAATAScene, uiFile):
     def addMDG(self):
         newMDGNumber = int(self.mdgNumber.text()) + 1
         self.mdgNumber.setText(str(newMDGNumber))
+
+        # TODO why this don't work
+        current_MDG_count = len(self.graph_objects)
+        self.create_graph(current_MDG_count)
 
     """
     Removes the most recently added multi data graph from the scene
@@ -280,16 +295,20 @@ class MultiDataGraph(DAATAScene, uiFile):
             newMDGNumber = 0
         self.mdgNumber.setText(str(newMDGNumber))
 
+        current_MDG_count = len(self.graph_objects)
+        del self.graph_objects[current_MDG_count - 1]
+        self.create_grid_plot_layout()
+
     def connect_slots_and_signals(self):
         self.button_display.clicked.connect(
             self.slot_data_collecting_state_change)
 
-        for key in self.currentKeys:
-            self.checkbox_objects[key].clicked.connect(self.create_grid_plot_layout)
-            self.checkbox_objects[key].clicked.connect(self.save_settings)
-
-        self.selectAll_checkbox.stateChanged.connect(
-            self.slot_checkbox_state_change)
+        # for key in self.currentKeys:
+        #     self.checkbox_objects[key].clicked.connect(self.create_grid_plot_layout)
+        #     self.checkbox_objects[key].clicked.connect(self.save_settings)
+        #
+        # self.selectAll_checkbox.stateChanged.connect(
+        #     self.slot_checkbox_state_change)
 
         self.comboBox_graphDimension.currentTextChanged.connect(
             self.create_grid_plot_layout)
@@ -333,7 +352,7 @@ class MultiDataGraph(DAATAScene, uiFile):
             active_sensor_count = 0
             for key in self.configFile.value('enabledSensors'):
                 print(key)
-                self.checkbox_objects[key].setChecked(True)
+                # self.checkbox_objects[key].setChecked(True)
                 self.graph_objects[key].show()
                 active_sensor_count = active_sensor_count + 1
                 self.label_active_sensor_count.setText(
@@ -344,7 +363,7 @@ class MultiDataGraph(DAATAScene, uiFile):
 
         self.comboBox_graphDimension.setCurrentText(self.configFile.value('graph_dimension'))
         # self.slot_graphDimension()
-        self.create_grid_plot_layout()
+        # self.create_grid_plot_layout()
         logger.debug("Data Collection config files loaded")
         # self.debug_settings()
 

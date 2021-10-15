@@ -287,13 +287,17 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
         pass
 
     def loadSettings(self):
-        if self.configFile.value("yMin") == None:
+        yMin = self.configFile.value("yMin")
+        yMax = self.configFile.value("yMax")
+        if yMin is None:
             self.configFile.setValue("yMin", "auto")
-        if self.configFile.value("yMax") == None:
+            yMin = "auto"
+        if yMax is None:
             self.configFile.setValue("yMax", "auto")
+            yMax = "auto"
         self.set_graphWidth(self.configFile.value("graph_width"))
 
-        self.set_yMinMax(self.configFile.value("yMin"), self.configFile.value("yMax"))
+        self.set_yMinMax(yMin, yMax)
 
     # allow color scheme of class to be changed by CSS stylesheets
     def paintEvent(self, pe):
