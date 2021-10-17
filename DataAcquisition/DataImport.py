@@ -1,4 +1,6 @@
 import sys
+import csv
+import os
 from typing_extensions import final
 import serial
 from serial.serialutil import EIGHTBITS
@@ -108,10 +110,44 @@ class DataImport:
         self.data_file = open(dir)
 
     def read_bin_file(self):
+        #dummyline 
+        AASDF
         
 
-    def open_csv_file(self, dir):
-        self.data_file = open(dir)
+    def importCSV(self, directory):
+        csvFile = open(directory,'r' )
+        csvReader = csv.reader(csvFile, dialect='excel', lineterminator = '\n')
+        sensorList = csvReader.__next__()
+        idList = [self.data.get_id(name) for name in sensorList]
+        for dataLine in csvReader:
+            pushID = 0
+            valuesToPush = []
+            valueToPush = 0
+            x = 0
+            while x < len(idList):
+                if idList[x] == None: 
+                        if x < len(idList):
+                            x+=1
+                elif x == len(idList) - 1:
+                    self.data.add_value(idList[x], dataLine[x])
+                elif idList[x] == idList[x+1]:
+                    pushID = idList[x]
+                    valuesToPush = []
+                    valuesToPush.append(dataLine[x])
+                    while x < len(idList) and idList[x] == idList[x+1]:
+                        x+=1
+                        valuesToPush.append(dataLine[x])
+                    self.data.add_value(pushID,valuesToPush)
+                    
+                    x+=1
+                else:
+                    pushID = idList[x]
+                    valueToPush = dataLine[x]
+                    self.data.add_value(pushID,valueToPush)
+                    x+=1   
+
+    
+
 
     def send_packet(self):
         try:

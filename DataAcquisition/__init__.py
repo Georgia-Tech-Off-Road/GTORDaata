@@ -30,7 +30,7 @@ def read_data():
         elif data_import.input_mode == "BIN":
             data_import.open_bin_file(open_data_file("bin"))
         elif data_import.input_mode == "CSV":
-            data_import.open_bin_file(open_data_file("csv"))
+            data_import.importCSV(open_data_file("csv"))
         elif "COM" in data_import.input_mode:                                   
             try:
                 try:
