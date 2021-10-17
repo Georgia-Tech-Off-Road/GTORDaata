@@ -31,8 +31,7 @@ def read_data():
             logger.error(e)
     elif data_import.input_mode == "CSV":        
         try:
-            data_import.open_csv_file(open_data_file(".csv"))
-            data_import.read_csv_file()
+            data_import.import_csv(open_data_file(".csv"))
         except Exception as e:
             logger.error(e)
     while True:
