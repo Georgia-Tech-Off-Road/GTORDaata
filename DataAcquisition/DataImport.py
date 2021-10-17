@@ -24,6 +24,7 @@ class DataImport:
         self.lock = lock
         self.is_data_collecting = is_data_collecting
         self.input_mode = ""
+        self.data_file = ""
 
         # Connect to the Teensy
         self.teensy_found = False
@@ -69,15 +70,6 @@ class DataImport:
             return False
 
     def connect_serial(self):
-        # # Teensy USB serial microcontroller program id data to fill out:
-        # vendor_id = "16C0"
-        # product_id = "0483"
-        # serial_number = "12345"
-        #
-        # for port in list(list_ports.comports()):
-        #     if port[2] == "USB VID:PID=%s:%s SNR=%s"%(vendor_id, product_id, serial_number):
-        #         return port[0]
-
         try:
             self.teensy_port = self.input_mode
             self.teensy_ser = serial.Serial(baudrate=115200, port=self.teensy_port, timeout=2,
@@ -111,6 +103,15 @@ class DataImport:
                     self.current_packet = self.current_packet[0:(packet_length - 8)]
                     self.unpacketize()
                     self.current_packet.clear()
+    
+    def open_bin_file(self, dir):
+        self.data_file = open(dir)
+
+    def read_bin_file(self):
+        
+
+    def open_csv_file(self, dir):
+        self.data_file = open(dir)
 
     def send_packet(self):
         try:

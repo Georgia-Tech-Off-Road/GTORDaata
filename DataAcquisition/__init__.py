@@ -5,6 +5,7 @@ import sys
 from datetime import datetime
 from DataAcquisition.Data import Data
 from DataAcquisition.DataImport import DataImport
+from Utilities.DataExport.dataFileExplorer import open_data_file
 
 logger = logging.getLogger("DataAcquisition")
 
@@ -21,20 +22,23 @@ data_import = DataImport(data, data_collection_lock, is_data_collecting)
 
 def read_data():
     logger.info("Running read_data")
-    data_was_collecting = False
-    try:
-        data_import.teensy_ser.flushInput()
-    except AttributeError:
-        logger.warning("Unable to flush Serial Buffer. No Serial object connected")
+    data_was_collecting = False    
     while True:
         if data_import.input_mode == "FAKE":
             data_import.check_connected_fake()
             data_import.read_data_fake()
-        else:
+        elif data_import.input_mode == "BIN":
+            data_import.open_bin_file(open_data_file("bin"))
+        elif data_import.input_mode == "CSV":
+            data_import.open_bin_file(open_data_file("csv"))
+        elif "COM" in data_import.input_mode:                                   
             try:
-                if "COM" in data_import.input_mode:
+                try:
+                    data_import.teensy_ser.flushInput()
                     assert data_import.teensy_found
                     assert data_import.check_connected()
+                except AttributeError:
+                    logger.warning("Unable to flush Serial Buffer. No Serial object connected")                    
                 try:                    
                     data_import.read_packet()
                 except AssertionError:

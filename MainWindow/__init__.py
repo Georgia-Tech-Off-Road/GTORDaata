@@ -271,7 +271,13 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 self.setInputMode(key)              
 
     def setInputMode(self, input_mode):
-        print("Input Mode:", input_mode)
+        """
+        Assigns input mode based on button triggers handled in connect_signals_and_slots() from input 
+        mode drup down in main window.
+        
+        return: None
+        """
+        logger.info("Input Mode:", input_mode)
         data_import.input_mode = input_mode
         if not self.data_reading_thread.is_alive():
             self.data_reading_thread.start()
@@ -279,10 +285,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             data_import.connect_serial()
             if not self.data_sending_thread.isActive():
                 self.data_sending_thread.start(100)
-                print("We did it!")
-        else:
-            # implement the CSV and BIN Parsers depending on the input mode value
-            pass
+                logger.info("We connected to serial!")
 
     def connect_signals_and_slots(self):
         """
@@ -318,7 +321,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def closeEvent(self, event):
         self.data_sending_thread.stop()
         stop_thread.set()
-        self.data_reading_thread.join()
+        if self.data_reading_thread.isAlive():
+            self.data_reading_thread.join()
         self.timer_active.stop()
         self.timer_passive.stop()
         sys.exit()
