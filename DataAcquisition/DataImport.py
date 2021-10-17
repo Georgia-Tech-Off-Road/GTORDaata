@@ -83,14 +83,20 @@ class DataImport:
 
     def read_packet(self):
         """
-        read_packet manages all incoming data on the Serial port and detects when a full packet has been received
+        read_packet manages all incoming data on the Serial port and in a BIN file and detects when a full packet has been received
         so that it can be parsed.
 
         :return: None
         """
 
-        while self.teensy_ser.in_waiting != 0:  # if there are bytes waiting in input buffer
-            self.current_packet.append(self.teensy_ser.read(1))  # read in a single byte
+        while self.teensy_ser.in_waiting != 0 or self.data_file.readable():  # if there are bytes waiting in input buffer
+            if self.teensy_found:
+                self.current_packet.append(self.teensy_ser.read(1))  # read in a single byte from COM
+            else:
+                byte = self.data_file.read(1)
+                if not byte:
+                    break
+                self.current_packet.append(byte)   # read in a single byte from file
             packet_length = len(self.current_packet)
             if packet_length > 8:
                 # If end code is found then unpacketize and clear packet
@@ -105,10 +111,7 @@ class DataImport:
                     self.current_packet.clear()
     
     def open_bin_file(self, dir):
-        self.data_file = open(dir)
-
-    def read_bin_file(self):
-        
+        self.data_file = open(dir, "b+")
 
     def open_csv_file(self, dir):
         self.data_file = open(dir)

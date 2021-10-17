@@ -277,7 +277,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         
         return: None
         """
-        logger.info("Input Mode:", input_mode)
+        logger.info("Input Mode: " + str(input_mode))
         data_import.input_mode = input_mode
         if not self.data_reading_thread.is_alive():
             self.data_reading_thread.start()

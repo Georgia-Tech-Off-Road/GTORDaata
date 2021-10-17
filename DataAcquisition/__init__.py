@@ -3,6 +3,7 @@ import threading
 import logging
 import sys
 from datetime import datetime
+from tkinter.filedialog import Directory
 from DataAcquisition.Data import Data
 from DataAcquisition.DataImport import DataImport
 from Utilities.DataExport.dataFileExplorer import open_data_file
@@ -23,14 +24,26 @@ data_import = DataImport(data, data_collection_lock, is_data_collecting)
 def read_data():
     logger.info("Running read_data")
     data_was_collecting = False    
+    if data_import.input_mode == "BIN":
+        try:
+            data_import.open_bin_file(open_data_file(".bin"))
+        except Exception as e:
+            logger.error(e)
+    elif data_import.input_mode == "CSV":        
+        try:
+            data_import.open_csv_file(open_data_file(".csv"))
+            data_import.read_csv_file()
+        except Exception as e:
+            logger.error(e)
     while True:
         if data_import.input_mode == "FAKE":
             data_import.check_connected_fake()
             data_import.read_data_fake()
         elif data_import.input_mode == "BIN":
-            data_import.open_bin_file(open_data_file("bin"))
-        elif data_import.input_mode == "CSV":
-            data_import.open_bin_file(open_data_file("csv"))
+            try:                
+                data_import.read_packet()
+            except Exception as e:
+                logger.error(e)                    
         elif "COM" in data_import.input_mode:                                   
             try:
                 try:
