@@ -120,6 +120,10 @@ class DataImport:
         csvReader = csv.reader(csvFile, dialect='excel', lineterminator = '\n')
         sensorList = csvReader.__next__()
         idList = [self.data.get_id(name) for name in sensorList]
+        idSet = set(idList)
+        for id in idSet:
+            if id != None:
+                self.data.set_connected(id)
         for dataLine in csvReader:
             pushID = 0
             valuesToPush = []
