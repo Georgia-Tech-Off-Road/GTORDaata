@@ -244,9 +244,15 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 break
 
     def import_coms(self):
-        self.dict_ports["Auto"] = None #adds the Auto option no matter what
-        for portName in self.enumerate_serial_ports():
-            self.dict_ports[portName] = None
+        """
+        This function adds all the connected Teensy COM ports to the dict_ports dictionary
+        :return:
+        """
+        vendor_id = "16C0"
+        product_id = "0483"
+        for port in list(list_ports.comports()):
+            if "USB VID:PID=%s:%s" % (vendor_id, product_id) in port[2]:
+                self.dict_ports[port[0]] = None #port[0] is the port number COM6, COM7, etc.
 
     def create_homepage(self):
         """
@@ -258,43 +264,34 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.gridLayout_tab_homepage.addWidget(self.homepage)
         # self.tabWidget.setCornerWidget(self.homepage.button, corner = Qt.Corner.TopRightCorner)
 
-    def autoSelectPort(self):
-        ## Teensy USB serial microcontroller id data:
-        vendor_id = "16C0"
-        product_id = "0483"
-        for port in list(list_ports.comports()):
-            if "USB VID:PID=%s:%s" % (vendor_id, product_id) in port[2]:
-                return port[0]
 
-    def modifyInputMode(self):
-        checked = 0
-        for key in self.dict_ports.keys():
-            ## what happens if the user has multiple options selected?
-            ## what happens if the user changes their selection?
-            if self.dict_ports[key].isChecked():
-                checked += 1
-                print("KEY:", key)
-                data_import.input_mode = key
-                if "COM" in data_import.input_mode:
-                    DataImport.connect_serial(data_import)
-                    self.data_sending_thread.start(100)
-                    self.data_reading_thread.start()
-                elif data_import.input_mode == "Auto":
-                    selectedPort = self.autoSelectPort()
-                    #self.dict_ports[selectedPort].setChecked(True) #select the automatically selected port in the gui
-                    print("Automatically selected port:", selectedPort)
-                    data_import.input_mode = selectedPort #updates the input mode with the new COM port
-                    DataImport.connect_serial(data_import)
-                    self.data_sending_thread.start(100)
-                    self.data_reading_thread.start()
+    def com_input_mode(self, key):
+        for portNum in self.dict_ports.keys():
+            if self.dict_ports[portNum].isChecked():
+                self.setInputMode(portNum)
+                '''
+                if(portNum != key):
+                    self.dict_ports[portNum].setChecked(False)
                 else:
-                    # implement the CSV and BIN Parsers depending on the input mode value
-                    pass
-        if checked == 0:
-            print("NOTHING CHECKED")
-            pass
-            #need to stop the threads
-            #need to close the serial connection
+                    self.setInputMode(portNum)
+                '''
+
+    def setInputMode(self, input_mode):
+        """
+        Assigns input mode based on button triggers handled in connect_signals_and_slots() from input
+        mode drop down in main window.
+
+        :return: None
+        """
+        #this logger line is causing an issue
+        #logger.info("Input Mode:", input_mode)
+        data_import.input_mode = input_mode
+        if not self.data_reading_thread.is_alive():
+            self.data_reading_thread.start()
+        if "COM" in data_import.input_mode:
+            data_import.connect_serial()
+            if not self.data_sending_thread.isActive():
+                self.data_sending_thread.start(100)
 
     def connect_signals_and_slots(self):
         """
@@ -308,12 +305,12 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.dict_scenes[key]['menu_action'].triggered.connect(partial(self.create_scene_tab, key))
 
         for key in self.dict_ports.keys():
-            self.dict_ports[key].triggered.connect(lambda: self.modifyInputMode())
+            self.dict_ports[key].triggered.connect(partial(self.com_input_mode, key))
 
-        ## Implement functionality for the following menu items
-        #self.actionFake_Data.triggered.connect()
-        #self.actionBIN_File.triggered.connect()
-        #self.actionCSV_File.triggered.connect()
+        self.actionFake_Data.triggered.connect(lambda: self.setInputMode("FAKE"))
+        self.actionBIN_File.triggered.connect(lambda: self.setInputMode("BIN"))
+        self.actionCSV_File.triggered.connect(lambda: self.setInputMode("CSV"))
+
         self.tabWidget.tabBarDoubleClicked.connect(self.rename_tab)
         self.tabWidget.tabCloseRequested.connect(partial(self.close_tab, self))
         self.action_parentChildrenTree.triggered.connect(partial(popup_ParentChildrenTree, self))

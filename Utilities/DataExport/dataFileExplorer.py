@@ -1,3 +1,10 @@
+import tkinter as tk
+from tkinter import filedialog
 
+def open_data_file(file_type):
+    root = tk.Tk()
+    root.withdraw()
 
-# for multiple file selection, reference https://stackoverflow.com/questions/49140505/is-it-possible-to-have-a-qlistwidget-select-multiple-setcurrentitems
+    file_path = filedialog.askopenfilename(defaultextension=file_type)
+
+    return file_path

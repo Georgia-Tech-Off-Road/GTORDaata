@@ -5,6 +5,7 @@ import sys
 from datetime import datetime
 from DataAcquisition.Data import Data
 from DataAcquisition.DataImport import DataImport
+from Utilities.DataExport.dataFileExplorer import open_data_file
 
 logger = logging.getLogger("DataAcquisition")
 
@@ -22,19 +23,31 @@ data_import = DataImport(data, data_collection_lock, is_data_collecting)
 def read_data():
     logger.info("Running read_data")
     data_was_collecting = False
-    try:
-        data_import.teensy_ser.flushInput()
-    except AttributeError:
-        logger.warning("Unable to flush Serial Buffer. No Serial object connected")
     while True:
-        if data_import.input_mode == "Fake":
+        if data_import.input_mode == "FAKE":
             data_import.check_connected_fake()
             data_import.read_data_fake()
-        else:
+        elif data_import.input_mode == "BIN":
+            dir = open_data_file("bin")
+            if(len(dir) != 0):
+                data_import.open_bin_file(dir)
+            else:
+                data_import.input_mode = "NONE" #is there a better way to exit this loop?
+        elif data_import.input_mode == "CSV":
+            dir = open_data_file("csv")
+            if(len(dir) != 0):
+                data_import.open_bin_file(dir)
+            else:
+                data_import.input_mode = "NONE" #is there a better way to exit this loop?
+        elif "COM" in data_import.input_mode:
             try:
-                assert data_import.teensy_found
                 try:
+                    data_import.teensy_ser.flushInput()
+                    assert data_import.teensy_found
                     assert data_import.check_connected()
+                except AttributeError:
+                    logger.warning("Unable to flush Serial Buffer. No Serial object connected")
+                try:
                     data_import.read_packet()
                 except AssertionError:
                     logger.info("Serial port is not open, opening now")
@@ -44,16 +57,13 @@ def read_data():
                         logger.error(e)
             except AssertionError:
                 time.sleep(0)
-
         if is_data_collecting.is_set() and not data_was_collecting:
             logger.info("Starting data collection")
             data.reset()
             data_was_collecting = True
-
         if not is_data_collecting.is_set() and data_was_collecting:
             logger.info("Stopping data collection")
             data_was_collecting = False
-
         if stop_thread.is_set():
             sys.exit()
 

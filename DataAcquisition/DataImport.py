@@ -24,6 +24,7 @@ class DataImport:
         self.lock = lock
         self.is_data_collecting = is_data_collecting
         self.input_mode = ""
+        self.data_file = ""
 
         # Connect to the Teensy
         #self.connect_serial() #being called too soon.
@@ -106,6 +107,15 @@ class DataImport:
                     self.current_packet = self.current_packet[0:(packet_length - 8)]
                     self.unpacketize()
                     self.current_packet.clear()
+
+    def open_bin_file(self, dir):
+        self.data_file = open(dir)
+
+    def read_bin_file(self):
+        pass
+
+    def open_csv_file(self, dir):
+        self.data_file = open(dir)
 
     def send_packet(self):
         try:
