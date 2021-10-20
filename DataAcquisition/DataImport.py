@@ -26,10 +26,11 @@ class DataImport:
         self.lock = lock
         self.is_data_collecting = is_data_collecting
         self.input_mode = ""
-        self.data_file = ""
+        self.data_file = None
 
         # Connect to the Teensy
         self.teensy_found = False
+        self.teensy_ser = None
 
         #self.connect_serial() #being called too soon.
 
@@ -91,14 +92,16 @@ class DataImport:
         :return: None
         """
 
-        while self.teensy_ser.in_waiting != 0 or self.data_file.readable():  # if there are bytes waiting in input buffer
-            if self.teensy_found:
+        while self.teensy_ser != None or self.data_file != None:  # if there are bytes waiting in input buffer
+            if self.teensy_found and self.teensy_ser.in_waiting != 0:
                 self.current_packet.append(self.teensy_ser.read(1))  # read in a single byte from COM
-            else:
+            elif self.data_file != None and self.data_file.readable():
                 byte = self.data_file.read(1)
                 if not byte:
                     break
                 self.current_packet.append(byte)   # read in a single byte from file
+            else:
+                break
             packet_length = len(self.current_packet)
             if packet_length > 8:
                 # If end code is found then unpacketize and clear packet
