@@ -252,7 +252,8 @@ class DataCollection(DAATAScene, uiFile):
         # connections to GridPlotLayout
         for key in self.graph_objects.keys():
             widget = self.graph_objects[key]
-            settings = widget.button_settings.clicked.connect(partial(self.graph_objects[key].open_SettingsWindow))
+            widget.button_settings.clicked.connect(
+                partial(self.graph_objects[key].open_SettingsWindow))
 
     def save_settings(self):
         """

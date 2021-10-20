@@ -39,8 +39,10 @@ class MultiDataGraph(DAATAScene, uiFile):
         self.graph_objects = dict()
         # self.checkbox_objects = dict()
         # self.currentKeys = data.get_sensors(is_plottable=True)
-        self.currentKeys = ["test_sensor_0", "test_sensor_1", "test_sensor_2",
-                            "test_sensor_3", "test_sensor_4", "test_sensor_5"]
+        # TODO change this to all connected sensors
+        self.connected_sensors = []
+        self.update_connected_sensors()
+        self.y_sensors = []
 
         self.line_graph = "line_graph"
         self.scatter_plot = "scatter_plot"
@@ -49,7 +51,6 @@ class MultiDataGraph(DAATAScene, uiFile):
         self.gridPlotLayout.setObjectName("gridPlotLayout")
         self.scrollAreaWidgetContents.setLayout(self.gridPlotLayout)
 
-        # self.create_sensor_checkboxes()
         self.create_graph_dimension_combo_box()
         self.create_graph(0)
         # self.create_grid_plot_layout()
@@ -61,30 +62,6 @@ class MultiDataGraph(DAATAScene, uiFile):
         self.configFile = QSettings('DAATA', 'MultiDataGraph')
         self.configFile.clear()
         self.load_settings()
-    #
-    # # Create checkboxes based on a list of strings
-    # def create_sensor_checkboxes(self):
-    #     # Create the checkbox for selecting all of the sensors
-    #     self.selectAll_checkbox = QtWidgets.QCheckBox(
-    #         "Select All",
-    #         self.scrollAreaWidgetContents_2,
-    #         objectName="selectAll_checkbox")
-    #     self.selectAll_checkbox.setToolTip(self.selectAll_checkbox.objectName())
-    #     self.gridLayout_2.addWidget(self.selectAll_checkbox)
-    #
-    #     # create a checkbox for each sensor in dictionary in self.scrollAreaWidgetContents_2
-    #     for key in self.currentKeys:
-    #         self.checkbox_objects[key] = QtWidgets.QCheckBox(
-    #             data.get_display_name(key),
-    #             self.scrollAreaWidgetContents_2,
-    #             objectName=key)
-    #         self.gridLayout_2.addWidget(self.checkbox_objects[key])
-    #
-    #     # Create a vertical spacer that forces checkboxes to the top
-    #     spacerItem1 = QtWidgets.QSpacerItem(20, 1000000,
-    #                                         QtWidgets.QSizePolicy.Minimum,
-    #                                         QtWidgets.QSizePolicy.Expanding)
-    #     self.gridLayout_2.addItem(spacerItem1)
 
     def create_graph_dimension_combo_box(self):
         """
@@ -138,10 +115,7 @@ class MultiDataGraph(DAATAScene, uiFile):
             self.graph_objects[key].set_height(graphHeight)
             self.gridPlotLayout.addWidget((self.graph_objects[key]), row, col, 1, 1)
             self.graph_objects[key].show()
-
             col += 1
-            # TODO remove to enable more sensors
-            break
 
         self.spacerItem_gridPlotLayout = \
             QtWidgets.QSpacerItem(20, 1000000, QtWidgets.QSizePolicy.Minimum,
@@ -149,17 +123,20 @@ class MultiDataGraph(DAATAScene, uiFile):
         self.gridPlotLayout.addItem(self.spacerItem_gridPlotLayout)
 
     def create_graph(self, key):
-        # key = self.currentKeys[0]
+        self.graph_objects.pop(key, None)
         self.graph_objects[key] = CustomPlotWidget(key,
                                        parent=self.scrollAreaWidgetContents,
                                        layout=self.gridPlotLayout,
                                        graph_width_seconds=8,
-                                       multi_sensors=self.currentKeys,
+                                       y_sensors=self.y_sensors,
                                        enable_multi_plot=True,
                                        plot_type=self.line_graph)
-        self.graph_objects[key].setObjectName("MDG #" + str(key))
-        self.graph_objects[key].show()
+        # activate settings button
+        widget = self.graph_objects[key]
+        settings = widget.button_settings.clicked.connect(
+            partial(self.graph_objects[key].open_SettingsWindow))
 
+        self.graph_objects[key].show()
         self.create_grid_plot_layout()
 
     def slot_data_collecting_state_change(self):
@@ -179,16 +156,6 @@ class MultiDataGraph(DAATAScene, uiFile):
             #     self.button_display.setText("Start Collecting Data")
             #     self.is_data_collecting.clear()
             #     self.popup_dataSaveLocation()
-
-    # def slot_checkbox_state_change(self):
-    #     # if self.selectAll_checkbox.isChecked():
-    #     #     for key in self.currentKeys:
-    #     #         self.checkbox_objects[key].setChecked(True)
-    #     # else:
-    #     #     for key in self.currentKeys:
-    #     #         self.checkbox_objects[key].setChecked(False)
-    #     self.update_sensor_count()
-    #     self.create_grid_plot_layout()
 
     def update_sensor_count(self):
         self.active_sensor_count = 0
@@ -223,27 +190,14 @@ class MultiDataGraph(DAATAScene, uiFile):
         except TypeError:
             pass
 
-    # def update_sensor_checkboxes(self):
-    #     """
-    #     Will update the sensor checkboxes if new sensors are added.
-    #
-    #     :return: None
-    #     """
-    #     connected_sensors = data.get_sensors(is_plottable=True, is_connected=True)
-    #     for key in connected_sensors:
-    #         if key not in self.currentKeys:
-    #             self.checkbox_objects[key].show()
-    #     for key in self.currentKeys:
-    #         if key not in connected_sensors:
-    #             try:
-    #                 self.checkbox_objects[key].hide()
-    #             except Exception:
-    #                 pass
-    #     self.currentKeys = connected_sensors
-    #
-    #     # updates the list of connected sensors for x and y sensor plotting
-    #     for graph_object in self.graph_objects.values():
-    #         graph_object.update_connected_sensors(connected_sensors)
+    """
+    Will update the sensor checkboxes if new sensors are added.
+    :return: None
+    """
+    def update_connected_sensors(self):
+        connected_sensors = data.get_sensors(is_plottable=True,
+                                             is_connected=True)
+        self.connected_sensors = connected_sensors
 
     def update_active(self):
         """
@@ -272,8 +226,7 @@ class MultiDataGraph(DAATAScene, uiFile):
             self.button_display.setChecked(False)
 
     def update_passive(self):
-        pass
-        # self.update_sensor_checkboxes()
+        self.update_connected_sensors()
 
     """
     Adds one more independent multi data graph to the scene
@@ -282,7 +235,6 @@ class MultiDataGraph(DAATAScene, uiFile):
         newMDGNumber = int(self.mdgNumber.text()) + 1
         self.mdgNumber.setText(str(newMDGNumber))
 
-        # TODO why this don't work
         current_MDG_count = len(self.graph_objects)
         self.create_graph(current_MDG_count)
 
@@ -306,9 +258,6 @@ class MultiDataGraph(DAATAScene, uiFile):
         # for key in self.currentKeys:
         #     self.checkbox_objects[key].clicked.connect(self.create_grid_plot_layout)
         #     self.checkbox_objects[key].clicked.connect(self.save_settings)
-        #
-        # self.selectAll_checkbox.stateChanged.connect(
-        #     self.slot_checkbox_state_change)
 
         self.comboBox_graphDimension.currentTextChanged.connect(
             self.create_grid_plot_layout)
@@ -317,11 +266,6 @@ class MultiDataGraph(DAATAScene, uiFile):
 
         self.plusMDGButton.clicked.connect(self.addMDG)
         self.minusMDGButton.clicked.connect(self.removeMDG)
-
-        # connections to GridPlotLayout
-        for key in self.graph_objects.keys():
-            widget = self.graph_objects[key]
-            settings = widget.button_settings.clicked.connect(partial(self.graph_objects[key].open_SettingsWindow))
 
     def save_settings(self):
         """
@@ -385,7 +329,7 @@ class MultiDataGraph(DAATAScene, uiFile):
         self.save_settings()
         self.window().setWindowTitle('closed tab')
 
-## The line QtGui.QStyleOption() will throw an error
+    ## The line QtGui.QStyleOption() will throw an error
     '''
     def paintEvent(self, pe):
         """
