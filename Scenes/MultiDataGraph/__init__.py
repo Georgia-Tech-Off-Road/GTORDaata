@@ -52,7 +52,7 @@ class MultiDataGraph(DAATAScene, uiFile):
         self.scrollAreaWidgetContents.setLayout(self.gridPlotLayout)
 
         self.create_graph_dimension_combo_box()
-        self.create_graph(0)
+        self.addMDG()
         # self.create_grid_plot_layout()
 
         from MainWindow import is_data_collecting
@@ -128,7 +128,6 @@ class MultiDataGraph(DAATAScene, uiFile):
                                        parent=self.scrollAreaWidgetContents,
                                        layout=self.gridPlotLayout,
                                        graph_width_seconds=8,
-                                       y_sensors=self.y_sensors,
                                        enable_multi_plot=True,
                                        plot_type=self.line_graph)
         # activate settings button
@@ -242,14 +241,15 @@ class MultiDataGraph(DAATAScene, uiFile):
     Removes the most recently added multi data graph from the scene
     """
     def removeMDG(self):
-        newMDGNumber = int(self.mdgNumber.text()) - 1
-        if newMDGNumber < 0:
-            newMDGNumber = 0
-        self.mdgNumber.setText(str(newMDGNumber))
-
-        current_MDG_count = len(self.graph_objects)
-        del self.graph_objects[current_MDG_count - 1]
-        self.create_grid_plot_layout()
+        pass
+        # newMDGNumber = int(self.mdgNumber.text()) - 1
+        # if newMDGNumber < 0:
+        #     newMDGNumber = 0
+        # self.mdgNumber.setText(str(newMDGNumber))
+        #
+        # current_MDG_count = len(self.graph_objects)
+        # del self.graph_objects[current_MDG_count - 1]
+        # self.create_grid_plot_layout()
 
     def connect_slots_and_signals(self):
         self.button_display.clicked.connect(

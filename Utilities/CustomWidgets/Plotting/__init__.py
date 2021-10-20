@@ -41,8 +41,8 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
         self.DEF_BRUSH_SIZE = 10
 
         # sets the current x and y sensors plotted on the graph
-        self.y_sensors = kwargs.get("y_sensors", None)
-        self.x_sensor = kwargs.get("x_sensor", self.time_option)
+        self.y_sensors = []
+        self.x_sensor = self.time_option
 
         self.setMinimumSize(QtCore.QSize(200, 200))
         self.setMaximumSize(QtCore.QSize(16777215, 400))
@@ -267,18 +267,15 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
                     self.multi_plots[sensor_i].addPoints(valueArrayX,
                                                          valueArrayY)
 
-    def update_xy_sensors(self, sensor_name, x_sensor, y_sensors):
-        if sensor_name == self.sensor_name:
-            self.x_sensor = x_sensor
-            self.y_sensors = y_sensors
-            self.create_multi_graphs()
+    def update_xy_sensors(self, x_sensor, y_sensors):
+        self.x_sensor = x_sensor
+        self.y_sensors = y_sensors
+        self.create_multi_graphs()
 
     def open_SettingsWindow(self):
         if self.enable_multi_plot:
-            print("settings: " + str(self.sensor_name) + str(self.y_sensors))
             PlotSettingsDialogMDG(self, self.embedLayout,
-                                  self.x_sensor, self.y_sensors,
-                                  sensor_name=self.sensor_name)
+                                  self.x_sensor, self.y_sensors)
         else:
             PlotSettingsDialog(self, self.embedLayout, self.sensor_name)
 
@@ -412,7 +409,6 @@ class PlotSettingsDialogMDG(QtWidgets.QDialog, uiSettingsDialogMDG):
         super().__init__()
         self.setupUi(self)
         self.parent = parent
-        self.sensor_name = kwargs.get("sensor_name", "")
         self.embedLayout = embedLayout
         self.time_option = parent.time_option
 
@@ -516,7 +512,7 @@ class PlotSettingsDialogMDG(QtWidgets.QDialog, uiSettingsDialogMDG):
         else:
             for key in self.connected_sensors:
                 self.y_checkbox_objects[key].setChecked(False)
-        self.update_xy_sensors()
+        # self.update_xy_sensors()
 
     # updates the current stored selection of x and y sensors
     def update_xy_sensors(self):
@@ -571,9 +567,7 @@ class PlotSettingsDialogMDG(QtWidgets.QDialog, uiSettingsDialogMDG):
         self.update_xy_sensors()
         self.parent.plotWidget.clear()
 
-        self.parent.update_xy_sensors(self.sensor_name,
-                                      self.checked_x_key, self.checked_y_keys)
-        pass
+        self.parent.update_xy_sensors(self.checked_x_key, self.checked_y_keys)
 
     def saveSettings(self):
         self.configFile.setValue("graph_width", self.lineEdit_graph_width_seconds.text())
