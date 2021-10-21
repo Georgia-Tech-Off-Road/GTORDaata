@@ -4,6 +4,7 @@ import json
 import logging
 from Utilities.DataExport.GTORNetwork import get_GTORNetworkDrive#, generate_data_save_location
 from pathlib import Path
+from datetime import date
 
 ''' "saveLocationDialog" configFile settings
 
@@ -124,51 +125,33 @@ class popup_dataSaveLocation(QtWidgets.QDialog, uiFile):
         self.saveMAT(self.scene_name, default_path)
 
         if self.checkBox_GDrive.isChecked():
-            GDFilename = self.lineEdit_filenameGD.text()
-            GD_oAuth_client_file = self.lineEdit_oAuthGD.text()
-            GD_url = self.lineEdit_GDriveURL.text()
+            GDFilename = str(date.today()) + "-#00"
 
             # if all fields are good, proceed to making temp csv and mat files
             # and uploading them to the Google Drive URL link
-            if GD_url[:43] == "https://drive.google.com/drive/u/0/folders/":
-                if GD_oAuth_client_file == "" \
-                        or not os.path.exists(GD_oAuth_client_file):
-                    logger.error("Missing oAuth file for Google Drive")
-                else:
-                    # Creates and saves the CSV and MAT files to the default
-                    # path. This will create two identical sets of files with
-                    # different names if the entered filename is not equal to
-                    # the default name.
-                    if GDFilename == "":
-                        GDFilename = self.scene_name
 
-                    self.saveCSV(GDFilename, default_path)
-                    self.saveMAT(GDFilename, default_path)
+            # Creates and saves the CSV and MAT files to the default
+            # path. This will create two identical sets of files with
+            # different names if the entered filename is not equal to
+            # the default name.
 
-                    g_drive_folder_id = GD_url[43:]
-                    self.upload_to_g_drive(GDFilename,
-                                           default_path,
-                                           g_drive_folder_id,
-                                           GD_oAuth_client_file)
+            self.saveCSV(GDFilename, default_path)
+            self.saveMAT(GDFilename, default_path)
 
-                    ## deletes created CSV and MAT files in the temp folder
-                    # try:
-                    #     temp_file = default_path + GDFilename + ".csv"
-                    #     if os.path.exists(temp_file):
-                    #         os.remove(temp_file)
-                    #     temp_file = default_path + GDFilename + ".mat"
-                    #     if os.path.exists(temp_file):
-                    #         os.remove(temp_file)
-                    # except PermissionError:
-                    #     logger.debug("Temp files are in use and cannot be "
-                    #                  "deleted.")
-            else:
-                logger.error("Invalid Google Drive URL. Files not saved to "
-                             "Google Drive")
+            self.upload_to_g_drive(default_path + GDFilename + ".csv")
+            self.upload_to_g_drive(default_path + GDFilename + ".mat")
 
-                # self.configFile.setValue("default_GDFolder", GD_temp_folder)
-
-
+            ## deletes created CSV and MAT files in the temp folder
+            # try:
+            #     temp_file = default_path + GDFilename + ".csv"
+            #     if os.path.exists(temp_file):
+            #         os.remove(temp_file)
+            #     temp_file = default_path + GDFilename + ".mat"
+            #     if os.path.exists(temp_file):
+            #         os.remove(temp_file)
+            # except PermissionError:
+            #     logger.debug("Temp files are in use and cannot be "
+            #                  "deleted.")
 
         self.configFile.setValue("checkBox_local",
                                  self.checkBox_local.isChecked())
