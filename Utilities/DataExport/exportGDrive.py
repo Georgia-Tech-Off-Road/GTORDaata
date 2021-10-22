@@ -7,6 +7,11 @@ import datetime
 
 logger = logging.getLogger("Utilities")
 FOLDER_MIME_TYPE = 'application/vnd.google-apps.folder'
+# If this is True, this code will strictly check whether the path where the file
+# is saved is correct. The path where the file is saved may be incorrect if
+# another folder in the whole Google Drive has the same name as any folder in
+# the target directory. May slightly impact performance under slow internet
+# STRICT_FOLDER_PATH_CHECKING = False
 
 """
 Uses the Google Drive API to upload files onto a specific Google Drive 
@@ -15,16 +20,7 @@ To enable those permissions, see: https://learndataanalysis.org/google-
 drive-api-in-python-getting-started-lesson-1/.
 Citation: https://youtu.be/cCKPjW5JwKo, retrieved 09/30/2021
 """
-def upload_to_g_drive(self, filepath: str):
-    filepath_list = filepath.split("\\")
-    filename = filepath_list[len(filepath_list) - 1]
-
-    print(filepath)
-
-    if not validate_filename_format(filename):
-        logger.error("Filename to upload to Google Drive of non-legal format.")
-        return
-
+def upload_all_to_drive(self, directory):
     CLIENT_SECRET_FILE = "C:\\Users\\afari\\OneDrive - Georgia Institute of Technology\\Documents\\Unaffiliated\\1 General\\sec.json"
     API_NAME = 'drive'
     API_VERSION = 'v3'
@@ -33,11 +29,26 @@ def upload_to_g_drive(self, filepath: str):
     drive_service = Create_Service(CLIENT_SECRET_FILE, API_NAME, API_VERSION,
                                    SCOPES)
 
-    daytest_folder_id = get_DayTest_folder_id(drive_service, filename)
-    if daytest_folder_id is None:
+    files_to_upload = os.listdir(directory)
+    if len(files_to_upload) > 0:
+        for filename in files_to_upload:
+            filepath = directory + filename
+            validate_and_upload(drive_service, filepath)
+
+
+def validate_and_upload(drive_service, filepath: str):
+    filepath_list = filepath.split("\\")
+    filename = filepath_list[len(filepath_list) - 1]
+
+    if not validate_filename_format(filename):
+        logger.error("File " + filename
+                     + " to upload to Google Drive of non-legal format.")
+        return
+
+    day_folder_id = get_Day_folder_id(drive_service, filename)
+    if day_folder_id is None:
         logger.error("Error in acquiring Day Test folder ID")
         return
-    print(daytest_folder_id)
 
     # Mime_type for CSV and MATLAB files, see
     # https://learndataanalysis.org/commonly-used-mime-types/ or
@@ -46,76 +57,31 @@ def upload_to_g_drive(self, filepath: str):
     CSV_MIME_TYPE = 'test/csv'
     MAT_MIME_TYPE = 'text/x-matlab'
 
-    if filename[14:] == ".csv":
-        upload(drive_service, filepath, CSV_MIME_TYPE, daytest_folder_id)
-    elif filename[14:] == ".mat":
-        upload(drive_service, filepath, MAT_MIME_TYPE, daytest_folder_id)
+    if filename[-4:] == ".csv":
+        fileid = upload(drive_service, filepath, CSV_MIME_TYPE, day_folder_id)
+        if fileid is not None:
+            remove_files(filepath)
+    elif filename[-4:] == ".mat":
+        fileid = upload(drive_service, filepath, MAT_MIME_TYPE, day_folder_id)
+        if fileid is not None:
+            remove_files(filepath)
     else:
         logger.error("File to be uploaded of non-legal type.")
         return
-    # folder_id =
-    # return
-    #
-    # # full_file_name e.g.: a.csv, a.mat
-    # file_names = [filename + '.csv', filename + ".mat"]
-    #
-    #
-    # mime_types = ['test/csv', 'text/x-matlab']
-    #
-    # file_metadata = {
-    #     'name': 'Invoices',
-    #     'parents': [folder_id],
-    #     'mimeType': 'application/vnd.google-apps.folder'
-    # }
-    # file = drive_service.files().create(body=file_metadata, fields='id').execute()
-    #
-    # for file_name, mime_type in zip(file_names, mime_types):
-    #     file_metadata = {
-    #         'name': file_name,
-    #         'parents': [folder_id]
-    #     }
-    #
-    #     full_filepath = directory + file_name
-    #
-    #     if not os.path.exists(full_filepath):
-    #         logging.error("File " + file_name + " was not created and thus, "
-    #                                             "cannot be uploaded to Google "
-    #                                             "Drive")
-    #         continue
-    #
-    #     media = MediaFileUpload(
-    #         full_filepath,
-    #         mimetype=mime_type)
-    #
-    #     try:
-    #         drive_service.files().create(
-    #             body=file_metadata,
-    #             media_body=media,
-    #             fields='id'
-    #         ).execute()
-    #         logger.info("Files successfully saved to Google Drive")
-    #     except httplib2.error.ServerNotFoundError:
-    #         logger.error("Failed to find Google Drive server. "
-    #                      "Possibly due to internet problems.")
-    #
-    #     logger.info("Files saving to Google Drive (success/failed) completed.")
 
 
 """
-Validating filename is of format YYYY-MM-DD-#00 e.g. "2020-10-20-#01" or 
-"2020-10-20-#01.csv".
+Validating filename is of format YYYY-MM-DD-HH:MM:SS e.g. 
+"2021-10-20-13:01:59.csv" or "2021-10-20-13:01:59"
 Citation: https://stackoverflow.com/questions/16870663/
 how-do-i-validate-a-date-string-format-in-python/16870699
 """
 def validate_filename_format(filename: str) -> bool:
-    if filename[10:12] != "-#":
-        return False
     try:
         datetime.datetime.strptime(filename[:10], '%Y-%m-%d')
-        int(filename[12:14])
     except ValueError:
         logger.error("File to be uploaded of incorrect data format, should be "
-                     "2021-10-20-#01")
+                     "2021-10-20-13:01:59.csv")
         return False
     return True
 
@@ -125,7 +91,7 @@ Finding the correct DayTest folder to put the results into, if none exists,
 create one with the correct hierarchy
 Citation: https://developers.google.com/drive/api/v3/search-files#python
 
-:filename: a filename of the format "2021-10-20-#01"
+:filename: a filename of the format "2021-10-20-13:01:59.csv"
 
 Hierarchy of GDrive:
 
@@ -133,25 +99,9 @@ Root
 Year        # 2021
 Month       ## 2021-10
 Day         ### 2021-10-20
-DayTest     #### 2021-10-20-#01
-csv file    ###### 2021-10-20-#01.csv
-mat file    ###### 2021-10-20-#01.mat
+csv file    ##### 2021-10-20-13:01:59.csv
+mat file    ##### 2021-10-20-13:01:59.mat
 """
-def get_DayTest_folder_id(drive_service, filename: str):
-    day_test = filename[:14]
-    search_file_results = find_file_in_drive(drive_service, day_test,
-                                             FOLDER_MIME_TYPE, 1)
-    if len(search_file_results) == 0:
-        day_folder_id = get_Day_folder_id(drive_service, day_test)
-        return create_folder_in_drive(drive_service, day_test, day_folder_id)
-    elif len(search_file_results) == 1:
-        return search_file_results[0].get('id')
-    else:
-        logger.error("File hierarchy error in Google Drive. Possibly two "
-                     "same folder names")
-        return None
-
-
 def get_Day_folder_id(drive_service, filename: str):
     day = filename[:10]
     search_file_results = find_file_in_drive(drive_service, day,
@@ -229,6 +179,7 @@ def upload(drive_service, filepath: str, mime_type: str,
         }
         folder = drive_service.files().create(body=file_metadata, fields='id')\
             .execute()
+        logger.info("Folder " + filepath + " successfully created in GDrive.")
         return folder.get('id')
     else:
         # check if file exists
@@ -255,6 +206,7 @@ def upload(drive_service, filepath: str, mime_type: str,
                 fields='id'
             ).execute()
             logger.info("Files successfully saved to Google Drive")
+
             return file.get('id')
         except httplib2.error.ServerNotFoundError:
             no_internet()
@@ -268,10 +220,20 @@ pages (defaults to first 5 pages).
 Citation: https://developers.google.com/drive/api/v3/search-files#python
 """
 def find_file_in_drive(drive_service, filename: str, mime_type: str = None,
-                       page_limit: int = 5) -> list:
+                       page_limit: int = 5, parent_id: str = None) -> list:
 
     list_of_files = []
-    query = "name='" + filename + "' and mimeType='" + mime_type + "'"
+    query = "name='" + filename + "'"
+    if mime_type is not None:
+        query += " and mimeType='" + mime_type + "'"
+    if parent_id is not None:
+        query += " and '" + parent_id + "' in parents"
+
+    # Metadata extracted in finding files.
+    # Refer here for full list of metadata:
+    # https://developers.google.com/drive/api/v3/reference/files
+    METADATA_REQUESTED = "id, name, parents, mimeType, createdTime, " \
+                         "modifiedTime, description, kind"
 
     page_token = None
     for i in range(page_limit):
@@ -279,7 +241,8 @@ def find_file_in_drive(drive_service, filename: str, mime_type: str = None,
             response = drive_service.files().list(
                                         q=query,
                                         spaces='drive',
-                                        fields='nextPageToken, files(id, name)',
+                                        fields='nextPageToken, files('
+                                               + METADATA_REQUESTED + ')',
                                         pageToken=page_token).execute()
             list_of_files.extend(response.get('files', []))
             page_token = response.get('nextPageToken', None)
@@ -293,3 +256,11 @@ def find_file_in_drive(drive_service, filename: str, mime_type: str = None,
 def no_internet():
     logger.error("Failed to find Google Drive server. "
                  "Possibly due to internet problems.")
+
+
+def remove_files(filepath):
+    try:
+        os.remove(filepath)
+    except PermissionError:
+        logger.debug("Temp files are in use and cannot be "
+                     "deleted.")
