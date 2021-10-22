@@ -279,9 +279,13 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         
         return: None
         """
+
+        data_import.teensy_found = False
+        data_import.data_file = None
+
         logger.info("Input Mode: " + str(input_mode))
         data_import.input_mode = input_mode
-        if data_import.input_mode == "BIN":
+        if data_import.input_mode == "BIN":            
             try:
                 directory = open_data_file(".bin")
                 if directory != "":
