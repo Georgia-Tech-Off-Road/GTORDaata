@@ -24,16 +24,7 @@ data_import = DataImport(data, data_collection_lock, is_data_collecting)
 def read_data():
     logger.info("Running read_data")
     data_was_collecting = False    
-    if data_import.input_mode == "BIN":
-        try:
-            data_import.open_bin_file(open_data_file(".bin"))
-        except Exception as e:
-            logger.error(e)
-    elif data_import.input_mode == "CSV":        
-        try:
-            data_import.import_csv(open_data_file(".csv"))
-        except Exception as e:
-            logger.error(e)
+    
     while True:
         if data_import.input_mode == "FAKE":
             data_import.check_connected_fake()
@@ -42,25 +33,28 @@ def read_data():
             try:                
                 data_import.read_packet()
             except Exception as e:
-                logger.error(e)                    
+                logger.error(e)        
         elif "COM" in data_import.input_mode:                                   
-            try:
+            if data_import.teensy_found:
                 try:
-                    data_import.teensy_ser.flushInput()
-                    assert data_import.teensy_found
-                    assert data_import.check_connected()
-                except AttributeError:
-                    logger.warning("Unable to flush Serial Buffer. No Serial object connected")                    
-                try:                    
-                    data_import.read_packet()
-                except AssertionError:
-                    logger.info("Serial port is not open, opening now")
                     try:
-                        data_import.teensy_ser.open()
-                    except Exception as e:
-                        logger.error(e)
-            except AssertionError:
-                time.sleep(0)
+                        data_import.teensy_ser.flushInput()
+                        assert data_import.teensy_found
+                        assert data_import.check_connected()
+                    except AttributeError:
+                        logger.warning("Unable to flush Serial Buffer. No Serial object connected")                    
+                    try:                    
+                        data_import.read_packet()
+                    except AssertionError:
+                        logger.info("Serial port is not open, opening now")
+                        try:
+                            data_import.teensy_ser.open()
+                        except Exception as e:
+                            logger.error(e)
+                except AssertionError:
+                    time.sleep(0)
+            else:
+                data_import.input_mode = ""
 
         if is_data_collecting.is_set() and not data_was_collecting:
             logger.info("Starting data collection")

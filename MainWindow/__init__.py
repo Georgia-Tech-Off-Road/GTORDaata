@@ -26,6 +26,8 @@ import DataAcquisition
 from DataAcquisition import is_data_collecting, data_import, stop_thread
 from DataAcquisition.DataImport import DataImport
 
+from Utilities.DataExport.dataFileExplorer import open_data_file
+
 import re, itertools
 import winreg as winreg
 
@@ -279,6 +281,27 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         """
         logger.info("Input Mode: " + str(input_mode))
         data_import.input_mode = input_mode
+        if data_import.input_mode == "BIN":
+            try:
+                directory = open_data_file(".bin")
+                if directory != "":
+                    data_import.open_bin_file(directory)
+                else:
+                    data_import.input_mode = ""
+                    logger.info("You must open a BIN file before changing to BIN input mode")
+            except Exception as e:
+                logger.error(e)
+        elif data_import.input_mode == "CSV":        
+            try:
+                directory = open_data_file(".csv")
+                if directory != "":
+                    data_import.import_csv(directory)
+                else:                    
+                    logger.log("You must open a CSV file before changing to CSV input mode")
+            except Exception as e:
+                logger.error(e)
+            finally:
+                data_import.input_mode = ""
         if not self.data_reading_thread.is_alive():
             self.data_reading_thread.start()
         if "COM" in data_import.input_mode:
