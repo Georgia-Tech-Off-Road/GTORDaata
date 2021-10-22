@@ -4,7 +4,7 @@ import json
 import logging
 from Utilities.DataExport.GTORNetwork import get_GTORNetworkDrive#, generate_data_save_location
 from pathlib import Path
-from datetime import date
+from datetime import datetime
 
 ''' "saveLocationDialog" configFile settings
 
@@ -13,6 +13,8 @@ from datetime import date
 
 logger = logging.getLogger("DataCollection")
 uiFile, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'saveLocationDialog.ui'))  # loads the .ui file from QT Designer
+DEFAULT_DIRECTORY = str(Path.home()) + '\\AppData\\Local\\GTOffRoad\\'
+
 class popup_dataSaveLocation(QtWidgets.QDialog, uiFile):
     def __init__(self, scene_name):
         super().__init__()
@@ -29,7 +31,7 @@ class popup_dataSaveLocation(QtWidgets.QDialog, uiFile):
     ## imported methods
     from Utilities.DataExport.exportCSV import saveCSV
     from Utilities.DataExport.exportMAT import saveMAT
-    from Utilities.DataExport.exportGDrive import upload_to_g_drive
+    from Utilities.DataExport.exportGDrive import upload_all_to_drive
 
     def loadSettings(self):
         self.checkBox_local.setChecked(self.configFile.value("checkBox_local") == 'true')
@@ -57,9 +59,6 @@ class popup_dataSaveLocation(QtWidgets.QDialog, uiFile):
         self.lineEdit_folderSD.setText(self.configFile.value("default_SDFolder"))
         self.lineEdit_folderSD.setValidator(validator)
 
-        self.lineEdit_filenameGD.setText("")
-        self.lineEdit_filenameGD.setValidator(validator)
-
 
     def toggle_frames(self):
         if self.checkBox_local.isChecked():
@@ -76,11 +75,6 @@ class popup_dataSaveLocation(QtWidgets.QDialog, uiFile):
             self.widget_SDCard.show()
         else:
             self.widget_SDCard.hide()
-
-        if self.checkBox_GDrive.isChecked():
-            self.widget_GDrive.show()
-        else:
-            self.widget_GDrive.hide()
 
     def saveData(self):
         if self.checkBox_local.isChecked():
@@ -110,36 +104,25 @@ class popup_dataSaveLocation(QtWidgets.QDialog, uiFile):
 
             self.configFile.setValue("default_SDFolder", SDFolder)
 
-        # Saves a temporary copy of the CSV and MAT data files to a default
-        # directory every time the "Save" button is clicked, no matter which
-        # location to save is chosen (or not chosen).
-        # Default directory for auto appdata saving
-        default_path = str(Path.home()) + '\\AppData\\Local\\GTOffRoad\\'
-        if not os.path.exists(default_path):
+        if not os.path.exists(DEFAULT_DIRECTORY):
             logger.info(
-                "Default path " + default_path + " not found. Making "
+                "Default path " + DEFAULT_DIRECTORY + " not found. Making "
                                                  "the directory...")
-            os.mkdir(default_path)
-
-        self.saveCSV(self.scene_name, default_path)
-        self.saveMAT(self.scene_name, default_path)
+            os.mkdir(DEFAULT_DIRECTORY)
 
         if self.checkBox_GDrive.isChecked():
-            GDFilename = str(date.today()) + "-#00"
-
-            # if all fields are good, proceed to making temp csv and mat files
-            # and uploading them to the Google Drive URL link
+            time_now = datetime.now()
+            time_now = time_now.strftime("%Y-%m-%d-%H-%M-%S")
+            GDFilename = time_now
 
             # Creates and saves the CSV and MAT files to the default
             # path. This will create two identical sets of files with
             # different names if the entered filename is not equal to
-            # the default name.
+            # the default name
+            self.saveCSV(GDFilename, DEFAULT_DIRECTORY)
+            self.saveMAT(GDFilename, DEFAULT_DIRECTORY)
 
-            self.saveCSV(GDFilename, default_path)
-            self.saveMAT(GDFilename, default_path)
-
-            self.upload_to_g_drive(default_path + GDFilename + ".csv")
-            self.upload_to_g_drive(default_path + GDFilename + ".mat")
+            self.upload_all_to_drive(DEFAULT_DIRECTORY)
 
             ## deletes created CSV and MAT files in the temp folder
             # try:
