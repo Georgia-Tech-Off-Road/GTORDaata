@@ -6,21 +6,19 @@ import logging
 import datetime
 
 logger = logging.getLogger("Utilities")
-FOLDER_MIME_TYPE = 'application/vnd.google-apps.folder'
-# If this is True, this code will strictly check whether the path where the file
-# is saved is correct. The path where the file is saved may be incorrect if
-# another folder in the whole Google Drive has the same name as any folder in
-# the target directory. May slightly impact performance under slow internet
-# STRICT_FOLDER_PATH_CHECKING = False
+FOLDER_MIME_TYPE = "application/vnd.google-apps.folder"
+ROOT_FOLDER_ID = "1OaMbG-wAqC6_Ad8u5FiNS9L8z2W7eB2i"
+DRIVE_ID = "0AFmSv7widPF9Uk9PVA"
 
 """
-Uses the Google Drive API to upload files onto a specific Google Drive 
-folder on an account that has sufficient permissions enabled.
+Uses the Google Drive API to upload all the files in this directory into a 
+specific Google Drive folder on an account that has sufficient permissions 
+enabled.
 To enable those permissions, see: https://learndataanalysis.org/google-
 drive-api-in-python-getting-started-lesson-1/.
 Citation: https://youtu.be/cCKPjW5JwKo, retrieved 09/30/2021
 """
-def upload_all_to_drive(self, directory):
+def upload_all_to_drive(self, directory: str):
     CLIENT_SECRET_FILE = "C:\\Users\\afari\\OneDrive - Georgia Institute of Technology\\Documents\\Unaffiliated\\1 General\\sec.json"
     API_NAME = 'drive'
     API_VERSION = 'v3'
@@ -103,11 +101,16 @@ csv file    ##### 2021-10-20-13:01:59.csv
 mat file    ##### 2021-10-20-13:01:59.mat
 """
 def get_Day_folder_id(drive_service, filename: str):
-    day = filename[:10]
+
+    year_folder_id = get_Year_folder_id(drive_service, filename)
+    month_folder_id = get_Month_folder_id(drive_service, filename,
+                                          year_folder_id)
+
+    day = filename[:10] # e.g. 2021-10-21
     search_file_results = find_file_in_drive(drive_service, day,
-                                             FOLDER_MIME_TYPE, 1)
+                                             FOLDER_MIME_TYPE, 1,
+                                             month_folder_id)
     if len(search_file_results) == 0:
-        month_folder_id = get_Month_folder_id(drive_service, filename)
         return create_folder_in_drive(drive_service, day, month_folder_id)
     elif len(search_file_results) == 1:
         return search_file_results[0].get('id')
@@ -117,12 +120,12 @@ def get_Day_folder_id(drive_service, filename: str):
         return None
 
 
-def get_Month_folder_id(drive_service, filename: str):
+def get_Month_folder_id(drive_service, filename: str, year_folder_id: str):
     month = filename[:7]
     search_file_results = find_file_in_drive(drive_service, month,
-                                             FOLDER_MIME_TYPE, 1)
+                                             FOLDER_MIME_TYPE, 1,
+                                             year_folder_id)
     if len(search_file_results) == 0:
-        year_folder_id = get_Year_folder_id(drive_service, filename)
         return create_folder_in_drive(drive_service, month, year_folder_id)
     elif len(search_file_results) == 1:
         return search_file_results[0].get('id')
@@ -135,8 +138,8 @@ def get_Month_folder_id(drive_service, filename: str):
 def get_Year_folder_id(drive_service, filename: str):
     year = filename[:4]
     search_file_results = find_file_in_drive(drive_service, year,
-                                             FOLDER_MIME_TYPE, 1)
-    ROOT_FOLDER_ID = "1gEXCzboYr76hPsmLpeODYP5vjmjR4IXl"
+                                             FOLDER_MIME_TYPE, 1,
+                                             ROOT_FOLDER_ID)
 
     if len(search_file_results) == 0:
         return create_folder_in_drive(drive_service, year, ROOT_FOLDER_ID)
@@ -177,7 +180,9 @@ def upload(drive_service, filepath: str, mime_type: str,
             'parents': [parent_folder_id],
             'mimeType': mime_type
         }
-        folder = drive_service.files().create(body=file_metadata, fields='id')\
+        folder = drive_service.files().create(
+            supportsAllDrives=True,
+            body=file_metadata, fields='id')\
             .execute()
         logger.info("Folder " + filepath + " successfully created in GDrive.")
         return folder.get('id')
@@ -202,6 +207,7 @@ def upload(drive_service, filepath: str, mime_type: str,
         try:
             file = drive_service.files().create(
                 body=file_metadata,
+                supportsAllDrives=True,
                 media_body=media,
                 fields='id'
             ).execute()
@@ -219,11 +225,14 @@ mime_type in the Google Drive. Limits the search results to the first page_limit
 pages (defaults to first 5 pages).
 Citation: https://developers.google.com/drive/api/v3/search-files#python
 """
-def find_file_in_drive(drive_service, filename: str, mime_type: str = None,
-                       page_limit: int = 5, parent_id: str = None) -> list:
+def find_file_in_drive(drive_service, filename: str = None,
+                       mime_type: str = None, page_limit: int = 5,
+                       parent_id: str = None) -> list:
 
     list_of_files = []
-    query = "name='" + filename + "'"
+    query = ""
+    if filename is not None:
+        query += "name='" + filename + "'"
     if mime_type is not None:
         query += " and mimeType='" + mime_type + "'"
     if parent_id is not None:
@@ -233,7 +242,7 @@ def find_file_in_drive(drive_service, filename: str, mime_type: str = None,
     # Refer here for full list of metadata:
     # https://developers.google.com/drive/api/v3/reference/files
     METADATA_REQUESTED = "id, name, parents, mimeType, createdTime, " \
-                         "modifiedTime, description, kind"
+                         "modifiedTime, description, kind, driveId"
 
     page_token = None
     for i in range(page_limit):
@@ -241,6 +250,10 @@ def find_file_in_drive(drive_service, filename: str, mime_type: str = None,
             response = drive_service.files().list(
                                         q=query,
                                         spaces='drive',
+                                        corpora='drive',
+                                        driveId=DRIVE_ID,
+                                        supportsAllDrives=True,
+                                        includeItemsFromAllDrives=True,
                                         fields='nextPageToken, files('
                                                + METADATA_REQUESTED + ')',
                                         pageToken=page_token).execute()
@@ -262,5 +275,4 @@ def remove_files(filepath):
     try:
         os.remove(filepath)
     except PermissionError:
-        logger.debug("Temp files are in use and cannot be "
-                     "deleted.")
+        logger.warning("Temp files are in use and cannot be deleted.")
