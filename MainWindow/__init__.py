@@ -285,7 +285,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         logger.info("Input Mode: " + str(input_mode))
         data_import.input_mode = input_mode
-        if data_import.input_mode == "BIN":            
+        if data_import.input_mode == "BIN":
             try:
                 directory = open_data_file(".bin")
                 if directory != "":
@@ -301,18 +301,19 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 if directory != "":
                     data_import.import_csv(directory)
                 else:                    
-                    logger.log("You must open a CSV file before changing to CSV input mode")
+                    logger.info("You must open a CSV file before changing to CSV input mode")
             except Exception as e:
                 logger.error(e)
             finally:
                 data_import.input_mode = ""
-        if not self.data_reading_thread.is_alive():
-            self.data_reading_thread.start()
         if "COM" in data_import.input_mode:
             data_import.connect_serial()
             if not self.data_sending_thread.isActive():
                 self.data_sending_thread.start(100)
                 logger.info("We connected to serial!")
+        if input_mode != "" and not self.data_reading_thread.is_alive() and input_mode != "Auto":
+            self.data_reading_thread.start()
+        
 
     def connect_signals_and_slots(self):
         """

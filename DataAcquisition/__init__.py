@@ -34,7 +34,7 @@ def read_data():
                 data_import.read_packet()
             except Exception as e:
                 logger.error(e)        
-        elif "COM" in data_import.input_mode and data_import.teensy_found:                                               
+        elif "COM" in data_import.input_mode and data_import.teensy_found:            
             try:
                 try:
                     data_import.teensy_ser.flushInput()
