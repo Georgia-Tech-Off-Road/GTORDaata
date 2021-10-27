@@ -3,6 +3,7 @@ import os
 import json
 import logging
 from Utilities.DataExport.GTORNetwork import get_GTORNetworkDrive#, generate_data_save_location
+import webbrowser
 from pathlib import Path
 from datetime import datetime
 
@@ -76,6 +77,11 @@ class popup_dataSaveLocation(QtWidgets.QDialog, uiFile):
         else:
             self.widget_SDCard.hide()
 
+        if self.checkBox_GDrive.isChecked():
+            self.widget_GD.show()
+        else:
+            self.widget_GD.hide()
+
     def saveData(self):
         if self.checkBox_local.isChecked():
             local_filename = self.lineEdit_filenameLocal.text()
@@ -90,6 +96,9 @@ class popup_dataSaveLocation(QtWidgets.QDialog, uiFile):
         if self.checkBox_networkDrive.isChecked():
             nd_filename = self.lineEdit_filenameND.text()
             nd_folder = self.lineEdit_folderND.text()
+            if nd_filename == "":
+                logger.info("Local filename is empty. File will not be created."
+                            )
 
             self.saveCSV(nd_filename, nd_folder)
             self.saveMAT(nd_filename, nd_folder)
@@ -115,26 +124,20 @@ class popup_dataSaveLocation(QtWidgets.QDialog, uiFile):
             time_now = time_now.strftime("%Y-%m-%d-%H-%M-%S")
             GDFilename = time_now
 
-            # Creates and saves the CSV and MAT files to the default
-            # path. This will create two identical sets of files with
-            # different names if the entered filename is not equal to
-            # the default name
+            """
+            Creates and saves the CSV and MAT files to the default
+            path. This will create two identical sets of files with
+            different names if the entered filename is not equal to
+            the default name 
+            """
             self.saveCSV(GDFilename, DEFAULT_DIRECTORY)
             self.saveMAT(GDFilename, DEFAULT_DIRECTORY)
 
-            self.upload_all_to_drive(DEFAULT_DIRECTORY)
-
-            ## deletes created CSV and MAT files in the temp folder
-            # try:
-            #     temp_file = default_path + GDFilename + ".csv"
-            #     if os.path.exists(temp_file):
-            #         os.remove(temp_file)
-            #     temp_file = default_path + GDFilename + ".mat"
-            #     if os.path.exists(temp_file):
-            #         os.remove(temp_file)
-            # except PermissionError:
-            #     logger.debug("Temp files are in use and cannot be "
-            #                  "deleted.")
+            secret_client_file = self.lineEdit_secGD.text()
+            if os.path.exists(secret_client_file):
+                self.upload_all_to_drive(DEFAULT_DIRECTORY, secret_client_file)
+            else:
+                logger.error("Secret client file missing")
 
         self.configFile.setValue("checkBox_local",
                                  self.checkBox_local.isChecked())
@@ -158,6 +161,11 @@ class popup_dataSaveLocation(QtWidgets.QDialog, uiFile):
         dir = QtGui.QFileDialog.getExistingDirectory(None, 'Save Data Location', os.path.expanduser('~'))  # select a folder in the C drive
         self.lineEdit_folderLocal.setText(dir)
 
+    def openSecGDInfo(self):
+        webbrowser.open("https://docs.google.com/presentation/d/"
+                        "1YInB3CuCPPKrWF0j-Wo1OCaAVuUZlWiRNbc8Bd_sezY/"
+                        "edit?usp=sharing")
+
     def connectSlotsSignals(self):
         self.checkBox_local.clicked.connect(self.toggle_frames)
         self.checkBox_networkDrive.clicked.connect(self.toggle_frames)
@@ -167,6 +175,7 @@ class popup_dataSaveLocation(QtWidgets.QDialog, uiFile):
         self.pushButton_cancel.clicked.connect(self.cancelSave)
         self.pushButton_browseDir.clicked.connect(self.change_localDir)
         self.pushButton_browseNDDir.clicked.connect(self.change_NDDir)
+        self.pushButton_secGDInfo.clicked.connect(self.openSecGDInfo)
         # print(self.label.text())
         # for child in self.findChildren(QtWidgets.QCheckBox):
         #     print(child.objectName())

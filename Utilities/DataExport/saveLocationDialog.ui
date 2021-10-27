@@ -14,106 +14,6 @@
    <string>Save Data</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="1" column="1">
-    <widget class="QLabel" name="label">
-     <property name="minimumSize">
-      <size>
-       <width>0</width>
-       <height>30</height>
-      </size>
-     </property>
-     <property name="font">
-      <font>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="text">
-      <string>Location:</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignBottom|Qt::AlignLeading|Qt::AlignLeft</set>
-     </property>
-    </widget>
-   </item>
-   <item row="5" column="1">
-    <widget class="QWidget" name="widget_networkDrive" native="true">
-     <layout class="QGridLayout" name="gridLayout_4">
-      <property name="leftMargin">
-       <number>0</number>
-      </property>
-      <property name="topMargin">
-       <number>0</number>
-      </property>
-      <property name="rightMargin">
-       <number>0</number>
-      </property>
-      <property name="bottomMargin">
-       <number>20</number>
-      </property>
-      <item row="0" column="1">
-       <widget class="QLineEdit" name="lineEdit_filenameND"/>
-      </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="label_folderND">
-        <property name="text">
-         <string>Folder: </string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1">
-       <widget class="QLineEdit" name="lineEdit_folderND">
-        <property name="readOnly">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="0">
-       <widget class="QLabel" name="label_filenameND">
-        <property name="text">
-         <string>Filename: </string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="2">
-       <widget class="QPushButton" name="pushButton_browseNDDir">
-        <property name="maximumSize">
-         <size>
-          <width>25</width>
-          <height>25</height>
-         </size>
-        </property>
-        <property name="text">
-         <string/>
-        </property>
-        <property name="icon">
-         <iconset>
-          <normaloff>browseDirectoryIcon.svg</normaloff>browseDirectoryIcon.svg</iconset>
-        </property>
-        <property name="iconSize">
-         <size>
-          <width>20</width>
-          <height>25</height>
-         </size>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item row="4" column="1">
-    <widget class="QCheckBox" name="checkBox_networkDrive">
-     <property name="text">
-      <string>Network Drive</string>
-     </property>
-    </widget>
-   </item>
    <item row="11" column="1">
     <widget class="QFrame" name="frame_buttons">
      <property name="frameShape">
@@ -248,38 +148,32 @@ color: white
      </layout>
     </widget>
    </item>
-   <item row="9" column="1">
-    <widget class="QWidget" name="widget_GDrive" native="true">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="minimumSize">
-      <size>
-       <width>0</width>
-       <height>150</height>
-      </size>
-     </property>
-     <property name="sizeIncrement">
-      <size>
-       <width>0</width>
-       <height>0</height>
-      </size>
-     </property>
-     <property name="baseSize">
-      <size>
-       <width>0</width>
-       <height>0</height>
-      </size>
+   <item row="8" column="1">
+    <widget class="QCheckBox" name="checkBox_GDrive">
+     <property name="text">
+      <string>Google Drive</string>
      </property>
     </widget>
    </item>
-   <item row="2" column="1">
-    <widget class="QCheckBox" name="checkBox_local">
+   <item row="1" column="1">
+    <widget class="QLabel" name="label">
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>30</height>
+      </size>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
      <property name="text">
-      <string>Locally</string>
+      <string>Location:</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignBottom|Qt::AlignLeading|Qt::AlignLeft</set>
      </property>
     </widget>
    </item>
@@ -354,6 +248,84 @@ color: white
      </layout>
     </widget>
    </item>
+   <item row="5" column="1">
+    <widget class="QWidget" name="widget_networkDrive" native="true">
+     <layout class="QGridLayout" name="gridLayout_4">
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>20</number>
+      </property>
+      <item row="0" column="1">
+       <widget class="QLineEdit" name="lineEdit_filenameND"/>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_folderND">
+        <property name="text">
+         <string>Folder: </string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QLineEdit" name="lineEdit_folderND">
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_filenameND">
+        <property name="text">
+         <string>Filename: </string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="2">
+       <widget class="QPushButton" name="pushButton_browseNDDir">
+        <property name="maximumSize">
+         <size>
+          <width>25</width>
+          <height>25</height>
+         </size>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+        <property name="icon">
+         <iconset>
+          <normaloff>browseDirectoryIcon.svg</normaloff>browseDirectoryIcon.svg</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>20</width>
+          <height>25</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="4" column="1">
+    <widget class="QCheckBox" name="checkBox_networkDrive">
+     <property name="text">
+      <string>Network Drive</string>
+     </property>
+    </widget>
+   </item>
    <item row="6" column="1">
     <widget class="QCheckBox" name="checkBox_SDCard">
      <property name="text">
@@ -361,10 +333,10 @@ color: white
      </property>
     </widget>
    </item>
-   <item row="8" column="1">
-    <widget class="QCheckBox" name="checkBox_GDrive">
+   <item row="2" column="1">
+    <widget class="QCheckBox" name="checkBox_local">
      <property name="text">
-      <string>Google Drive</string>
+      <string>Locally</string>
      </property>
     </widget>
    </item>
@@ -380,6 +352,68 @@ color: white
       </size>
      </property>
     </spacer>
+   </item>
+   <item row="9" column="1">
+    <widget class="QWidget" name="widget_GD" native="true">
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>50</height>
+      </size>
+     </property>
+     <widget class="QLabel" name="label_secGD">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>0</y>
+        <width>131</width>
+        <height>25</height>
+       </rect>
+      </property>
+      <property name="minimumSize">
+       <size>
+        <width>0</width>
+        <height>25</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>Secret file:</string>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="lineEdit_secGD">
+      <property name="geometry">
+       <rect>
+        <x>140</x>
+        <y>0</y>
+        <width>341</width>
+        <height>35</height>
+       </rect>
+      </property>
+      <property name="minimumSize">
+       <size>
+        <width>0</width>
+        <height>25</height>
+       </size>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="pushButton_secGDInfo">
+      <property name="geometry">
+       <rect>
+        <x>490</x>
+        <y>0</y>
+        <width>31</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+      <property name="icon">
+       <iconset>
+        <normaloff>info.png</normaloff>info.png</iconset>
+      </property>
+     </widget>
+    </widget>
    </item>
   </layout>
  </widget>
