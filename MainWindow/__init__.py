@@ -265,14 +265,14 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.gridLayout_tab_homepage.addWidget(self.homepage)
         # self.tabWidget.setCornerWidget(self.homepage.button, corner = Qt.Corner.TopRightCorner)
 
-    def COMInputMode(self):
+    def com_input_mode(self):
         for key in self.dict_ports.keys():
             ## what happens if the user has multiple options selected?
             ## what happens if the user changes their selection?
             if self.dict_ports[key].isChecked():
-                self.setInputMode(key)              
+                self.set_input_mode(key)              
 
-    def setInputMode(self, input_mode):
+    def set_input_mode(self, input_mode):
         """
         Assigns input mode based on button triggers handled in connect_signals_and_slots() from input 
         mode drup down in main window.
@@ -328,12 +328,12 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         ## Handles event of a COM port being selected
         for key in self.dict_ports.keys():
-            self.dict_ports[key].triggered.connect(lambda: self.COMInputMode())
+            self.dict_ports[key].triggered.connect(lambda: self.com_input_mode())
 
         ## Functionality for the following menu items
-        self.actionFake_Data.triggered.connect(lambda: self.setInputMode("FAKE"))
-        self.actionBIN_File.triggered.connect(lambda: self.setInputMode("BIN"))
-        self.actionCSV_File.triggered.connect(lambda: self.setInputMode("CSV"))
+        self.actionFake_Data.triggered.connect(lambda: self.set_input_mode("FAKE"))
+        self.actionBIN_File.triggered.connect(lambda: self.set_input_mode("BIN"))
+        self.actionCSV_File.triggered.connect(lambda: self.set_input_mode("CSV"))
 
         self.tabWidget.tabBarDoubleClicked.connect(self.rename_tab)
         self.tabWidget.tabCloseRequested.connect(partial(self.close_tab, self))
