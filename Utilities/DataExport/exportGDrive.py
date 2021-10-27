@@ -7,8 +7,8 @@ import datetime
 
 logger = logging.getLogger("Utilities")
 FOLDER_MIME_TYPE = "application/vnd.google-apps.folder"
-ROOT_FOLDER_ID = "1OaMbG-wAqC6_Ad8u5FiNS9L8z2W7eB2i"
-DRIVE_ID = "0AFmSv7widPF9Uk9PVA"
+ROOT_FOLDER_ID = "1OaMbG-wAqC6_Ad8u5FiNS9L8z2W7eB2i"  # "GTORDaata Graph Files"
+DRIVE_ID = "0AFmSv7widPF9Uk9PVA"  # GTOR_DAQ_DATA shared drive
 
 """
 Uses the Google Drive API to upload all the files in this directory into a 
@@ -18,8 +18,8 @@ To enable those permissions, see: https://learndataanalysis.org/google-
 drive-api-in-python-getting-started-lesson-1/.
 Citation: https://youtu.be/cCKPjW5JwKo, retrieved 09/30/2021
 """
-def upload_all_to_drive(self, directory: str):
-    CLIENT_SECRET_FILE = "C:\\Users\\afari\\OneDrive - Georgia Institute of Technology\\Documents\\Unaffiliated\\1 General\\sec.json"
+def upload_all_to_drive(self, directory: str, secret_client_file: str):
+    CLIENT_SECRET_FILE = secret_client_file
     API_NAME = 'drive'
     API_VERSION = 'v3'
     SCOPES = ['https://www.googleapis.com/auth/drive']
@@ -40,7 +40,8 @@ def validate_and_upload(drive_service, filepath: str):
 
     if not validate_filename_format(filename):
         logger.error("File " + filename
-                     + " to upload to Google Drive of non-legal format.")
+                     + " to upload to Google Drive of non-legal format, should "
+                       "be in format '2021-10-20-13-01-59.csv'")
         return
 
     day_folder_id = get_Day_folder_id(drive_service, filename)
@@ -78,8 +79,6 @@ def validate_filename_format(filename: str) -> bool:
     try:
         datetime.datetime.strptime(filename[:10], '%Y-%m-%d')
     except ValueError:
-        logger.error("File to be uploaded of incorrect data format, should be "
-                     "2021-10-20-13:01:59.csv")
         return False
     return True
 
@@ -106,7 +105,7 @@ def get_Day_folder_id(drive_service, filename: str):
     month_folder_id = get_Month_folder_id(drive_service, filename,
                                           year_folder_id)
 
-    day = filename[:10] # e.g. 2021-10-21
+    day = filename[:10]  # e.g. 2021-10-21
     search_file_results = find_file_in_drive(drive_service, day,
                                              FOLDER_MIME_TYPE, 1,
                                              month_folder_id)
@@ -180,12 +179,16 @@ def upload(drive_service, filepath: str, mime_type: str,
             'parents': [parent_folder_id],
             'mimeType': mime_type
         }
-        folder = drive_service.files().create(
-            supportsAllDrives=True,
-            body=file_metadata, fields='id')\
-            .execute()
-        logger.info("Folder " + filepath + " successfully created in GDrive.")
-        return folder.get('id')
+        try:
+            folder = drive_service.files().create(
+                supportsAllDrives=True,
+                body=file_metadata, fields='id') \
+                .execute()
+            logger.info("Folder " + filepath + " successfully created in GDrive.")
+            return folder.get('id')
+        except httplib2.error.ServerNotFoundError:
+            no_internet()
+            return None
     else:
         # check if file exists
         if not os.path.exists(filepath):
