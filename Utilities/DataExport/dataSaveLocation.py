@@ -123,6 +123,9 @@ class popup_dataSaveLocation(QtWidgets.QDialog, uiFile):
             time_now = datetime.now()
             time_now = time_now.strftime("%Y-%m-%d-%H-%M-%S")
             GDFilename = time_now
+            metadata = {
+                "scene_name": self.scene_name,
+            }
 
             """
             Creates and saves the CSV and MAT files to the default
@@ -131,7 +134,7 @@ class popup_dataSaveLocation(QtWidgets.QDialog, uiFile):
             the default name 
             """
             self.saveCSV(GDFilename, DEFAULT_DIRECTORY)
-            self.saveMAT(GDFilename, DEFAULT_DIRECTORY)
+            # self.saveMAT(GDFilename, DEFAULT_DIRECTORY) # TODO ENABLE BACK
 
             secret_client_file = self.lineEdit_secGD.text()
             if os.path.exists(secret_client_file):
