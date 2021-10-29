@@ -27,14 +27,32 @@ def upload_all_to_drive(self, directory: str, secret_client_file: str):
     drive_service = Create_Service(CLIENT_SECRET_FILE, API_NAME, API_VERSION,
                                    SCOPES)
 
+    # fileA = ""
+
     files_to_upload = os.listdir(directory)
     if len(files_to_upload) > 0:
         for filename in files_to_upload:
             filepath = directory + filename
             validate_and_upload(drive_service, filepath)
+            # fileA = filename
+
+    # dict_find = {
+    #     "0aLond": '1',
+    #     "0Lond": '1'
+    # }
+    # list_of_files = find_file_in_drive(drive_service, fileA)
+    # print("Found = ", end="")
+    # print(list_of_files)
+    # list_of_files = find_file_in_drive(drive_service, fileA,
+    #                                    page_limit=1,
+    #                                    appProperties=dict_find)
+    # print("Filtered = ", end="")
+    # print(list_of_files)
 
 
-def validate_and_upload(drive_service, filepath: str):
+
+def validate_and_upload(drive_service, filepath: str,
+                        appProperties: dict = None):
     filepath_list = filepath.split("\\")
     filename = filepath_list[len(filepath_list) - 1]
 
@@ -57,13 +75,17 @@ def validate_and_upload(drive_service, filepath: str):
     MAT_MIME_TYPE = 'text/x-matlab'
 
     if filename[-4:] == ".csv":
-        fileid = upload(drive_service, filepath, CSV_MIME_TYPE, day_folder_id)
+        fileid = upload(drive_service, filepath, CSV_MIME_TYPE, day_folder_id,
+                        appProperties)
         if fileid is not None:
             remove_files(filepath)
+            return fileid
     elif filename[-4:] == ".mat":
-        fileid = upload(drive_service, filepath, MAT_MIME_TYPE, day_folder_id)
+        fileid = upload(drive_service, filepath, MAT_MIME_TYPE, day_folder_id,
+                        appProperties)
         if fileid is not None:
             remove_files(filepath)
+            return fileid
     else:
         logger.error("File to be uploaded of non-legal type.")
         return
@@ -163,7 +185,14 @@ folder. Returns file or folder ID, or None if an error occurs.
 if folder is being created will look like 'myFolder'
 """
 def upload(drive_service, filepath: str, mime_type: str,
-           parent_folder_id: str = 'root'):
+           parent_folder_id: str = 'root', appProperties: dict = None):
+    # appProperties = {
+    #     "0Lond": 1,
+    #     "1breakk": 1,
+    #     "lon": "london",
+    #     "a": 1
+    # }
+
     if drive_service is None \
             or parent_folder_id is None \
             or mime_type is None \
@@ -204,7 +233,8 @@ def upload(drive_service, filepath: str, mime_type: str,
         # upload to GDrive
         file_metadata = {
             'name': filename,
-            'parents': [parent_folder_id]
+            'parents': [parent_folder_id],
+            'appProperties': appProperties
         }
         media = MediaFileUpload(filepath, mimetype=mime_type)
         try:
@@ -223,14 +253,23 @@ def upload(drive_service, filepath: str, mime_type: str,
 
 
 """
-Returns a list of all the files or folders with the filename and (optional) 
-mime_type in the Google Drive. Limits the search results to the first page_limit 
-pages (defaults to first 5 pages).
+Returns a list of all the files or folders with the filename and other optional 
+parameters in the Google Drive. Limits the search results to the first 
+page_limit pages (defaults to first 5 pages).
 Citation: https://developers.google.com/drive/api/v3/search-files#python
+
+appProperties is the custom dictionary of metadata we attached to the Google 
+Drive file. If appProperties is not None, this function returns all files with 
+at least one match of the appProperties. For example, if the only file "ex.csv"
+in the Google Drive has appProperties {"a": "1", "b":"2"} and our input 
+appProperties is {"a": "1", "c": 3}, the file will be returned. If ex.csv 
+instead only has appProperties {"a": "1", "b":"2"}, the file will not be 
+returned.
 """
 def find_file_in_drive(drive_service, filename: str = None,
                        mime_type: str = None, page_limit: int = 5,
-                       parent_id: str = None) -> list:
+                       parent_id: str = None, appProperties: dict = None) \
+                        -> list:
 
     list_of_files = []
     query = ""
@@ -240,12 +279,24 @@ def find_file_in_drive(drive_service, filename: str = None,
         query += " and mimeType='" + mime_type + "'"
     if parent_id is not None:
         query += " and '" + parent_id + "' in parents"
+    if appProperties is not None:
+        # WARNING: max of 100 custom properties only
+        query += " and (appProperties has "
+        if len(appProperties) > 100:
+            logger.warning("Only the first 100 appProperties will be attached "
+                           "to the uploaded file.")
+        for key in appProperties:
+            query += "{ key='" + key + "' and value='1' }"
+            query += " or appProperties has "
+        query = query[:-22]  # to remove the final ' and appProperties has '
+        query += ")"
 
     # Metadata extracted in finding files.
-    # Refer here for full list of metadata:
+    # Refer here for full list of target_metadata:
     # https://developers.google.com/drive/api/v3/reference/files
     METADATA_REQUESTED = "id, name, parents, mimeType, createdTime, " \
-                         "modifiedTime, description, kind, driveId"
+                         "modifiedTime, description, kind, driveId, " \
+                         "appProperties"
 
     page_token = None
     for i in range(page_limit):
@@ -266,7 +317,50 @@ def find_file_in_drive(drive_service, filename: str = None,
             no_internet()
         if page_token is None:
             break
+
     return list_of_files
+
+"""
+Returns the filtered list of files whose metadata has all of the input 
+target_metadata in the file's Google Drive metadata (appProperties) dictionary.
+
+The metadata has to exactly match except for the "sensors" metadata, which is a 
+list. If the found_file "sensors" metadata contains any one of the sensors 
+listed in the target_metadata, the found_file will be included in the filtered 
+list.
+"""
+# def filter_by_metadata(list_of_files: list, target_metadata: dict) -> list:
+#     filtered_list_of_files = []
+#     for found_file in list_of_files:
+#         file_metadata = found_file.get('appProperties')
+#         if file_metadata is None:
+#             continue
+#         else:
+#             try:
+#                 sensors_metadata = "sensors"
+#                 for target_metadata_key in target_metadata.keys():
+#                     if target_metadata_key == sensors_metadata:
+#                         file_sensors = file_metadata[sensors_metadata]
+#                         target_sensors = target_metadata[sensors_metadata]
+#                         if not sensors_present(file_sensors, target_sensors):
+#                             continue
+#                     else:
+#                         if target_metadata[target_metadata_key] \
+#                                 == file_metadata[target_metadata_key]:
+#                             filtered_list_of_files.append(found_file)
+#             except KeyError:
+#                 continue
+#     return filtered_list_of_files
+
+
+"""
+Returns True iff any of the file_sensors is contained in the target_sensors
+"""
+def sensors_present(file_sensors: list, target_sensors: list) -> bool:
+    for target_sensor in target_sensors:
+        if target_sensor in file_sensors:
+            return True
+    return False
 
 
 def no_internet():
