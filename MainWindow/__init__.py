@@ -196,7 +196,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         stylesheet = stylesheet.format(
             testColor = "pink",
             bgColor = "#dbcc93",
-            bgColor2 = "#white",
+            bgColor2 = "white",
             foreColor = "#f4f4f4",
             # windowBorder = "#B3A369",
             windowBorder = "white",
