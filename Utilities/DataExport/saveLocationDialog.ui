@@ -410,7 +410,7 @@ color: white
       </property>
       <property name="icon">
        <iconset>
-        <normaloff>info.png</normaloff>info.png</iconset>
+        <normaloff>infoIcon.png</normaloff>infoIcon.png</iconset>
       </property>
      </widget>
     </widget>

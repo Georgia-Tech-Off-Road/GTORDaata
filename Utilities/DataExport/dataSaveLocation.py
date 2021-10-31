@@ -1,3 +1,4 @@
+import httplib2
 from PyQt5 import QtWidgets, QtGui, uic, QtCore
 import os
 import json
@@ -40,6 +41,9 @@ class popup_dataSaveLocation(QtWidgets.QDialog, uiFile):
         self.checkBox_SDCard.setChecked(self.configFile.value("checkBox_SD") == 'true')
         self.checkBox_GDrive.setChecked(
             self.configFile.value("checkBox_GD") == 'true')
+        self.checkBox_GDrive.setChecked(
+            self.configFile.value("checkBox_GD") == 'true')
+        self.lineEdit_secGD.setText(self.configFile.value("lineEdit_secGD"))
 
         # prevent typing invalid characters for filename and foldername
         regex = QtCore.QRegExp("[a-z-A-Z_0-9]+")
@@ -59,7 +63,6 @@ class popup_dataSaveLocation(QtWidgets.QDialog, uiFile):
         self.lineEdit_filenameSD.setValidator(validator)
         self.lineEdit_folderSD.setText(self.configFile.value("default_SDFolder"))
         self.lineEdit_folderSD.setValidator(validator)
-
 
     def toggle_frames(self):
         if self.checkBox_local.isChecked():
@@ -135,10 +138,13 @@ class popup_dataSaveLocation(QtWidgets.QDialog, uiFile):
             """
             self.saveCSV(GDFilename, DEFAULT_DIRECTORY)
             self.saveMAT(GDFilename, DEFAULT_DIRECTORY)
+            appProperties = dict()
+            # appProperties["scene"] =
 
             secret_client_file = self.lineEdit_secGD.text()
             if os.path.exists(secret_client_file):
                 self.upload_all_to_drive(DEFAULT_DIRECTORY, secret_client_file)
+                self.configFile.setValue("lineEdit_secGD", secret_client_file)
             else:
                 logger.error("Secret client file missing")
 
@@ -164,10 +170,19 @@ class popup_dataSaveLocation(QtWidgets.QDialog, uiFile):
         dir = QtGui.QFileDialog.getExistingDirectory(None, 'Save Data Location', os.path.expanduser('~'))  # select a folder in the C drive
         self.lineEdit_folderLocal.setText(dir)
 
+    """
+    Opens the information file "How to: Google Drive Secret Client File" on the 
+    Google Drive. The file instructs the user how to download their own personal 
+    Google Drive secret client file needed to upload things to Google Drive.
+    """
     def openSecGDInfo(self):
-        webbrowser.open("https://docs.google.com/presentation/d/"
-                        "1YInB3CuCPPKrWF0j-Wo1OCaAVuUZlWiRNbc8Bd_sezY/"
-                        "edit?usp=sharing")
+        try:
+            webbrowser.open("https://docs.google.com/presentation/d/"
+                            "1YInB3CuCPPKrWF0j-Wo1OCaAVuUZlWiRNbc8Bd_sezY/"
+                            "edit?usp=sharing")
+        except httplib2.error.ServerNotFoundError:
+            self.no_internet()
+            return None
 
     def connectSlotsSignals(self):
         self.checkBox_local.clicked.connect(self.toggle_frames)
@@ -182,6 +197,10 @@ class popup_dataSaveLocation(QtWidgets.QDialog, uiFile):
         # print(self.label.text())
         # for child in self.findChildren(QtWidgets.QCheckBox):
         #     print(child.objectName())
+
+
+    def no_internet(self):
+        logger.error("Cannot open info file. Possible internet problems.")
 
 
 if __name__ == "__main__":
