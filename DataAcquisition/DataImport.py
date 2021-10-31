@@ -35,7 +35,7 @@ class DataImport:
         #self.connect_serial() #being called too soon.
 
         # Variables that are used for reading/parsing incoming packets
-        self.end_code = [0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xf0]
+        self.end_code = [b'\xff', b'\xff', b'\xff', b'\xff', b'\xff', b'\xff', b'\xff', b'\xf0']
         self.current_sensors = []
         self.current_packet = []
         self.ack_code = 0
@@ -97,28 +97,26 @@ class DataImport:
         while self.teensy_ser != None or self.data_file != None:  # if there are bytes waiting in input buffer
             if self.teensy_found and self.teensy_ser.in_waiting != 0:
                 self.current_packet.append(self.teensy_ser.read(1))  # read in a single byte from COM
-            elif self.data_file != None and self.data_file.readable():
+            elif self.data_file != None and self.data_file.readable():                
                 byte = self.data_file.read(1)
-                if not byte:
+                if byte == '':
                     break
-                self.current_packet.append(byte)   # read in a single byte from file
+                self.current_packet.append(byte)   # read in a single byte from file                
             else:
                 break
             packet_length = len(self.current_packet)
             if packet_length > 8:
                 # If end code is found then unpacketize and clear packet
-                end_code_match = True
-                for i in range(len(self.end_code)):
-                    if int.from_bytes(self.current_packet[(packet_length - 8):(packet_length)][i], "little") != \
-                            self.end_code[i]:
-                        end_code_match = False
-                if end_code_match:
-                    self.current_packet = self.current_packet[0:(packet_length - 8)]
+                end_code_match = False
+                if self.current_packet[(packet_length - 8):(packet_length)] == self.end_code:
+                    end_code_match = True
+                if end_code_match:                    
+                    self.current_packet = self.current_packet[0:(packet_length - 8)]                    
                     self.unpacketize()
                     self.current_packet.clear()
     
     def open_bin_file(self, dir):
-        self.data_file = open(dir, "b+")
+        self.data_file = open(dir, "rb")
 
     def import_csv(self, directory):
         csvFile = open(directory,'r' )

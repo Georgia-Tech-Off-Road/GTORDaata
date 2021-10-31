@@ -26,6 +26,19 @@ def read_data():
     data_was_collecting = False    
     
     while True:
+        if is_data_collecting.is_set() and not data_was_collecting:
+            logger.info("Starting data collection")
+            #if "COM" in data_import.input_mode:
+            data.reset()
+            data_was_collecting = True
+
+        if not is_data_collecting.is_set() and data_was_collecting:
+            logger.info("Stopping data collection")
+            data_was_collecting = False
+
+        if stop_thread.is_set():
+            sys.exit()
+
         if data_import.input_mode == "FAKE":
             data_import.check_connected_fake()
             data_import.read_data_fake()
@@ -55,17 +68,7 @@ def read_data():
         else:
             data_import.input_mode = ""
 
-        if is_data_collecting.is_set() and not data_was_collecting:
-            logger.info("Starting data collection")
-            data.reset()
-            data_was_collecting = True
-
-        if not is_data_collecting.is_set() and data_was_collecting:
-            logger.info("Stopping data collection")
-            data_was_collecting = False
-
-        if stop_thread.is_set():
-            sys.exit()
+        
 
 def send_data():
     if "COM" not in data_import.input_mode:
