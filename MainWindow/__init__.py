@@ -35,7 +35,6 @@ logger = logging.getLogger("MainWindow")
 
 Ui_MainWindow, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'MainWindow.ui'))  # loads the .ui file from QT Desginer
 
-
 class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
@@ -114,7 +113,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.homepage.update_passive()
         for scene in self.tabWidget.findChildren(DAATAScene):
             scene.update_passive()
-
 
 
     def set_app_icon(self):

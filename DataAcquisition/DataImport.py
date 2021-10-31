@@ -26,9 +26,6 @@ class DataImport:
         self.input_mode = ""
         self.data_file = ""
 
-        # Connect to the Teensy
-        #self.connect_serial() #being called too soon.
-
         # Variables that are used for reading/parsing incoming packets
         self.end_code = [0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xf0]
         self.current_sensors = []
