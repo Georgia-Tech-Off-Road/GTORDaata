@@ -326,8 +326,10 @@ class DataImport:
 
                     self.is_receiving_data = True
                 logger.info("Received settings of length: {}".format(self.expected_size))
-            except AssertionError or KeyError:
-                logger.error("May have received the erroneous sensor_id: {}".format(this_sensor_id))
+            except AssertionError:
+                logger.error("Expected {} bytes from block_id: {} but got {} bytes.".format(num_bytes, this_sensor_id, int.from_bytes(self.current_packet[i + 2], "little")))
+            except KeyError as e:
+                logger.error("May have received the erroneous block_id: {}".format(this_sensor_id))
         else:
             logger.error("The ack code that was received was not a valid value")
 
