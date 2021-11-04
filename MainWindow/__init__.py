@@ -380,10 +380,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         :param pe:
         :return: None
         """
-
-        # This line will throw an error
+        
         opt = QtGui.QStyleOption()
-
         opt.initFrom(self)
         p = QtGui.QPainter(self)
         s = self.style()
