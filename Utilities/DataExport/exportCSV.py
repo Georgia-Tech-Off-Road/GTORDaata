@@ -3,7 +3,7 @@ import os
 from DataAcquisition import data
 
 
-def saveCSV(self, filename, directory):
+def saveCSV(filename, directory):
     # with open(filename, 'w', newline='') as csvfile:
 
     #TODO add smarter functionality to automatically make it a csv file

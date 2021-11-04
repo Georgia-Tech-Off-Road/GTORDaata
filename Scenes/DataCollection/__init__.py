@@ -2,6 +2,7 @@ from PyQt5 import QtWidgets, uic, QtGui, QtCore
 from PyQt5.QtCore import QSettings
 from PyQt5.QtGui import QPalette
 import os
+from datetime import datetime
 
 import pyqtgraph as pg
 from functools import partial
@@ -40,6 +41,7 @@ class DataCollection(DAATAScene, uiFile):
         self.gridPlotLayout.setObjectName("gridPlotLayout")
         self.scrollAreaWidgetContents.setLayout(self.gridPlotLayout)
 
+        self.collection_start_time = None
         self.create_sensor_checkboxes()
         self.create_graph_dimension_combo_box()
         self.create_graphs()
@@ -128,6 +130,8 @@ class DataCollection(DAATAScene, uiFile):
 
     def slot_data_collecting_state_change(self):
         if self.button_display.isChecked():
+            if self.collection_start_time is None:
+                self.collection_start_time = datetime.now()
             self.indicator_onOrOff.setText("On")
             self.indicator_onOrOff.setStyleSheet("color: green;")
             self.button_display.setText("Stop Collecting Data")
@@ -137,7 +141,8 @@ class DataCollection(DAATAScene, uiFile):
             self.indicator_onOrOff.setStyleSheet("color: red;")
             self.button_display.setText("Start Collecting Data")
             self.is_data_collecting.clear()
-            self.popup_dataSaveLocation("DataCollection")
+            self.popup_dataSaveLocation("DataCollection",
+                                        self.collection_start_time)
             # conf = self.popup_stopDataConfirmation()
             # if conf == QtWidgets.QDialog.Accepted:
             #     self.button_display.setText("Start Collecting Data")
