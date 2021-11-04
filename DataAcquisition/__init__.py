@@ -22,6 +22,13 @@ data_import = DataImport(data, data_collection_lock, is_data_collecting)
 
 
 def read_data():
+    """
+    Looping function for reading data from all input modes. Executed by
+    data_reading_thread in MainWindow.__init__.py when a valid mode is selected.
+
+    :return: None
+    """
+    
     logger.info("Running read_data")
     data_was_collecting = False    
     
@@ -71,6 +78,14 @@ def read_data():
         
 
 def send_data():
+    """
+    Handles the sending of packets to Teensy only when a COM input mode is
+    selected. Executed by data_sending_thread in MainWindow.__init__.py.
+
+    :return: None
+    """
+
+    
     if "COM" not in data_import.input_mode:
         pass
     else:

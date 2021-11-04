@@ -1,7 +1,6 @@
 import sys
 import csv
 import os
-from typing_extensions import final
 import serial
 from serial.serialutil import EIGHTBITS
 from serial.tools import list_ports
@@ -21,6 +20,12 @@ logger = logging.getLogger("DataImport")
 
 
 class DataImport:
+    """
+    Class that handles communicating with Teensy. This includes opening a port to send and receive
+    from the Teensy, parsing packets received and storing data, then creating packets to send back
+    to the Teensy.
+    """
+
     def __init__(self, data, lock, is_data_collecting):
         self.data = data
         self.lock = lock
@@ -62,9 +67,22 @@ class DataImport:
         self.prev_fr_lds_val = 0
 
     def get_inputMode(self):
+        """
+        Simple return method giving DataImport's input mode, but may be unneeded as the variable is public
+        and not protected from being taken directly.
+
+        :return: str
+        """
+
         return self.input_mode
 
     def check_connected(self):
+        """
+        Returns whether or not the Teensy serial port is open and stores it.
+
+        :return: boolean
+        """
+
         if self.teensy_ser.is_open:
             self.data.is_connected = True
             return True
@@ -73,6 +91,12 @@ class DataImport:
             return False
 
     def connect_serial(self):
+        """
+        Connects to the Teensy over serial with the given COM port from the selected input mode.
+
+        :return: None
+        """
+
         try:
             self.teensy_port = self.input_mode
             self.teensy_ser = serial.Serial(baudrate=115200, port=self.teensy_port, timeout=2,
@@ -88,8 +112,8 @@ class DataImport:
 
     def read_packet(self):
         """
-        read_packet manages all incoming data on the Serial port and in a BIN file and detects when a full packet has been received
-        so that it can be parsed.
+        Manages all incoming data on the Serial port and in a BIN file and detects 
+        when a full packet has been received so that it can be parsed.
 
         :return: None
         """
@@ -116,9 +140,22 @@ class DataImport:
                     self.current_packet.clear()
     
     def open_bin_file(self, dir):
+        """
+        Opens the BIN file specified by the given directory and stores it.
+
+        :return: None
+        """
+
         self.data_file = open(dir, "rb")
 
     def import_csv(self, directory):
+        """
+        Opens and parses a CSV file using the given directory and stores the values using
+        the data object for each sensor in the file.
+
+        :return: None
+        """
+
         csvFile = open(directory,'r' )
         csvReader = csv.reader(csvFile, dialect='excel', lineterminator = '\n')
         sensorList = csvReader.__next__()
@@ -155,6 +192,13 @@ class DataImport:
                     x+=1   
 
     def send_packet(self):
+        """
+        Handles writing packets back to Teensy to acknowledge reception or to request
+        different types of packets.
+
+        :return: None
+        """
+
         try:
             packet = self.packetize()
             if packet is not None:
@@ -164,6 +208,14 @@ class DataImport:
             logger.error("Error in sending packet")
 
     def packetize(self):
+        """
+        Constructs a packet to send back to the Teensy to make sure both sides are
+        on the same page, or for us to request something differently than what's
+        currently being received.
+
+        :return: bytes
+        """
+
         end_code = b'\xff\xff\xff\xff\xff\xff\xff\xf0'
 
         if self.is_sending_data and self.is_receiving_data:
@@ -334,6 +386,13 @@ class DataImport:
             logger.error("The ack code that was received was not a valid value")
 
     def attach_output_sensor(self, sensor_id):
+        """
+        Using the given sensor_id, attempts to attach a sensor that sends information or commands
+        that it's given instead of giving us data points.
+
+        :return: None
+        """
+
         with self.lock:
             try:
                 assert sensor_id in SensorId.keys()
@@ -353,6 +412,12 @@ class DataImport:
             logger.debug("Successfully attached output sensor with id {}".format(sensor_id))
 
     def detach_output_sensor(self, sensor_id):
+        """
+        Attempts to detach an output sensor using the given sensor_id.
+
+        :return: None
+        """
+
         with self.lock:
             try:
                 assert sensor_id in SensorId.keys()
@@ -367,6 +432,13 @@ class DataImport:
             logger.debug("Successfully detached output sensor with id {}".format(sensor_id))
 
     def attach_internal_sensor(self, sensor_id):
+        """
+        Using the given sensor_id, attempts to attach a sensor that is within the local machine (i.e. time sensor),
+        as opposed to a phyiscal sensor on the vehicle.
+
+        :return: None
+        """
+
         with self.lock:
             try:
                 assert sensor_id in SensorId.keys()
@@ -384,6 +456,12 @@ class DataImport:
             logger.debug("Successfully attached internal sensor with id {}".format(sensor_id))
 
     def detach_internal_sensor(self, sensor_id):
+        """
+        Attempts to detach an internal sensor specified by sensor_id.
+
+        :return: None
+        """
+
         with self.lock:
             try:
                 assert sensor_id in SensorId.keys()
@@ -398,6 +476,12 @@ class DataImport:
             logger.debug("Successfully detached internal sensor with id {}".format(sensor_id))
 
     def check_connected_fake(self):
+        """
+        Checks conditions needed to collect fake, generated data as opposed to live or recorded data.
+
+        :return: None
+        """
+
         if self.is_data_collecting and not self.data.is_connected:
             self.data.set_connected(101)  # Time ID
             self.start_time = datetime.now()
@@ -413,6 +497,12 @@ class DataImport:
             self.data.is_connected = False
 
     def read_data_fake(self):
+        """
+        Generates and stores fake data to be plotted and used for debugging and developoment.
+
+        :return: None
+        """
+
         with self.lock:
             if not self.data.is_connected:
                 self.check_connected_fake()

@@ -1,6 +1,5 @@
 from PyQt5 import uic, QtWidgets, QtGui, QtCore
 
-
 from functools import partial
 import threading
 import logging
@@ -17,11 +16,9 @@ from Scenes.Layout_Test import Widget_Test
 from Scenes.BlinkLEDTest import BlinkLEDTest
 from Scenes.EngineDynoExp import EngineDynoExp
 
-
 from Utilities.Popups.popups import popup_ParentChildrenTree
 from MainWindow._tabHandler import close_tab
 import DataAcquisition
-
 
 from DataAcquisition import is_data_collecting, data_import, stop_thread
 from DataAcquisition.DataImport import DataImport
@@ -33,9 +30,7 @@ import winreg as winreg
 
 logger = logging.getLogger("MainWindow")
 
-
 Ui_MainWindow, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'MainWindow.ui'))  # loads the .ui file from QT Desginer
-
 
 class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def __init__(self):
@@ -53,18 +48,17 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # Set up all the elements of the UI
         self.setupUi(self)
 
-        self.dict_scenes = {}  # instantiates dictionary that holds objects for widgets
+        # instantiates dictionary that holds objects for widgets
+        self.dict_scenes = {}
+
         self.import_scenes()
         self.dict_ports = {}
         self.import_coms()
         self.create_tab_widget()
         self.populate_menu()
         self.set_app_icon()
-        self.load_stylesheet()
+        self.set_stylesheet()
         self.create_homepage()
-
-        # self.settings_debug()
-        # self.settings_load()
 
         # Create the timer objects to manage scene updating.
         self.update_counter_active = 0
@@ -92,6 +86,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         :return: None
         """
+
         self.update_counter_active = self.update_counter_active + 1
 
         if self.tab_homepage.isVisible():
@@ -114,6 +109,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         :return: None
         """
+
         self.homepage.update_passive()
         for scene in self.tabWidget.findChildren(DAATAScene):
             scene.update_passive()
@@ -126,6 +122,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         :return: None
         """
+
         import ctypes
         myappid = 'mycompany.myproduct.subproduct.version'  # arbitrary string
         ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
@@ -133,12 +130,15 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         path = os.path.join(os.path.dirname(__file__), 'icon_GTORLogo.png')
         self.setWindowIcon(QtGui.QIcon(path))
 
-    def load_stylesheet(self):
-        stylesheet = """        
-        
-        /*  General color scheme  */
+    def set_stylesheet(self):
+        """
+        Sets the color styles of the UI elements using the specified colors
+        by passing to style function in QTWidgets.pyi.
 
-        
+        :return: None
+        """
+
+        stylesheet = """
         /*  MainWindow color scheme  */
         QMainWindow {{
             background: {bgColor};
@@ -188,9 +188,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         Homepage .QFrame {{
             background-color: {foreColor};
             }}
-            
-
-            
+        
         """
 
         stylesheet = stylesheet.format(
@@ -198,18 +196,20 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             bgColor = "#dbcc93",
             bgColor2 = "white",
             foreColor = "#f4f4f4",
-            # windowBorder = "#B3A369",
+            #windowBorder = "#B3A369",
             windowBorder = "white",
             defaultText = "white"
-            )
+        )
+
         self.setStyleSheet(stylesheet)
 
     def import_scenes(self):
         """
-        This function used ot add the different scenes to the application.
+        Populates scene dictionary with the class names of each scene.
 
         :return: None
         """
+
         self.dict_scenes = {
             'Data Collection': {
                 'create_scene': DataCollection
@@ -233,10 +233,13 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         }
 
     def enumerate_serial_ports(self):
-        """ Uses the Win32 registry to return an
-            iterator of serial (COM) ports
-            existing on this computer.
+        """ 
+        Uses the Win32 registry to return an iterator of serial (COM) ports
+        existing on this computer.
+
+        :return: None
         """
+
         path = 'HARDWARE\\DEVICEMAP\\SERIALCOMM'
         try:
             key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, path)
@@ -251,24 +254,30 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 break
 
     def import_coms(self):
-        self.dict_ports["Auto"] = None #adds the Auto option no matter what
+        """
+        Updates port dictionary with the active COM ports found.
+
+        :return: None
+        """
+
+        # adds the Auto option no matter what
+        self.dict_ports["Auto"] = None 
         for portName in self.enumerate_serial_ports():
             self.dict_ports[portName] = None
 
     def create_homepage(self):
         """
-        This function creates the homepage
-        :return:
+        Creates the homepage seen on start from Homepage.__init__.py and attaches it to a 
+        widget to be shown in the MainWindow UI element.
+
+        :return: None
         """
         self.homepage = Homepage()
         self.homepage.setObjectName("Homepage")
         self.gridLayout_tab_homepage.addWidget(self.homepage)
-        # self.tabWidget.setCornerWidget(self.homepage.button, corner = Qt.Corner.TopRightCorner)
 
     def com_input_mode(self):
         for key in self.dict_ports.keys():
-            ## what happens if the user has multiple options selected?
-            ## what happens if the user changes their selection?
             if self.dict_ports[key].isChecked():
                 self.set_input_mode(key)              
 
@@ -317,7 +326,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def connect_signals_and_slots(self):
         """
-        This functions connects all the Qt signals with the slots so that elements such as buttons or checkboxes
+        This function connects all the Qt signals with the slots so that elements such as buttons or checkboxes
         can be tied to specific functions.
 
         :return: None
@@ -347,25 +356,23 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
     # --- Overridden event methods --- #
     def closeEvent(self, event):
-        self.data_sending_thread.stop()
+        """
+        Handles closing all of our threads and timers when the application
+        is being closed.
+
+        :return: None
+        """
+        
         stop_thread.set()
+        if self.data_sending_thread.isActive():
+            self.data_sending_thread.stop()            
         if self.data_reading_thread.isAlive():
             self.data_reading_thread.join()
         self.timer_active.stop()
         self.timer_passive.stop()
         sys.exit()
-        ##  Close Confirmation Window
-        # close = QtWidgets.QMessageBox()
-        # close.setText("Close DAATA?")
-        # close.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.Cancel)
-        # close = close.exec()
-        # if close == QtWidgets.QMessageBox.Yes:
-        #     event.accept()
-        # else:
-        #     event.ignore()
 
-## The line QtGui.QStyleOption() will throw an error
-    '''
+        
     def paintEvent(self, pe):
         """
         This method allows the color scheme of the class to be changed by CSS stylesheets
@@ -373,9 +380,13 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         :param pe:
         :return: None
         """
+
+        # This line will throw an error
         opt = QtGui.QStyleOption()
+
         opt.initFrom(self)
         p = QtGui.QPainter(self)
         s = self.style()
         s.drawPrimitive(QtGui.QStyle.PE_Widget, opt, p, self)
-    '''
+
+    
