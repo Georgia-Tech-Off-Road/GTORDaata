@@ -4,15 +4,15 @@ import os
 import logging
 import json
 
-import Utilities.DataExport.exportGDrive
+import Utilities.DataExport.GoogleDrive.exportGDrive
 # from Utilities.DataExport.GTORNetwork import get_GTORNetworkDrive#, generate_data_save_location
 import webbrowser
-from pathlib import Path
 from datetime import datetime
 from DataAcquisition import data
 from Utilities.DataExport.exportCSV import saveCSV
 from Utilities.DataExport.exportMAT import saveMAT
-from Utilities.DataExport.exportGDrive import upload_all_to_drive
+from Utilities.DataExport.GoogleDrive.exportGDrive import upload_all_to_drive
+from Utilities.DataExport.GoogleDrive.no_internet_popup import no_internet_popup
 ''' "saveLocationDialog" configFile settings
 
 
@@ -20,7 +20,7 @@ from Utilities.DataExport.exportGDrive import upload_all_to_drive
 
 logger = logging.getLogger("DataCollection")
 uiFile, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'saveLocationDialog.ui'))  # loads the .ui file from QT Designer
-DEFAULT_DIRECTORY = Utilities.DataExport.exportGDrive.DEFAULT_DIRECTORY
+DEFAULT_DIRECTORY = Utilities.DataExport.GoogleDrive.exportGDrive.DEFAULT_DIRECTORY
 
 class popup_dataSaveLocation(QtWidgets.QDialog, uiFile):
     def __init__(self, scene_name, collection_start_time=None):
@@ -201,10 +201,9 @@ class popup_dataSaveLocation(QtWidgets.QDialog, uiFile):
         # for child in self.findChildren(QtWidgets.QCheckBox):
         #     print(child.objectName())
 
-
     def no_internet(self):
         logger.error("Cannot open info file. Possible internet problems.")
-
+        no_internet_popup()
 
     """
     Creates a JSON metadata file, the contents of which will attach to the 
