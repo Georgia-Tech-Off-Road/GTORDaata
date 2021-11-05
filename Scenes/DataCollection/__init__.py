@@ -102,7 +102,7 @@ class DataCollection(DAATAScene, uiFile):
         row = 0
         col = 0
 
-        topMar, botMar = self.gridPlotLayout.getContentsMargins()        
+        leftMar, topMar, rightMar, botMar = self.gridPlotLayout.getContentsMargins()        
         vSpace = self.gridPlotLayout.verticalSpacing()
         graphHeight = (self.scrollArea_graphs.height()-topMar-botMar-vSpace*(max_rows-1)) / max_rows
 
