@@ -123,8 +123,10 @@ class DataImport:
                 self.current_packet.append(self.teensy_ser.read(1))  # read in a single byte from COM
             elif self.data_file != None and self.data_file.readable():                
                 byte = self.data_file.read(1)
-                if byte == '':
-                    break
+                if not byte:
+                    logger.info("Finished BIN file parsing")
+                    self.input_mode = ""
+                    break                
                 self.current_packet.append(byte)   # read in a single byte from file                
             else:
                 break

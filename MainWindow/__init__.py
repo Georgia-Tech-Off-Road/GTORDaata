@@ -298,6 +298,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             try:
                 directory = open_data_file(".bin")
                 if directory != "":
+                    is_data_collecting.set()                    
                     data_import.open_bin_file(directory)
                 else:
                     data_import.input_mode = ""
@@ -307,7 +308,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         elif data_import.input_mode == "CSV":        
             try:
                 directory = open_data_file(".csv")
-                if directory != "":
+                if directory != "":     
+                    is_data_collecting.set()               
                     data_import.import_csv(directory)
                 else:                    
                     logger.info("You must open a CSV file before changing to CSV input mode")

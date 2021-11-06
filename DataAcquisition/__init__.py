@@ -35,8 +35,8 @@ def read_data():
     while True:
         if is_data_collecting.is_set() and not data_was_collecting:
             logger.info("Starting data collection")
-            #if "COM" in data_import.input_mode:
-            data.reset()
+            if "COM" in data_import.input_mode:
+                data.reset()
             data_was_collecting = True
 
         if not is_data_collecting.is_set() and data_was_collecting:
@@ -51,7 +51,7 @@ def read_data():
             data_import.read_data_fake()
         elif data_import.input_mode == "BIN" and data_import.data_file != None:
             try:                
-                data_import.read_packet()
+                data_import.read_packet()                                   
             except Exception as e:
                 logger.error(e)        
         elif "COM" in data_import.input_mode and data_import.teensy_found:            
@@ -72,8 +72,9 @@ def read_data():
                         logger.error(e)
             except AssertionError:
                 time.sleep(0)
-        else:
-            data_import.input_mode = ""
+        else:   
+            data_import.input_mode = ""                     
+            pass
 
         
 
