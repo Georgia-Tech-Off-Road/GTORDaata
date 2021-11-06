@@ -119,80 +119,8 @@ SensorId = {
         "num_bytes": 4,
         "is_float": False
     },
-    256: {
-        "name": "test_sensor_10",
-        "object": "Generic",
-        "num_bytes": 4,
-        "is_float": False
-    },
-    257: {
-        "name": "test_sensor_11",
-        "object": "Generic",
-        "num_bytes": 4,
-        "is_float": False
-    },
-    258: {
-        "name": "test_sensor_12",
-        "object": "Generic",
-        "num_bytes": 4,
-        "is_float": False
-    },
-    259: {
-        "name": "test_sensor_13",
-        "object": "Generic",
-        "num_bytes": 4,
-        "is_float": False
-    },
-    260: {
-        "name": "test_sensor_14",
-        "object": "Generic",
-        "num_bytes": 4,
-        "is_float": False
-    },
-    261: {
-        "name": "test_sensor_15",
-        "object": "Generic",
-        "num_bytes": 4,
-        "is_float": False
-    },
-    262: {
-        "name": "test_sensor_16",
-        "object": "Generic",
-        "num_bytes": 4,
-        "is_float": False
-    },
-    263: {
-        "name": "test_sensor_17",
-        "object": "Generic",
-        "num_bytes": 4,
-        "is_float": False
-    },
-    264: {
-        "name": "test_sensor_18",
-        "object": "Generic",
-        "num_bytes": 4,
-        "is_float": False
-    },
-    265: {
-        "name": "test_sensor_19",
-        "object": "Generic",
-        "num_bytes": 4,
-        "is_float": False
-    },
-    266: {
-        "name": "test_sensor_20",
-        "object": "Generic",
-        "num_bytes": 4,
-        "is_float": False
-    },
-    267: {
-        "name": "test_sensor_21",
-        "object": "Generic",
-        "num_bytes": 4,
-        "is_float": False
-    },
 
-
+    
 
     # 100 - TIME "SENSORS"
     100: {
@@ -482,6 +410,40 @@ SensorId = {
             "name": "dyno_secondary_speed",
             "object": "Speed",
             "display_name": "Speed Dyno (30ppr Sensor)",
+            "pulses_per_revolution": 30
+        }
+    },
+    214: {
+        "name": "speed_2021car_engine600_rpm",
+        "num_bytes": [4, 2],
+        "h_file_comment": "Speed in RPM and position in ticks (600ppr sensor)",
+        0: {
+            "name": "position_engine_ticks",
+            "object": "Position",
+            "display_name": "Position Engine (600ppr Sensor)",
+            "pulses_per_revolution": 600
+        },
+        1: {
+            "name": "speed_engine_rpm",
+            "object": "Speed",
+            "display_name": "Speed Engine (600ppr Sensor)",
+            "pulses_per_revolution": 600
+        }
+    },
+    215: {
+        "name": "speed_2021car_secondary30_rpm",
+        "num_bytes": [4, 2],
+        "h_file_comment": "Speed in RPM and position in ticks (600ppr sensor)",
+        0: {
+            "name": "position_secondary_ticks",
+            "object": "Position",
+            "display_name": "Position Secondary (30ppr Sensor)",
+            "pulses_per_revolution": 30
+        },
+        1: {
+            "name": "speed_secondary_rpm",
+            "object": "Speed",
+            "display_name": "Speed Secondary (30ppr Sensor)",
             "pulses_per_revolution": 30
         }
     },
