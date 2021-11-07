@@ -4,7 +4,6 @@ from googleapiclient.http import MediaFileUpload
 
 from Utilities.DataExport.GoogleDrive.Google import Create_Service
 from Utilities.DataExport.GoogleDrive.no_internet_popup import no_internet_popup
-# from Utilities.DataExport.GoogleDrive.uploading_progress import uploading_progress
 import os
 import logging
 import datetime
@@ -16,19 +15,23 @@ FOLDER_MIME_TYPE = "application/vnd.google-apps.folder"
 ROOT_FOLDER_ID = "1OaMbG-wAqC6_Ad8u5FiNS9L8z2W7eB2i"  # "GTORDaata Graph Files"
 DRIVE_ID = "0AFmSv7widPF9Uk9PVA"  # the GTOR_DAQ_DATA shared drive
 DEFAULT_DIRECTORY = str(Path.home()) + '\\AppData\\Local\\GTOffRoad\\'
+
 # Limit: https://developers.google.com/drive/api/v3/properties
 PROPERTIES_LIMIT = 30  # public
 APP_PROPERTIES_LIMIT = 30  # private outside of this application
 
-"""
-Uses the Google Drive API to upload all the files in this directory into a 
-specific Google Drive folder on an account that has sufficient permissions 
-enabled.
-To enable those permissions, see: https://learndataanalysis.org/google-
-drive-api-in-python-getting-started-lesson-1/.
-Citation: https://youtu.be/cCKPjW5JwKo, retrieved 09/30/2021
-"""
-def upload_all_to_drive(directory: str, secret_client_file: str):
+
+def upload_all_to_drive(directory: str, secret_client_file: str,
+                        progressBar_GD):
+    """
+    Uses the Google Drive API to upload all the files in this directory into a
+    specific Google Drive folder on an account that has sufficient permissions
+    enabled.
+    To enable those permissions, see: https://learndataanalysis.org/google-
+    drive-api-in-python-getting-started-lesson-1/.
+    Citation: https://youtu.be/cCKPjW5JwKo, retrieved 09/30/2021
+    """
+
     # checks internet connection
     try:
         requests.head("https://www.google.com/", timeout=1)
@@ -43,20 +46,24 @@ def upload_all_to_drive(directory: str, secret_client_file: str):
 
     drive_service = Create_Service(CLIENT_SECRET_FILE, API_NAME,
                                    API_VERSION, SCOPES)
-    # fileA = ""
+    # test_file = ""
 
     files_to_upload = os.listdir(directory)
     if len(files_to_upload) > 0:
-        for filename in files_to_upload:
-            filepath = directory + filename
-            validate_and_upload(drive_service, filepath)
-            # if filename[-4:] != "json":
-            #     fileA = filename
+        for file_i, filename in enumerate(files_to_upload):
+            if filename[-3:] == "csv" or filename[-3:] == "mat":
+                filepath = directory + filename
+                validate_and_upload(drive_service, filepath)
+                # test_file = filename
+            progressBar_GD.setValue(int(
+                (file_i + 1) * 100 / len(files_to_upload)))
+    progressBar_GD.hide()
 
-    # print(fileA)
+    # print(test_file)
     # list_of_files = find_file_in_drive(drive_service,
-    #                                    filename=fileA,
-    #                                    custom_properties={"sensor-test_sensor_0":"True"})
+    #                                    filename=test_file,
+    #                                    custom_properties
+    #                                    ={"sensor-test_sensor_0": "True"})
     # print("Found = ", end="")
     # if len(list_of_files) > 0:
     #     print(len(list_of_files))
@@ -64,7 +71,6 @@ def upload_all_to_drive(directory: str, secret_client_file: str):
     #     appProps = list_of_files[0].get('appProperties')
     # else:
     #     print("No files to print")
-
 
 
 def validate_and_upload(drive_service, filepath: str):
@@ -88,56 +94,62 @@ def validate_and_upload(drive_service, filepath: str):
     CSV_MIME_TYPE = 'test/csv'
     MAT_MIME_TYPE = 'text/x-matlab'
 
-    if filename[-4:] == ".csv":
+    file_metadata = None
+    try:
         with open(DEFAULT_DIRECTORY + filename[:-4] + '.json') as json_file:
-            mydata = json.load(json_file)
-        fileid = upload(drive_service, filepath, CSV_MIME_TYPE, day_folder_id,
-                        custom_properties=mydata)
-        if fileid is not None:
+            file_metadata = json.load(json_file)
+    except FileNotFoundError:
+        logger.error("Metadata JSON file missing.")
+
+    if filename[-4:] == ".csv":
+        file_id = upload(drive_service, filepath, CSV_MIME_TYPE, day_folder_id,
+                         custom_properties=file_metadata)
+        if file_id is not None:
             remove_files(filepath)
-            return fileid
+            return file_id
     elif filename[-4:] == ".mat":
-        fileid = upload(drive_service, filepath, MAT_MIME_TYPE, day_folder_id,
-                        custom_properties=None)
-        if fileid is not None:
+        file_id = upload(drive_service, filepath, MAT_MIME_TYPE, day_folder_id,
+                         custom_properties=file_metadata)
+        if file_id is not None:
             remove_files(filepath)
-            return fileid
+            return file_id
     else:
         logger.info("File " + filename + " will not be uploaded.")
         return
 
 
-"""
-Validating filename is of format YYYY-MM-DD-HH:MM:SS e.g. 
-"2021-10-20-13:01:59.csv" or "2021-10-20-13:01:59"
-Citation: https://stackoverflow.com/questions/16870663/
-how-do-i-validate-a-date-string-format-in-python/16870699
-"""
 def validate_filename_format(filename: str) -> bool:
+    """
+    Validating filename is of format YYYY-MM-DD-HH:MM:SS e.g.
+    "2021-10-20-13:01:59.csv" or "2021-10-20-13:01:59"
+    Citation: https://stackoverflow.com/questions/16870663/
+    how-do-i-validate-a-date-string-format-in-python/16870699
+    """
+
     try:
-        datetime.datetime.strptime(filename[:10], '%Y-%m-%d')
+        datetime.datetime.strptime(filename[:19], '%Y-%m-%d-%H-%M-%S')
     except ValueError:
         return False
     return True
 
 
-"""
-Finding the correct DayTest folder to put the results into, if none exists, 
-create one with the correct hierarchy
-Citation: https://developers.google.com/drive/api/v3/search-files#python
-
-:filename: a filename of the format "2021-10-20-13:01:59.csv"
-
-Hierarchy of GDrive:
-
-Root
-Year        # 2021
-Month       ## 2021-10
-Day         ### 2021-10-20
-csv file    ##### 2021-10-20-13:01:59.csv
-mat file    ##### 2021-10-20-13:01:59.mat
-"""
 def get_Day_folder_id(drive_service, filename: str):
+    """
+    Finding the correct DayTest folder to put the results into, if none exists,
+    create one with the correct hierarchy
+    Citation: https://developers.google.com/drive/api/v3/search-files#python
+
+    :filename: a filename of the format "2021-10-20-13:01:59.csv"
+
+    Hierarchy of GDrive:
+
+    Root
+    Year        # 2021
+    Month       ## 2021-10
+    Day         ### 2021-10-20
+    csv file    ##### 2021-10-20-13:01:59.csv
+    mat file    ##### 2021-10-20-13:01:59.mat
+    """
 
     year_folder_id = get_Year_folder_id(drive_service, filename)
     month_folder_id = get_Month_folder_id(drive_service, filename,
@@ -192,14 +204,15 @@ def create_folder_in_drive(drive_service, folder_name: str,
                   FOLDER_MIME_TYPE, parent_folder_id)
 
 
-"""
-Uploads the file or creates a new folder in the specified Google Drive parent 
-folder. Returns file or folder ID, or None if an error occurs.
-:filepath: filepath where the file resides e.g., 'C:\\Users\\afari\\a.txt', or 
-if folder is being created will look like 'myFolder'
-"""
 def upload(drive_service, filepath: str, mime_type: str,
            parent_folder_id: str = 'root', custom_properties: dict = None):
+    """
+    Uploads the file or creates a new folder in the specified Google Drive
+    parent folder. Returns file or folder ID, or None if an error occurs.
+    :filepath: filepath where the file resides e.g.,
+    'C:\\Users\\afari\\a.txt', or if folder is being created will look like
+    'myFolder'
+    """
 
     if drive_service is None \
             or parent_folder_id is None \
@@ -276,24 +289,25 @@ def upload(drive_service, filepath: str, mime_type: str,
             return None
 
 
-"""
-Returns a list of all the files or folders with the filename and other optional 
-parameters in the Google Drive. Limits the search results to the first 
-page_limit pages (defaults to first 5 pages).
-Citation: https://developers.google.com/drive/api/v3/search-files#python
-
-custom_properties is the custom dictionary of metadata we attached to the Google 
-Drive file. If custom_properties is not None, this function returns all files with 
-at least one match of the custom_properties. For example, if the only file "ex.csv"
-in the Google Drive has custom_properties {"a": "1", "b":"2"} and our input 
-custom_properties is {"a": "1", "c": 3}, the file will be returned. If ex.csv 
-instead only has custom_properties {"a": "1", "b":"2"}, the file will not be 
-returned.
-"""
 def find_file_in_drive(drive_service, filename: str = None,
-                       mime_type: str = None, page_limit: int = 5,
-                       parent_id: str = None, custom_properties: dict = None) \
+                       mime_type: str = None, page_limit: int = 1,
+                       parent_id: str = None, custom_properties: dict = None,
+                       file_id: str = None) \
                         -> list:
+    """
+    Returns a list of all the files or folders with the filename and other
+    optional parameters in the Google Drive. Limits the search results to the
+    first page_limit pages (defaults to first 5 pages). Citation:
+    https://developers.google.com/drive/api/v3/search-files#python
+
+    custom_properties is the custom dictionary of metadata we attached to the
+    Google Drive file. If custom_properties is not None, this function
+    returns all files with at least one match of the custom_properties. For
+    example, if the only file "ex.csv" in the Google Drive has
+    custom_properties {"a": "1", "b":"2"} and our input custom_properties is
+    {"a": "1", "c": 3}, the file will be returned. If ex.csv instead only has
+    custom_properties {"a": "1", "b":"2"}, the file will not be returned.
+    """
 
     list_of_files = []
     query = ""
@@ -312,13 +326,11 @@ def find_file_in_drive(drive_service, filename: str = None,
     if custom_properties is not None:
         if query != "":
             query += " and "
-        query += "(properties has "
-        for key in custom_properties:
-            query += "{ key='" + key + "' and value='True' }"
-            query += " or properties has "
-        query = query[:-19]  # to remove the final ' or properties has '
-        query += ")"
-        print(query)
+        query += create_custom_properties_query(custom_properties)
+    if file_id is not None:
+        if query != "":
+            query += " and "
+        query += "name='" + file_id + "'"
 
     # Metadata extracted in finding files.
     # Refer here for full list of target_metadata:
@@ -349,44 +361,46 @@ def find_file_in_drive(drive_service, filename: str = None,
 
     return list_of_files
 
-"""
-Returns the filtered list of files whose metadata has all of the input 
-target_metadata in the file's Google Drive metadata (properties or 
-appProperties) dictionary.
 
-The metadata has to exactly match except for the "sensors" metadata, which is a 
-list. If the found_file "sensors" metadata contains any one of the sensors 
-listed in the target_metadata, the found_file will be included in the filtered 
-list.
-"""
-# def filter_by_metadata(list_of_files: list, target_metadata: dict) -> list:
-#     filtered_list_of_files = []
-#     for found_file in list_of_files:
-#         file_metadata = found_file.get('properties')
-#         if file_metadata is None:
-#             continue
-#         else:
-#             try:
-#                 sensors_metadata = "sensors"
-#                 for target_metadata_key in target_metadata.keys():
-#                     if target_metadata_key == sensors_metadata:
-#                         file_sensors = file_metadata[sensors_metadata]
-#                         target_sensors = target_metadata[sensors_metadata]
-#                         if not sensors_present(file_sensors, target_sensors):
-#                             continue
-#                     else:
-#                         if target_metadata[target_metadata_key] \
-#                                 == file_metadata[target_metadata_key]:
-#                             filtered_list_of_files.append(found_file)
-#             except KeyError:
-#                 continue
-#     return filtered_list_of_files
+def filter_by_metadata(list_of_files: list, target_metadata: dict) -> list:
+    """
+    Returns the filtered list of files whose metadata has all of the input
+    target_metadata in the file's Google Drive metadata (properties or
+    appProperties) dictionary.
+
+    The metadata has to exactly match except for the "sensors" metadata, which
+    is a
+    list. If the found_file "sensors" metadata contains any one of the sensors
+    listed in the target_metadata, the found_file will be included in the
+    filtered list.
+    """
+    filtered_list_of_files = []
+    for found_file in list_of_files:
+        file_metadata = found_file.get('properties')
+        if file_metadata is None:
+            continue
+        else:
+            try:
+                sensors_metadata = "sensors"
+                for target_metadata_key in target_metadata.keys():
+                    if target_metadata_key == sensors_metadata:
+                        file_sensors = file_metadata[sensors_metadata]
+                        target_sensors = target_metadata[sensors_metadata]
+                        if not sensors_present(file_sensors, target_sensors):
+                            continue
+                    else:
+                        if target_metadata[target_metadata_key] \
+                                == file_metadata[target_metadata_key]:
+                            filtered_list_of_files.append(found_file)
+            except KeyError:
+                continue
+    return filtered_list_of_files
 
 
-"""
-Returns True iff any of the file_sensors is contained in the target_sensors
-"""
 def sensors_present(file_sensors: list, target_sensors: list) -> bool:
+    """
+    Returns True iff any of the file_sensors is contained in the target_sensors
+    """
     for target_sensor in target_sensors:
         if target_sensor in file_sensors:
             return True
@@ -405,7 +419,6 @@ def remove_files(filepath: str):
         os.remove(filepath)
 
         # remove the JSON metadata file if both the CSV and MAT files are gone
-        filename = get_filename_from_filepath(filepath)
         if not os.path.exists(filepath[:-3] + "csv") \
                 and not os.path.exists(filepath[:-3] + "mat"):
             os.remove(filepath[:-3] + "json")
@@ -413,10 +426,37 @@ def remove_files(filepath: str):
         logger.warning("Temp files are in use and cannot be deleted.")
 
 
-"""
-E.g., returns "a.exe" with an input of "C:\\Users\\afari\\Documents\\a.txt"
-"""
 def get_filename_from_filepath(filepath: str) -> str:
+    """
+    E.g., returns "a.exe" with an input of "C:\\Users\\afari\\Documents\\a.txt"
+    """
     filepath_list = filepath.split("\\")
     filename = filepath_list[len(filepath_list) - 1]
     return filename
+
+
+def create_custom_properties_query(custom_properties: dict) -> str:
+    """
+    Creates a query string parameter to be input into the Google Drive API
+    to search for a specific file. The query parameter should asks Google Drive
+    to return all files with all of the custom_properties entered. The
+    custom_properties may exist in the properties or appProperties metadata.
+    """
+
+    query_list = list()
+
+    query_list.append("(properties has ")
+    for key in custom_properties.keys():
+        query_list.extend(["{ key='", key, "' and value='",
+                           custom_properties[key], "' }"])
+
+        query_list.extend([" or appProperties has "])
+        query_list.extend(["{ key='", key, "' and value='",
+                           custom_properties[key], "' })"])
+
+        query_list.extend([" and (properties has "])
+
+    query_list.pop()  # to remove the final ' and properties has '
+
+    custom_properties_query = ''.join(query_list)
+    return custom_properties_query
