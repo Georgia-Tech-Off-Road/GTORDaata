@@ -358,7 +358,7 @@ color: white
      <property name="minimumSize">
       <size>
        <width>0</width>
-       <height>50</height>
+       <height>100</height>
       </size>
      </property>
      <widget class="QLabel" name="label_secGD">
@@ -411,6 +411,19 @@ color: white
       <property name="icon">
        <iconset>
         <normaloff>infoIcon.png</normaloff>infoIcon.png</iconset>
+      </property>
+     </widget>
+     <widget class="QProgressBar" name="progressBar_GD">
+      <property name="geometry">
+       <rect>
+        <x>130</x>
+        <y>50</y>
+        <width>300</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="value">
+       <number>0</number>
       </property>
      </widget>
     </widget>

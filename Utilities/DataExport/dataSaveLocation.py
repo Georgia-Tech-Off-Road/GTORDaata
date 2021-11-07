@@ -22,6 +22,7 @@ logger = logging.getLogger("DataCollection")
 uiFile, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'saveLocationDialog.ui'))  # loads the .ui file from QT Designer
 DEFAULT_DIRECTORY = Utilities.DataExport.GoogleDrive.exportGDrive.DEFAULT_DIRECTORY
 
+
 class popup_dataSaveLocation(QtWidgets.QDialog, uiFile):
     def __init__(self, scene_name, collection_start_time=None):
         super().__init__()
@@ -39,6 +40,8 @@ class popup_dataSaveLocation(QtWidgets.QDialog, uiFile):
         returnValue = self.exec()
 
     def loadSettings(self):
+        self.progressBar_GD.hide()
+
         self.checkBox_local.setChecked(self.configFile.value("checkBox_local") == 'true')
         self.checkBox_networkDrive.setChecked(self.configFile.value("checkBox_ND") == 'true')
         self.checkBox_SDCard.setChecked(self.configFile.value("checkBox_SD") == 'true')
@@ -126,11 +129,9 @@ class popup_dataSaveLocation(QtWidgets.QDialog, uiFile):
             os.mkdir(DEFAULT_DIRECTORY)
 
         if self.checkBox_GDrive.isChecked():
+            self.progressBar_GD.show()
             GDFilename = self.collection_start_time\
-                .strftime("%Y-%m-%d-%H-%M-%S")
-            # metadata = {
-            #     "scene_name": self.scene_name,
-            # }
+                .strftime("%Y-%m-%d-%H-%M-%S") + " " + self.scene_name
 
             """
             Creates and saves the CSV and MAT files to the default
@@ -146,7 +147,8 @@ class popup_dataSaveLocation(QtWidgets.QDialog, uiFile):
 
             secret_client_file = self.lineEdit_secGD.text()
             if os.path.exists(secret_client_file):
-                upload_all_to_drive(DEFAULT_DIRECTORY, secret_client_file)
+                upload_all_to_drive(DEFAULT_DIRECTORY, secret_client_file,
+                                    self.progressBar_GD)
                 self.configFile.setValue("lineEdit_secGD", secret_client_file)
             else:
                 logger.error("Secret client file missing")
@@ -210,7 +212,7 @@ class popup_dataSaveLocation(QtWidgets.QDialog, uiFile):
     uploaded files as custom Google Drive file properties/appProperties 
     or metadata.
     """
-    def add_custom_properties(self, filename):
+    def add_custom_properties(self, filename: str):
         # Limit: https://developers.google.com/drive/api/v3/properties
         PROPERTIES_LIMIT = 30  # public
         APP_PROPERTIES_LIMIT = 30  # private outside of this application
