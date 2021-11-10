@@ -3,8 +3,10 @@ from PyQt5 import QtWidgets, uic
 import os
 
 logger = logging.getLogger("NoInternet")
+# loads the .ui file from QT Designer
 uiFile, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__),
-                                        'no_internet_popup.ui'))  # loads the .ui file from QT Designer
+                                        'no_internet_popup.ui'))
+
 
 class no_internet_popup(QtWidgets.QDialog, uiFile):
     def __init__(self):
