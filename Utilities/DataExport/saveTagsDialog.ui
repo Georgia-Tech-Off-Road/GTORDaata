@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>638</width>
-    <height>719</height>
+    <width>683</width>
+    <height>721</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -95,16 +95,6 @@
        </property>
       </widget>
      </item>
-     <item row="5" column="1">
-      <widget class="QLineEdit" name="Date">
-       <property name="text">
-        <string/>
-       </property>
-       <property name="placeholderText">
-        <string>mm/dd/yyyy</string>
-       </property>
-      </widget>
-     </item>
      <item row="6" column="0">
       <widget class="QLabel" name="label_Notes">
        <property name="text">
@@ -123,6 +113,16 @@ p, li { white-space: pre-wrap; }
        </property>
        <property name="placeholderText">
         <string>Notes About Test Here</string>
+       </property>
+      </widget>
+     </item>
+     <item row="5" column="1">
+      <widget class="QLineEdit" name="Date">
+       <property name="text">
+        <string/>
+       </property>
+       <property name="placeholderText">
+        <string>mm/dd/yyyy</string>
        </property>
       </widget>
      </item>
@@ -152,6 +152,16 @@ p, li { white-space: pre-wrap; }
       </widget>
      </item>
     </layout>
+   </item>
+   <item>
+    <widget class="QPushButton" name="DoneButton">
+     <property name="text">
+      <string>Done</string>
+     </property>
+     <property name="default">
+      <bool>false</bool>
+     </property>
+    </widget>
    </item>
   </layout>
  </widget>

@@ -175,7 +175,7 @@ class Data:
         :param is_plottable: If the sensor can be plotted against time (True/False, defaults to None)
         :param is_derived: If the value of the 'sensor' is derived from other sensors (True/False, defaults to None)
         :param is_connected: If the sensor is connected (True/False, defaults to None)
-        :return: A list of sensor key names
+        :return: A list of sensor key (ID's)
         """
 
         logger.debug("Getting a list of sensors")
