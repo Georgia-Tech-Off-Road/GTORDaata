@@ -215,7 +215,7 @@ class DataImport:
         packet = self.packetize()
         if packet is not None:
             try:
-                assert self.teensy_ser.writable
+                #assert self.teensy_ser.is_open()
                 self.teensy_ser.write(packet)
             except:
                 logger.info("Teensy has been disconnected, closing and attempting reopen")
