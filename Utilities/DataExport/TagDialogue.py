@@ -62,9 +62,8 @@ class TagDialogueGUI(QtWidgets.QWidget):
     
     
     def decRow(self):
-        print(self.fieldRow)
         self.fieldRow = self.fieldRow - 1
-        print(self.fieldRow)
+        
         
         
     def setup(self):
