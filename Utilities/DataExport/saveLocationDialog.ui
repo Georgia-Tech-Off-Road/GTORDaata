@@ -175,6 +175,9 @@ color: white
      <property name="alignment">
       <set>Qt::AlignBottom|Qt::AlignLeading|Qt::AlignLeft</set>
      </property>
+     <property name="indent">
+      <number>-1</number>
+     </property>
     </widget>
    </item>
    <item row="3" column="1">
