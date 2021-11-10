@@ -105,7 +105,7 @@ class DataCollection(DAATAScene, uiFile):
                 try:
                     self.gridPlotLayout.removeWidget(self.graph_objects[key])
                     self.graph_objects[key].hide()
-                except:
+                except Exception:
                     print(key + " is " + self.graph_objects[key].isVisible())
 
         for key in self.checkbox_objects.keys():

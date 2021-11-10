@@ -117,7 +117,7 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
     def set_graphWidth(self, seconds):
         try:
             self.graph_width = int(seconds) * self.samplingFreq
-        except:
+        except Exception:
             self.graph_width = 10 * self.samplingFreq
 
     def set_yMinMax(self, yMin, yMax):

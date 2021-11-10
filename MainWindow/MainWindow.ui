@@ -207,6 +207,7 @@
     <addaction name="actionBIN_File"/>
     <addaction name="actionCSV_File"/>
     <addaction name="menuCOM_Port"/>
+    <addaction name="import_Google_Drive"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
@@ -247,6 +248,11 @@
      <string>COM Port</string>
     </property>
   </widget>
+  <action name="import_Google_Drive">
+   <property name="text">
+    <string>Import Google Drive</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>

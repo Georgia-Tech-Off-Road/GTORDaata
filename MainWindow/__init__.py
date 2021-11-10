@@ -25,6 +25,8 @@ import DataAcquisition
 
 from DataAcquisition import is_data_collecting, data_import, stop_thread
 from DataAcquisition.DataImport import DataImport
+from Utilities.DataImport.import_google_drive_popup import \
+    import_google_drive_popup
 
 import re, itertools
 import winreg as winreg
@@ -102,7 +104,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                     try:
                         if (self.update_counter_active % scene.update_period) == 0:
                             scene.update_active()
-                    except:
+                    except Exception:
                         pass
 
     def update_passive(self):
@@ -115,8 +117,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.homepage.update_passive()
         for scene in self.tabWidget.findChildren(DAATAScene):
             scene.update_passive()
-
-
 
     def set_app_icon(self):
         """
@@ -284,6 +284,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             # implement the CSV and BIN Parsers depending on the input mode value
             pass
 
+    def import_from_google_drive(self):
+        import_google_drive_popup()
+
     def connect_signals_and_slots(self):
         """
         This functions connects all the Qt signals with the slots so that elements such as buttons or checkboxes
@@ -303,6 +306,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.actionFake_Data.triggered.connect(lambda: self.setInputMode("FAKE"))
         self.actionBIN_File.triggered.connect(lambda: self.setInputMode("BIN"))
         self.actionCSV_File.triggered.connect(lambda: self.setInputMode("CSV"))
+        self.import_Google_Drive.\
+            triggered.connect(lambda: self.import_from_google_drive())
 
         self.tabWidget.tabBarDoubleClicked.connect(self.rename_tab)
         self.tabWidget.tabCloseRequested.connect(partial(self.close_tab, self))
