@@ -3,7 +3,7 @@ import os
 
 
 
-class TestGUI(QtWidgets.QWidget):
+class TagDialogueGUI(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
         uic.loadUi(os.path.join(os.path.dirname(__file__), 'saveTagsDialog.ui'),self)
@@ -13,7 +13,8 @@ class TestGUI(QtWidgets.QWidget):
     def addField(self):
         newLabel = QtWidgets.QLineEdit()
         newData = QtWidgets.QLineEdit()
-        #newLabel.placeholderText = QtWidgets.QString('Tag Label'
+        newLabel.setPlaceholderText("Tag Name")
+        newData.setPlaceholderText("Tag Data")
         self.CustomFields.addRow(newLabel, newData)
 
 
@@ -21,5 +22,5 @@ class TestGUI(QtWidgets.QWidget):
 
 
 app = QtWidgets.QApplication([])
-window = TestGUI()
+window = TagDialogueGUI()
 app.exec_()
