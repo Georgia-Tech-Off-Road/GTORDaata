@@ -108,7 +108,14 @@ class DataImport:
             logger.error(e)
             logger.error("Error in connect_serial")
 
-        
+    def read_serial(self):
+        """
+        Sole purpose is to read incoming data on the Serial port.
+        Started by reading thread.
+
+        :return: None
+        """
+
 
     def read_packet(self):
         """

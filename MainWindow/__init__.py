@@ -2,6 +2,7 @@ from PyQt5 import uic, QtWidgets, QtGui, QtCore
 
 from functools import partial
 import threading
+from concurrent.futures import ThreadPoolExecutor
 import logging
 import os
 import time
@@ -20,10 +21,14 @@ from Utilities.Popups.popups import popup_ParentChildrenTree
 from MainWindow._tabHandler import close_tab
 import DataAcquisition
 
-from DataAcquisition import is_data_collecting, data_import, stop_thread
+from DataAcquisition import is_data_collecting, data_import, stop_thread, data
 from DataAcquisition.DataImport import DataImport
 
 from Utilities.DataExport.dataFileExplorer import open_data_file
+from Utilities.DataExport.dataSaveLocation import popup_dataSaveLocation
+from Utilities.DataExport.exportCSV import saveCSV
+from Utilities.DataExport.exportMAT import saveMAT
+from pathlib import Path
 
 import re, itertools
 import winreg as winreg
@@ -296,10 +301,25 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         data_import.input_mode = input_mode
         if data_import.input_mode == "BIN":
             try:
-                directory = open_data_file(".bin")
-                if directory != "":
-                    is_data_collecting.set()                    
-                    data_import.open_bin_file(directory)
+                directories = open_data_file(".bin")
+                if directories != "":
+                    is_data_collecting.set()
+                    if len(directories) == 1:
+                        data_import.open_bin_file(directories[0])
+                        data_import.read_packet()
+                    else:
+                        #executor = ThreadPoolExecutor(len(directories))                        
+                        for i in range(len(directories)):
+                            currdirectory = Path(directories[i])                            
+                            savedir = "C:\\Users\\benbo\OneDrive - Georgia Institute of Technology\\OneDrive Documents\\DAQ Personal Files\\Nov 6 Testing Day Parsed Data"
+                            filename = str(currdirectory.with_suffix(''))
+                            data_import.open_bin_file(currdirectory)
+                            #executor.submit(data_import.read_packet())
+                            data_import.read_packet() 
+                            saveCSV(filename=filename, directory=savedir)
+                            saveMAT(filename=filename, directory=savedir)
+                            data.reset()
+                        logger.info("Finished parsing all BIN files")
                 else:
                     data_import.input_mode = ""
                     logger.info("You must open a BIN file before changing to BIN input mode")
@@ -322,8 +342,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             if not self.data_sending_thread.isActive():
                 self.data_sending_thread.start(100)
                 logger.info("We connected to serial!")
-        if input_mode != "" and not self.data_reading_thread.is_alive() and input_mode != "Auto":
-            self.data_reading_thread.start()
+            if self.data_reading_thread.is_alive() and input_mode != "Auto":
+                self.data_reading_thread.start()
         
 
     def connect_signals_and_slots(self):

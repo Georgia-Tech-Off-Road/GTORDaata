@@ -4,7 +4,7 @@ import os
 from DataAcquisition import data
 
 
-def saveMAT(self, filename, directory):
+def saveMAT(filename, directory):
     if filename == "":
         return
     if ".mat" not in filename:

@@ -71,9 +71,12 @@ class popup_dataSaveLocation(QtWidgets.QDialog, uiFile):
         else:
             self.widget_SDCard.hide()
 
-    def saveData(self):
+    def saveData(self=None, filename=None):
         if self.checkBox_local.isChecked():
-            local_filename = self.lineEdit_filenameLocal.text()
+            if filename != None:
+                local_filename = filename
+            else:
+                local_filename = self.lineEdit_filenameLocal.text()
             local_folder = self.lineEdit_folderLocal.text()
 
             self.saveCSV(local_filename,local_folder)
