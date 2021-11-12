@@ -1,5 +1,14 @@
 import os
-from win32 import win32api     # installed with "pip3.6 install pywin32"
+import sys
+if sys.platform == 'windows':
+    # Windows import
+    from win32 import win32api     # installed with "pip3.6 install pywin32"
+elif sys.platform == 'darwin':
+    # MacOS import
+    from TODO import todo
+else:
+    # linux import
+    from lin import lin
 # import win32api
 
 from func_timeout import func_timeout, FunctionTimedOut
