@@ -149,21 +149,23 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
         self.setMaximumSize(QtCore.QSize(16777215, height))
 
     def update_graph(self):
-        now = pg.ptime.time()
+        self.valueArray[:-1] = self.valueArray[1:]
+        self.valueArray[-1] = data.get_current_value(self.sensor_name)
 
-        for c in self.curves:
-            c.setPos(-(now - self.start_time), 0)
+        self.timeArray[:-1] = self.timeArray[1:]
+        self.timeArray[-1] = data.get_current_value("time_internal_seconds")
 
-        i = self.ptr % self.chunk_size
+        self.plot.setData(self.timeArray, self.valueArray)
 
-        if i == 0:
-            curve = self.plot
+        self.ptr += 1
 
+        """
         index_time = data.get_most_recent_index()
         index_sensor = data.get_most_recent_index(sensor_name=self.sensor_name)
         self.valueArray = data.get_values(self.sensor_name, index_sensor, self.graph_width)
         self.timeArray = data.get_values("time_internal_seconds", index_time, self.graph_width)
         self.plot.setData(self.timeArray, self.valueArray)
+        """
 
     def create_multi_graphs(self):
         # Maximum of 6 line graphs in one graph.
