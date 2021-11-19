@@ -129,9 +129,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         if sys.platform.startswith('win'):
             ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
         elif sys.platform.startswith('linux') or sys.platform.startswith('cygwin'):
-            ctypes.cdll.LoadLibrary("libc.so.6")  
-            libc = ctypes.CDLL("libc.so.6") 
-            libc.SetCurrentProcessExplicitAppUserModelID(myappid)
+            # ctypes.cdll.LoadLibrary("libc.so.6")  
+            # libc = ctypes.CDLL("libc.so.6") 
+            # libc.SetCurrentProcessExplicitAppUserModelID(myappid)
+            test = 0
         elif sys.platform.startswith('darwin'):
             # MacOS icon is going to be default
             test = 0
