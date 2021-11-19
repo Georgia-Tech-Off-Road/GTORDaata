@@ -103,13 +103,13 @@ class Homepage(DAATAScene, uiFile):
         """
 
         # Check if GTOR network drive is connected
-        network_drive = self.GTORNetwork.get_GTORNetworkDrive()
-        if network_drive:
-            self.ind_connectionStatus.setText("Network Drive Connected" + " (" + network_drive + ")")
-            self.ind_connectionStatus.setCheckState(True)
-        else:
-            self.ind_connectionStatus.setText("Network Drive Disconnected")
-            self.ind_connectionStatus.setCheckState(False)
+        # network_drive = self.GTORNetwork.get_GTORNetworkDrive()
+        # if network_drive:
+        #     self.ind_connectionStatus.setText("Network Drive Connected" + " (" + network_drive + ")")
+        #     self.ind_connectionStatus.setCheckState(True)
+        # else:
+        #     self.ind_connectionStatus.setText("Network Drive Disconnected")
+        #     self.ind_connectionStatus.setCheckState(False)
 
     def update_active(self):
         """
@@ -146,8 +146,8 @@ class Homepage(DAATAScene, uiFile):
         :return: None
         """
         
-        opt = QtGui.QStyleOption()
+        opt = QtWidgets.QStyleOption()
         opt.initFrom(self)
         p = QtGui.QPainter(self)
         s = self.style()
-        s.drawPrimitive(QtGui.QStyle.PE_Widget, opt, p, self)
+        s.drawPrimitive(QtWidgets.QStyle.PE_Widget, opt, p, self)
