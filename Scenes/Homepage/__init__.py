@@ -134,7 +134,7 @@ class Homepage(DAATAScene, uiFile):
 
     # --- imported methods --- #
     from Utilities.CustomWidgets.indicatorWidget import QIndicator
-    from Utilities.DataExport import GTORNetwork
+    # from Utilities.DataExport import GTORNetwork
 
     # --- Overridden event methods --- #
     

@@ -7,6 +7,8 @@ import os
 import time
 import sys
 import serial
+import glob
+import ctypes
 
 from Scenes import DAATAScene
 from Scenes.Homepage import Homepage
@@ -26,7 +28,7 @@ from DataAcquisition.DataImport import DataImport
 from Utilities.DataExport.dataFileExplorer import open_data_file
 
 import re, itertools
-import winreg as winreg
+# import winreg as winreg
 
 logger = logging.getLogger("MainWindow")
 
@@ -123,9 +125,21 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         :return: None
         """
 
-        import ctypes
         myappid = 'mycompany.myproduct.subproduct.version'  # arbitrary string
-        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+        if sys.platform.startswith('win'):
+            ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+        elif sys.platform.startswith('linux') or sys.platform.startswith('cygwin'):
+            ctypes.cdll.LoadLibrary("libc.so.6")  
+            libc = ctypes.CDLL("libc.so.6") 
+            libc.SetCurrentProcessExplicitAppUserModelID(myappid)
+        elif sys.platform.startswith('darwin'):
+            # MacOS icon is going to be default
+            test = 0
+            # ctypes.cdll.LoadLibrary("libc.so.6")  
+            # libc = ctypes.CDLL("libc.so.6") 
+            # libc.SetCurrentProcessExplicitAppUserModelID(myappid)
+        else:
+            raise EnvironmentError('Unsupported platform')
 
         path = os.path.join(os.path.dirname(__file__), 'icon_GTORLogo.png')
         self.setWindowIcon(QtGui.QIcon(path))
@@ -233,25 +247,51 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         }
 
     def enumerate_serial_ports(self):
-        """ 
-        Uses the Win32 registry to return an iterator of serial (COM) ports
-        existing on this computer.
+        """ Lists serial port names
 
-        :return: None
+            :raises EnvironmentError:
+                On unsupported or unknown platforms
+            :returns:
+                A list of the serial ports available on the system
         """
+        if sys.platform.startswith('win'):
+            ports = ['COM%s' % (i + 1) for i in range(256)]
+        elif sys.platform.startswith('linux') or sys.platform.startswith('cygwin'):
+            # this excludes your current terminal "/dev/tty"
+            ports = glob.glob('/dev/tty[A-Za-z]*')
+        elif sys.platform.startswith('darwin'):
+            ports = glob.glob('/dev/tty.*')
+        else:
+            raise EnvironmentError('Unsupported platform')
 
-        path = 'HARDWARE\\DEVICEMAP\\SERIALCOMM'
-        try:
-            key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, path)
-        except WindowsError:
-            raise StopIteration
-
-        for i in itertools.count():
+        result = []
+        for port in ports:
             try:
-                val = winreg.EnumValue(key, i)
-                yield str(val[1])
-            except EnvironmentError:
-                break
+                s = serial.Serial(port)
+                s.close()
+                result.append(port)
+            except (OSError, serial.SerialException):
+                pass
+        return result
+        # """ 
+        # Uses the Win32 registry to return an iterator of serial (COM) ports
+        # existing on this computer.
+
+        # :return: None
+        # """
+
+        # path = 'HARDWARE\\DEVICEMAP\\SERIALCOMM'
+        # try:
+        #     key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, path)
+        # except WindowsError:
+        #     raise StopIteration
+
+        # for i in itertools.count():
+        #     try:
+        #         val = winreg.EnumValue(key, i)
+        #         yield str(val[1])
+        #     except EnvironmentError:
+        #         break
 
     def import_coms(self):
         """

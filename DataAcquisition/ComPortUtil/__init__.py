@@ -50,6 +50,7 @@ class ListPortsDialog(QDialog):
             self.ports_list.addItem(portname)
 
     def full_port_name(self, portname):
+        # WARNING: NOT CROSS COMPATIBLE DUE TO DIFFERENT COM NAMES ON DIFFERENT PLATFORMS
         """ Given a port-name (of the form COM7, 
             COM12, CNCA0, etc.) returns a full 
             name suitable for opening with the 
