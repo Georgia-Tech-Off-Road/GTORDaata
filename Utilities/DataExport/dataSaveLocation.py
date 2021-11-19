@@ -111,11 +111,11 @@ class popup_dataSaveLocation(QtWidgets.QDialog, uiFile):
         self.close()
 
     def change_NDDir(self):
-        dir = QtGui.QFileDialog.getExistingDirectory(None, 'Save Data Location', os.path.expanduser('~'))  # select a folder in the C drive
+        dir = QtWidgets.QFileDialog.getExistingDirectory(None, 'Save Data Location', os.path.expanduser('~'))  # select a folder in the C drive
         self.lineEdit_folderND.setText(dir)
 
     def change_localDir(self):
-        dir = QtGui.QFileDialog.getExistingDirectory(None, 'Save Data Location', os.path.expanduser('~'))  # select a folder in the C drive
+        dir = QtWidgets.QFileDialog.getExistingDirectory(None, 'Save Data Location', os.path.expanduser('~'))  # select a folder in the C drive
         self.lineEdit_folderLocal.setText(dir)
 
     def connectSlotsSignals(self):
