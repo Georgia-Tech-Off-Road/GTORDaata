@@ -67,8 +67,13 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
         # Row and column span of plot on the grid
         self.rowSpan = kwargs.get("rowspan", 1)
         self.rowSpan = kwargs.get("columnspan", 1)
-
-        self.valueArray = numpy.zeros(self.graph_width)
+        
+        self.ptr = 0
+        self.chunk_size = 100
+        self.max_chunks = 10
+        self.start_time = pg.ptime.time()
+        self.curves = []
+        self.valueArray = numpy.zeros((self.chunk_size + 1, 2))
 
         self.multi_plots = []
         if self.enable_multi_plot:
@@ -144,6 +149,16 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
         self.setMaximumSize(QtCore.QSize(16777215, height))
 
     def update_graph(self):
+        now = pg.ptime.time()
+
+        for c in self.curves:
+            c.setPos(-(now - self.start_time), 0)
+
+        i = self.ptr % self.chunk_size
+
+        if i == 0:
+            curve = self.plot
+
         index_time = data.get_most_recent_index()
         index_sensor = data.get_most_recent_index(sensor_name=self.sensor_name)
         self.valueArray = data.get_values(self.sensor_name, index_sensor, self.graph_width)
