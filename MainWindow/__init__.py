@@ -24,7 +24,7 @@ import DataAcquisition
 from DataAcquisition import is_data_collecting, data_import, stop_thread, data
 from DataAcquisition.DataImport import DataImport
 
-from Utilities.DataExport.dataFileExplorer import open_data_file
+from Utilities.DataExport.dataFileExplorer import open_data_file, open_directory
 from Utilities.DataExport.dataSaveLocation import popup_dataSaveLocation
 from Utilities.DataExport.exportCSV import saveCSV
 from Utilities.DataExport.exportMAT import saveMAT
@@ -43,9 +43,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # Create the thread and timer objects to manage data communication with microcontrollers
         self.data_sending_thread = QtCore.QTimer()
-        self.data_sending_thread.timeout.connect(DataAcquisition.send_data)
+        self.data_sending_thread.timeout.connect(DataAcquisition.read_data)
 
-        self.data_reading_thread = threading.Thread(target=DataAcquisition.read_data)
+        self.data_reading_thread = threading.Thread(target=DataAcquisition.send_data)
 
         # Attach the internal timer
         data_import.attach_internal_sensor(101)
@@ -304,20 +304,19 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 directories = open_data_file(".bin")
                 if directories != "":
                     is_data_collecting.set()
-                    if len(directories) == 1:
+                    if len(directories) == 1:                        
                         data_import.open_bin_file(directories[0])
-                        data_import.read_packet()
+                        data_import.read_bin_file()
+                        data.reset()
                     else:
-                        #executor = ThreadPoolExecutor(len(directories))                        
+                        savedir = open_directory()               
                         for i in range(len(directories)):
                             currdirectory = Path(directories[i])                            
-                            savedir = "C:\\Users\\benbo\OneDrive - Georgia Institute of Technology\\OneDrive Documents\\DAQ Personal Files\\Nov 6 Testing Day Parsed Data"
                             filename = str(currdirectory.with_suffix(''))
                             data_import.open_bin_file(currdirectory)
-                            #executor.submit(data_import.read_packet())
-                            data_import.read_packet() 
+                            data_import.read_bin_file()       
                             saveCSV(filename=filename, directory=savedir)
-                            saveMAT(filename=filename, directory=savedir)
+                            saveMAT(filename=filename, directory=savedir)                     
                             data.reset()
                         logger.info("Finished parsing all BIN files")
                 else:
@@ -325,6 +324,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                     logger.info("You must open a BIN file before changing to BIN input mode")
             except Exception as e:
                 logger.error(e)
+        elif data_import.input_mode == "FAKE":
+            DataAcquisition.read_fake()
         elif data_import.input_mode == "CSV":        
             try:
                 directory = open_data_file(".csv")
@@ -342,9 +343,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             if not self.data_sending_thread.isActive():
                 self.data_sending_thread.start(100)
                 logger.info("We connected to serial!")
-            if self.data_reading_thread.is_alive() and input_mode != "Auto":
-                self.data_reading_thread.start()
-        
+            if not self.data_reading_thread.is_alive() and input_mode != "Auto":
+                self.data_reading_thread.start()        
 
     def connect_signals_and_slots(self):
         """

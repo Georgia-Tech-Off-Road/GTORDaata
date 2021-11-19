@@ -36,6 +36,7 @@ class DataImport:
         # Connect to the Teensy
         self.teensy_found = False
         self.teensy_ser = None
+        self.teensy_buffer = bytearray()
 
         #self.connect_serial() #being called too soon.
 
@@ -43,6 +44,7 @@ class DataImport:
         self.end_code = [b'\xff', b'\xff', b'\xff', b'\xff', b'\xff', b'\xff', b'\xff', b'\xf0']
         self.current_sensors = []
         self.current_packet = []
+        self.write_packet = None
         self.ack_code = 0
         self.packet_index = 0
         self.expected_size = 0
@@ -116,37 +118,55 @@ class DataImport:
         :return: None
         """
 
+        while self.teensy_found:
+            i = max(1, min(2048, self.teensy_ser.in_waiting))
+            data = self.teensy_ser.read(i)
+            i = data.find(b"\n")
+            self.teensy_buffer.extend(data)
+            #self.handle_packets()
 
-    def read_packet(self):
+
+    def handle_packets(self):
         """
-        Manages all incoming data on the Serial port and in a BIN file and detects 
-        when a full packet has been received so that it can be parsed.
+        Manages packets from both serial read, and bin file parsing.
 
         :return: None
         """
 
-        while self.teensy_ser != None or self.data_file != None:  # if there are bytes waiting in input buffer
-            if self.teensy_found and self.teensy_ser.in_waiting != 0:
-                self.current_packet.append(self.teensy_ser.read(1))  # read in a single byte from COM
-            elif self.data_file != None and self.data_file.readable():                
-                byte = self.data_file.read(1)
-                if not byte:
-                    logger.info("Finished BIN file parsing")
-                    self.input_mode = ""
-                    break                
-                self.current_packet.append(byte)   # read in a single byte from file                
-            else:
-                break
-            packet_length = len(self.current_packet)
-            if packet_length > 8:
-                # If end code is found then unpacketize and clear packet
-                end_code_match = False
+        if len(self.teensy_buffer) > 8:
+            try:
+                self.current_packet.append(self.teensy_buffer.pop(8))
+            except Exception as e:
+                logger.error(e)
+            end_code_match = False
+            while not end_code_match:
+                packet_length = len(self.current_packet)         
                 if self.current_packet[(packet_length - 8):(packet_length)] == self.end_code:
                     end_code_match = True
-                if end_code_match:                    
                     self.current_packet = self.current_packet[0:(packet_length - 8)]                    
                     self.unpacketize()
                     self.current_packet.clear()
+                elif len(self.teensy_buffer) > 0:
+                    self.current_packet.append(self.teensy_buffer.pop())
+
+    def read_bin_file(self):
+        """
+        Manages readinga and storing data from BIN file.
+
+        :return: None
+        """
+        
+        if self.data_file != None and self.data_file.readable():
+            byte = self.data_file.read(1)
+            while byte:
+                byte = self.data_file.read(1)
+                self.teensy_buffer.extend(byte)        
+        while len(self.teensy_buffer) > 0:
+            self.handle_packets()
+            print(len(self.teensy_buffer))
+        logger.info("Finished BIN file parsing")
+        self.input_mode = ""
+            
     
     def open_bin_file(self, dir):
         """
@@ -200,21 +220,33 @@ class DataImport:
                     self.data.add_value(pushID,valueToPush)
                     x+=1   
 
-    def send_packet(self):
+    def write_serial(self):
         """
         Handles writing packets back to Teensy to acknowledge reception or to request
         different types of packets.
 
         :return: None
         """
+        
+        if self.write_packet is not None:
+            try:
+                self.teensy_ser.write(self.write_packet)
+            except Exception as e:
+                logger.error(e)
+                logger.error("Error in sending packet")                    
+    
+    def prepare_packet(self):
+        """
+        Handles creating packets to send to Teensy.
+
+        :return: None
+        """
 
         try:
-            packet = self.packetize()
-            if packet is not None:
-                self.teensy_ser.write(packet)
+            self.write_packet = self.packetize()            
         except Exception as e:
             logger.error(e)
-            logger.error("Error in sending packet")
+            logger.error("Error in forming packet")
 
     def packetize(self):
         """
