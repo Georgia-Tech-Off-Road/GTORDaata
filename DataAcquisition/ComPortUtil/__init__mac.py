@@ -8,6 +8,8 @@ import serial
 from serial.serialutil import SerialException
 import re, itertools
 
+# MacOS import
+from serial.tools import list_ports
 
 class ListPortsDialog(QDialog):
     def __init__(self, parent=None):
@@ -85,7 +87,6 @@ class ListPortsDialog(QDialog):
                 s = serial.Serial(port)
                 s.close()
                 result.append(port)
-                yield str(port)
             except (OSError, serial.SerialException):
                 pass
         return result
@@ -93,15 +94,9 @@ class ListPortsDialog(QDialog):
         #     iterator of serial (COM) ports 
         #     existing on this computer.
         # """
-        # path = 'HARDWARE\\DEVICEMAP\\SERIALCOMM'
-        # try:
-        #     key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, path)
-        # except WindowsError:
-        #     raise StopIteration
-
         # for i in itertools.count():
         #     try:
-        #         val = winreg.EnumValue(key, i)
+        #         val = list_ports.comports()
         #         yield str(val[1])
         #     except EnvironmentError:
         #         break
