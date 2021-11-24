@@ -317,13 +317,25 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 logger.error(e)
             finally:
                 data_import.input_mode = ""
-        if "COM" in data_import.input_mode:
+        elif data_import.input_mode == "FAKE":
+            DataAcquisition.data.set_connected(90)
+            DataAcquisition.data.set_connected(91)
+            DataAcquisition.data.set_connected(92)
+            DataAcquisition.data.set_connected(93)
+            DataAcquisition.data.set_connected(94)
+            DataAcquisition.data.set_connected(95)
+            DataAcquisition.data.set_connected(96)
+            DataAcquisition.data.set_connected(97)
+            DataAcquisition.data.set_connected(98)
+            DataAcquisition.data.set_connected(99)
+
+        elif "COM" in data_import.input_mode:
             data_import.connect_serial()
             if not self.data_sending_thread.isActive():
                 self.data_sending_thread.start(100)
                 logger.info("We connected to serial!")
-        if input_mode != "" and not self.data_reading_thread.is_alive() and input_mode != "Auto":
-            self.data_reading_thread.start()
+            if  not self.data_reading_thread.is_alive() and input_mode != "Auto":
+                self.data_reading_thread.start()
         
 
     def connect_signals_and_slots(self):

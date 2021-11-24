@@ -13,6 +13,7 @@ logger = logging.getLogger("DataAcquisition")
 data_collection_lock = threading.Lock()  # Creates a lock for data synchronization
 is_data_collecting = threading.Event()  # Creates an event to know if the data collection has started
 stop_thread = threading.Event()
+data_was_collecting = False
 
 # This is the main variable that can be accessed from other areas of the code. Use 'DataAcquisition.data'
 data = Data(data_collection_lock)
@@ -33,6 +34,7 @@ def read_data():
     data_was_collecting = False    
     
     while True:
+        """
         if is_data_collecting.is_set() and not data_was_collecting:
             logger.info("Starting data collection")
             if "COM" in data_import.input_mode:
@@ -46,6 +48,7 @@ def read_data():
         if stop_thread.is_set():
             sys.exit()
 
+        
         if data_import.input_mode == "FAKE":
             data_import.check_connected_fake()
             data_import.read_data_fake()
@@ -75,6 +78,7 @@ def read_data():
         else:   
             data_import.input_mode = ""                     
             pass
+        """
 
         
 

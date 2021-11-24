@@ -31,7 +31,7 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
         self.setSizePolicy(sizePolicy)
 
         # disable mouse-scroll zooming on the graph
-        self.plotWidget.setMouseEnabled(False, False)
+        #self.plotWidget.setMouseEnabled(True, True)
 
         # adds a legend describing what each line represents based on the 'name'
         self.plotWidget.addLegend()
@@ -73,7 +73,8 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
         self.max_chunks = 10
         self.start_time = pg.ptime.time()
         self.curves = []
-        self.valueArray = numpy.zeros((self.chunk_size + 1, 2))
+        self.valueArray = numpy.zeros(300)
+        self.timeArray = numpy.random.normal(size=300)
 
         self.multi_plots = []
         if self.enable_multi_plot:
@@ -150,14 +151,16 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
 
     def update_graph(self):
         self.valueArray[:-1] = self.valueArray[1:]
-        self.valueArray[-1] = data.get_current_value(self.sensor_name)
+        #self.valueArray[-1] = data.get_current_value(self.sensor_name)
+        self.valueArray[-1] = numpy.random.normal()
 
         self.timeArray[:-1] = self.timeArray[1:]
-        self.timeArray[-1] = data.get_current_value("time_internal_seconds")
-
-        self.plot.setData(self.timeArray, self.valueArray)
+        #self.timeArray[-1] = data.get_current_value("time_internal_seconds")
+        self.timeArray[-1] = numpy.random.normal()
 
         self.ptr += 1
+
+        self.plot.setData(self.valueArray)
 
         """
         index_time = data.get_most_recent_index()
