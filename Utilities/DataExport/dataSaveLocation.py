@@ -1,26 +1,27 @@
-import httplib2
 from PyQt5 import QtWidgets, QtGui, uic, QtCore
-import os
-import logging
-import json
-
-import Utilities.DataExport.GoogleDrive.exportGDrive
-# from Utilities.DataExport.GTORNetwork import get_GTORNetworkDrive#, generate_data_save_location
-import webbrowser
 from datetime import datetime
+import httplib2
+import json
+import logging
+import os
+import webbrowser
+
+# from Utilities.DataExport.GTORNetwork import get_GTORNetworkDrive#, generate_data_save_location
 from DataAcquisition import data
 from Utilities.DataExport.exportCSV import saveCSV
 from Utilities.DataExport.exportMAT import saveMAT
-from Utilities.DataExport.GoogleDrive.exportGDrive import upload_all_to_drive
-from Utilities.DataExport.GoogleDrive.no_internet_popup import no_internet_popup
+from Utilities.GoogleDriveHandler import GoogleDriveHandler
+from Utilities.Popups.generic_popup import GenericPopup
 ''' "saveLocationDialog" configFile settings
 
 
 '''
 
 logger = logging.getLogger("DataCollection")
-uiFile, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'saveLocationDialog.ui'))  # loads the .ui file from QT Designer
-DEFAULT_DIRECTORY = Utilities.DataExport.GoogleDrive.exportGDrive.DEFAULT_DIRECTORY
+# loads the .ui file from QT Designer
+uiFile, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__),
+                                        'saveLocationDialog.ui'))
+DEFAULT_UPLOAD_DIRECTORY = GoogleDriveHandler.DEFAULT_UPLOAD_DIRECTORY
 
 
 class popup_dataSaveLocation(QtWidgets.QDialog, uiFile):
@@ -51,7 +52,7 @@ class popup_dataSaveLocation(QtWidgets.QDialog, uiFile):
             self.configFile.value("checkBox_GD") == 'true')
         self.lineEdit_secGD.setText(self.configFile.value("lineEdit_secGD"))
 
-        # prevent typing invalid characters for filename and foldername
+        # prevent typing invalid characters for test_date and foldername
         regex = QtCore.QRegExp("[a-z-A-Z_0-9]+")
         validator = QtGui.QRegExpValidator(regex)
 
@@ -106,7 +107,7 @@ class popup_dataSaveLocation(QtWidgets.QDialog, uiFile):
             nd_filename = self.lineEdit_filenameND.text()
             nd_folder = self.lineEdit_folderND.text()
             if nd_filename == "":
-                logger.info("Local filename is empty. File will not be created."
+                logger.info("Local test_date is empty. File will not be created."
                             )
 
             self.saveCSV(nd_filename, nd_folder)
@@ -122,11 +123,11 @@ class popup_dataSaveLocation(QtWidgets.QDialog, uiFile):
 
             self.configFile.setValue("default_SDFolder", SDFolder)
 
-        if not os.path.exists(DEFAULT_DIRECTORY):
+        if not os.path.exists(DEFAULT_UPLOAD_DIRECTORY):
             logger.info(
-                "Default path " + DEFAULT_DIRECTORY + " not found. Making "
-                                                      "the directory...")
-            os.mkdir(DEFAULT_DIRECTORY)
+                "Default path " + DEFAULT_UPLOAD_DIRECTORY
+                + " not found. Making the directory...")
+            os.mkdir(DEFAULT_UPLOAD_DIRECTORY)
 
         if self.checkBox_GDrive.isChecked():
             self.progressBar_GD.show()
@@ -136,19 +137,18 @@ class popup_dataSaveLocation(QtWidgets.QDialog, uiFile):
             """
             Creates and saves the CSV and MAT files to the default
             path. This will create two identical sets of files with
-            different names if the entered filename is not equal to
+            different names if the entered test_date is not equal to
             the default name 
             """
-            saveCSV(GDFilename, DEFAULT_DIRECTORY)
+            saveCSV(GDFilename, DEFAULT_UPLOAD_DIRECTORY)
+            saveMAT(GDFilename, DEFAULT_UPLOAD_DIRECTORY)
 
-            saveMAT(GDFilename, DEFAULT_DIRECTORY)
-
-            self.add_custom_properties(GDFilename)
+            self.dump_custom_properties(GDFilename)
 
             secret_client_file = self.lineEdit_secGD.text()
             if os.path.exists(secret_client_file):
-                upload_all_to_drive(DEFAULT_DIRECTORY, secret_client_file,
-                                    self.progressBar_GD)
+                drive_handler = GoogleDriveHandler(secret_client_file)
+                drive_handler.upload_all_to_drive(self.progressBar_GD)
                 self.configFile.setValue("lineEdit_secGD", secret_client_file)
             else:
                 logger.error("Secret client file missing")
@@ -168,19 +168,24 @@ class popup_dataSaveLocation(QtWidgets.QDialog, uiFile):
         self.close()
 
     def change_NDDir(self):
-        dir = QtGui.QFileDialog.getExistingDirectory(None, 'Save Data Location', os.path.expanduser('~'))  # select a folder in the C drive
+        # select a folder in the C drive
+        dir = QtGui.QFileDialog.getExistingDirectory(None, 'Save Data Location',
+                                                     os.path.expanduser('~'))
         self.lineEdit_folderND.setText(dir)
 
     def change_localDir(self):
-        dir = QtGui.QFileDialog.getExistingDirectory(None, 'Save Data Location', os.path.expanduser('~'))  # select a folder in the C drive
+        # select a folder in the C drive
+        dir = QtGui.QFileDialog.getExistingDirectory(None, 'Save Data Location',
+                                                     os.path.expanduser('~'))
         self.lineEdit_folderLocal.setText(dir)
 
-    """
-    Opens the information file "How to: Google Drive Secret Client File" on the 
-    Google Drive. The file instructs the user how to download their own personal 
-    Google Drive secret client file needed to upload things to Google Drive.
-    """
     def openSecGDInfo(self):
+        """
+        Opens the information file "How to: Google Drive Secret Client File"
+        on the Google Drive. The file instructs the user how to download
+        their own personal Google Drive secret client file needed to upload
+        things to Google Drive.
+        """
         try:
             webbrowser.open("https://docs.google.com/presentation/d/"
                             "1YInB3CuCPPKrWF0j-Wo1OCaAVuUZlWiRNbc8Bd_sezY/"
@@ -203,16 +208,17 @@ class popup_dataSaveLocation(QtWidgets.QDialog, uiFile):
         # for child in self.findChildren(QtWidgets.QCheckBox):
         #     print(child.objectName())
 
-    def no_internet(self):
-        logger.error("Cannot open info file. Possible internet problems.")
-        no_internet_popup()
+    def dump_custom_properties(self, filename: str):
+        """
+        Creates a JSON file with all the custom properties of the file (in
+        dict format) to be uploaded as custom Google Drive file
+        properties or appProperties. This includes the mandatory custom
+        properties, e.g., collection_start_time and the sensors in the format
+        {"sensor-test_sensor_1": True, "sensor-test_sensor_3"}.
 
-    """
-    Creates a JSON metadata file, the contents of which will attach to the 
-    uploaded files as custom Google Drive file properties/appProperties 
-    or metadata.
-    """
-    def add_custom_properties(self, filename: str):
+        :param filename: the name of the file to be uploaded, e.g. test1.csv
+        :return: None
+        """
         # Limit: https://developers.google.com/drive/api/v3/properties
         PROPERTIES_LIMIT = 30  # public
         APP_PROPERTIES_LIMIT = 30  # private outside of this application
@@ -232,6 +238,7 @@ class popup_dataSaveLocation(QtWidgets.QDialog, uiFile):
         # adds all the sensors to the custom_properties dict up to 60 total
         # custom_properties.
         sensorsList = data.get_sensors(is_connected=True, is_derived=False)
+
         sensorsList_limit = len(sensorsList)
         TOTAL_LIMIT = PROPERTIES_LIMIT + APP_PROPERTIES_LIMIT  # 60
         if len(sensorsList) + len(custom_properties) > TOTAL_LIMIT:  # 60
@@ -243,21 +250,27 @@ class popup_dataSaveLocation(QtWidgets.QDialog, uiFile):
         # Verifies each property is max 124 char. Disabled for performance.
         # verify_custom_prop_len(custom_properties)
 
-        with open(DEFAULT_DIRECTORY + filename + ".json", "w") as outfile:
+        with open(DEFAULT_UPLOAD_DIRECTORY + filename + ".json", "w") \
+                as outfile:
             json.dump(custom_properties, outfile)
 
-    """
-    # Verifies each property is max 124 char long to satisfy GDrive 
-    # requirements. Disabled for performance.
-    """
-    def verify_custom_prop_len(self, custom_properties: dict):
+    @staticmethod
+    def no_internet():
+        logger.error("Cannot open info file. Possible internet problems.")
+        GenericPopup("No Internet")
+
+    @staticmethod
+    def verify_custom_prop_len(custom_properties: dict):
         """
-        https://developers.google.com/drive/api/v3/properties
-        Maximum of 124 bytes size per property (including both key and value) string
-         in UTF-8 encoding. For example, a property with a key that is ten
-         characters long can only have 114 characters in the value. A property that
-          requires 100 characters for the value can use up to 24 characters for the
-          key.
+        Verifies each property is max 124 char long to satisfy GDrive
+        requirements. Disabled for performance.
+
+        https://developers.google.com/drive/api/v3/properties Maximum of 124
+        bytes size per property (including both key and value) string in
+        UTF-8 encoding. For example, a property with a key that is ten
+        characters long can only have 114 characters in the value. A property
+        that requires 100 characters for the value can use up to 24
+        characters for the key.
         """
         MAX_BYTES_PER_PROP = 124
         for key in custom_properties.keys():

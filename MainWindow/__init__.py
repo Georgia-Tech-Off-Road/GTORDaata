@@ -25,8 +25,8 @@ import DataAcquisition
 
 from DataAcquisition import is_data_collecting, data_import, stop_thread
 from DataAcquisition.DataImport import DataImport
-from Utilities.DataImport.import_google_drive_popup import \
-    import_google_drive_popup
+from Utilities.DataImport.__init__ import \
+    DataImport
 
 import re, itertools
 import winreg as winreg
@@ -229,6 +229,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 'create_scene': EngineDynoExp
             }
         }
+        return self.dict_scenes
 
     def enumerate_serial_ports(self):
         """ Uses the Win32 registry to return an
@@ -285,7 +286,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             pass
 
     def import_from_google_drive(self):
-        import_google_drive_popup()
+        DataImport(self.dict_scenes.keys())
 
     def connect_signals_and_slots(self):
         """

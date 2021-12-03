@@ -380,7 +380,7 @@ color: white
        </size>
       </property>
       <property name="text">
-       <string>Secret file:</string>
+       <string>oAuth File:</string>
       </property>
      </widget>
      <widget class="QLineEdit" name="lineEdit_secGD">
@@ -397,6 +397,9 @@ color: white
         <width>0</width>
         <height>25</height>
        </size>
+      </property>
+      <property name="placeholderText">
+       <string>C:\Users\afari\Documents\secret.json</string>
       </property>
      </widget>
      <widget class="QPushButton" name="pushButton_secGDInfo">
