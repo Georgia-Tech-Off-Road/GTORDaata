@@ -1,6 +1,7 @@
 from DataAcquisition import data
 from PyQt5 import QtWidgets, uic, QtCore
 from Utilities.GoogleDriveHandler import GoogleDriveHandler, DriveSearchQuery
+from functools import partial
 import Utilities.Popups.generic_popup as generic_popup
 import logging
 import os
@@ -11,7 +12,7 @@ uiFile, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__),
                                         'import_google_drive_popup.ui'))
 
 
-class DataImport(QtWidgets.QDialog, uiFile):
+class GDriveDataImport(QtWidgets.QDialog, uiFile):
     DURATION_OPTIONS = GoogleDriveHandler.DURATION_OPTIONS
     TEST_DATE_OPTIONS = GoogleDriveHandler.TEST_DATE_PERIOD_OPTIONS
 
@@ -21,7 +22,7 @@ class DataImport(QtWidgets.QDialog, uiFile):
         self.scenes = scenes
         self.checkbox_sensors = dict()
         self.custom_properties = dict()
-        self.configFile = QtCore.QSettings('DAATA', 'DataImport')
+        self.configFile = QtCore.QSettings('DAATA', 'GDriveDataImport')
 
         self.__populate_fields()
         self.adv_options_widget.hide()
@@ -34,10 +35,16 @@ class DataImport(QtWidgets.QDialog, uiFile):
         self.scene_input.addItem("All")
         for scene in self.scenes:
             self.scene_input.addItem(scene)
-        sensorsList = data.get_sensors(is_derived=False)
-        for sensor in sensorsList:
+
+        self.sensorsList = data.get_sensors(is_derived=False)
+        self.checkbox_sensors = dict()
+        for sensor in self.sensorsList:
+            sensor_id_name = f"{data.get_id(sensor)}: " \
+                             f"{data.get_display_name(sensor)}"
             self.checkbox_sensors[sensor] = \
-                QtWidgets.QCheckBox(sensor, self.widget_2, objectName=sensor)
+                QtWidgets.QCheckBox(sensor_id_name,
+                                    self.scrollAreaWidgetContents_2,
+                                    objectName=sensor)
             self.checkbox_sensors[sensor].setToolTip(sensor)
             self.gridLayout.addWidget(self.checkbox_sensors[sensor])
             self.checkbox_sensors[sensor].show()
@@ -84,13 +91,19 @@ class DataImport(QtWidgets.QDialog, uiFile):
             generic_popup.GenericPopup("Type Error",
                                        "Date inputs should be integers")
             return
+
         custom_prop_query = dict()
-        scene_query = str(self.scene_input.currentText())
+
         for custom_prop_key in self.custom_properties.keys():
             custom_prop_query[custom_prop_key.toPlainText()] = \
                 self.custom_properties[custom_prop_key].toPlainText()
         custom_prop_query.pop("", None)
 
+        for sensor in self.sensorsList:
+            if self.checkbox_sensors[sensor].isChecked():
+                custom_prop_query[f"sensor-{sensor}"] = "True"
+
+        scene_query = str(self.scene_input.currentText())
         if scene_query != "All":
             custom_prop_query["scene"] = scene_query
 
@@ -100,7 +113,7 @@ class DataImport(QtWidgets.QDialog, uiFile):
 
         search_q = DriveSearchQuery(
             filename=file_name_query,
-            exclude_folders=True,
+            only_csv_mat=True,
             year=year_query,
             month=month_query,
             day=day_query,
@@ -115,17 +128,22 @@ class DataImport(QtWidgets.QDialog, uiFile):
             return
 
         found_files = DRIVE_SERVICE.find_file_in_drive(search_q)
+        # found_files_buttons = dict()
 
-        # TODO DELETE
-        print(len(found_files))
-        print(found_files)
+        # clear all previous buttons and widgets from the layout
+        for i in reversed(range(self.gridLayout_2.count())):
+            self.gridLayout_2.itemAt(i).widget().setParent(None)
 
-        found_files_buttons = dict()
+        if len(found_files) == 0:
+            self.gridLayout_2.addWidget(QtWidgets.QLabel("No files found"))
 
-        # for i, found_file in enumerate(found_files):
-        #     found_file_button = QtWidgets.QPushButton(found_file.get("name"))
-        #     found_files_buttons[found_file.get("id")] = found_file_button
-        #     self.gridLayout_2.addWidget(found_file_button, i, 0)
+        # adds the buttons to the layout in grid format
+        for i, found_file in enumerate(found_files):
+            found_file_button = QtWidgets.QPushButton(found_file.get("name"))
+            found_file_button.clicked.connect(
+                partial(DRIVE_SERVICE.download, found_file))
+            # found_files_buttons[found_file.get("id")] = found_file_button
+            self.gridLayout_2.addWidget(found_file_button, i, 0)
 
     def __addCustomPropsField(self):
         key = QtWidgets.QPlainTextEdit()
@@ -138,5 +156,5 @@ class DataImport(QtWidgets.QDialog, uiFile):
 
 # if __name__ == "__main__":
 #     app = QtWidgets.QApplication([])
-#     window = DataImport(["DataAcqu"])
+#     window = GDriveDataImport(["DataAcqu"])
 #     app.exec_()

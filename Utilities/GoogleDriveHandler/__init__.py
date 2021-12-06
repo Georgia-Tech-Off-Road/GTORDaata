@@ -10,7 +10,6 @@ import json
 import logging
 import os
 import requests
-import shutil
 
 logger = logging.getLogger("GoogleDriveHandler")
 
@@ -22,7 +21,7 @@ class DriveSearchQuery:
     file_id: str = None
     filename: str = None
     mime_type: str = None
-    exclude_folders: bool = False
+    only_csv_mat: bool = False
     parent_id: str = None
     custom_properties: dict = None
     year: int = None
@@ -96,7 +95,7 @@ class GoogleDriveHandler:
     def __develop_drive_search_q(self, search_q: DriveSearchQuery) -> str:
         # FUTURE TODO improve performance by filtering by date here instead of
         #  in __filter_by_derived_queries
-        query = ""
+        query = "trashed=false"
         if search_q.filename is not None:
             if query != "":
                 query += " and "
@@ -105,10 +104,11 @@ class GoogleDriveHandler:
             if query != "":
                 query += " and "
             query += "mimeType='" + search_q.mime_type + "'"
-        if search_q.exclude_folders:
+        if search_q.only_csv_mat:
             if query != "":
                 query += " and "
-            query += "mimeType!='" + self.MIME_TYPES["folder"] + "'"
+            query += f"(mimeType='{self.MIME_TYPES['csv']}' " \
+                     f"or mimeType='{self.MIME_TYPES['mat']}')"
         if search_q.parent_id is not None:
             if query != "":
                 query += " and "
@@ -175,23 +175,26 @@ class GoogleDriveHandler:
 
     def __filter_by_derived_queries(self, search_q: DriveSearchQuery,
                                     found_files: list):
-        if not found_files:  # if found_files == [] or None
+        if not found_files:
+            # if found_files == [] or None.
             # if no files are inputted, return an empty list (obviously)
             return found_files
 
-        if not (search_q.year or search_q.month or search_q.day
-                or search_q.test_date_period or search_q.duration):
+        if (search_q.year == search_q.month == search_q.day is None
+                and search_q.test_date_period == search_q.duration == "All"):
             # if none of the derived filters are set, return original input
             return found_files
 
         def valid_year(begin_time: datetime) -> bool:
-            return search_q.year and begin_time.year == int(search_q.year)
+            return search_q.year is None or \
+                   begin_time.year == int(search_q.year)
 
         def valid_month(begin_time: datetime) -> bool:
-            return search_q.month and begin_time.month == int(search_q.month)
+            return search_q.month is None or \
+                   begin_time.month == int(search_q.month)
 
         def valid_day(begin_time: datetime) -> bool:
-            return search_q.day and begin_time.day == int(search_q.day)
+            return search_q.day is None or begin_time.day == int(search_q.day)
 
         def valid_test_date_period(begin_time: datetime) -> bool:
             if search_q.test_date_period == "All":
@@ -459,7 +462,6 @@ class GoogleDriveHandler:
         done = False
         while done is False:
             status, done = downloader.next_chunk()
-            print("Download %d%%." % int(status.progress() * 100))
 
         # The file has been downloaded into RAM, now save it in a file
         # src: https://stackoverflow.com/a/55989689/11031425

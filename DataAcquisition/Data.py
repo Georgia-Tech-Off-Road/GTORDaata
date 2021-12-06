@@ -267,7 +267,7 @@ class Data:
             for sensor in sensors:
                 self.__data[sensor].reset()
 
-    # ---------------------------- Below are functions to only be used by DataImport ----------------------------
+    # ---------------------------- Below are functions to only be used by GDriveDataImport ----------------------------
     def set_connected(self, sensor_id):
         try:
             self.__data[SensorId[sensor_id]["name"]].is_connected = True

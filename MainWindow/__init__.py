@@ -25,8 +25,7 @@ import DataAcquisition
 
 from DataAcquisition import is_data_collecting, data_import, stop_thread
 from DataAcquisition.DataImport import DataImport
-from Utilities.DataImport.__init__ import \
-    DataImport
+from Utilities.GDriveDataImport import GDriveDataImport as GoogleDriveDataImport
 
 import re, itertools
 import winreg as winreg
@@ -286,7 +285,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             pass
 
     def import_from_google_drive(self):
-        DataImport(self.dict_scenes.keys())
+        GoogleDriveDataImport(self.dict_scenes.keys())
+
+
 
     def connect_signals_and_slots(self):
         """
@@ -309,6 +310,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.actionCSV_File.triggered.connect(lambda: self.setInputMode("CSV"))
         self.import_Google_Drive.\
             triggered.connect(lambda: self.import_from_google_drive())
+
+        # self.upload_all_to_drive.triggered.connect()
 
         self.tabWidget.tabBarDoubleClicked.connect(self.rename_tab)
         self.tabWidget.tabCloseRequested.connect(partial(self.close_tab, self))
