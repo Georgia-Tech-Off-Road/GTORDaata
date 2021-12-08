@@ -15,7 +15,6 @@ from Scenes.DataCollection import DataCollection
 from Scenes.EngineDyno import EngineDyno
 from Scenes.Layout_Test import Widget_Test
 from Scenes.BlinkLEDTest import BlinkLEDTest
-from Scenes.EngineDynoExp import EngineDynoExp
 
 
 from Utilities.Popups.popups import popup_ParentChildrenTree
@@ -26,6 +25,7 @@ import DataAcquisition
 from DataAcquisition import is_data_collecting, data_import, stop_thread
 from DataAcquisition.DataImport import DataImport
 from Utilities.GDriveDataImport import GDriveDataImport as GoogleDriveDataImport
+from MainWindow.UploadQueuedFiles.upload_drive_files import UploadDriveFiles
 
 import re, itertools
 import winreg as winreg
@@ -222,10 +222,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
             'Blink LED Test': {
                 'create_scene': BlinkLEDTest
-            },
-
-            'Engine Dyno Exp': {
-                'create_scene': EngineDynoExp
             }
         }
         return self.dict_scenes
@@ -286,8 +282,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def import_from_google_drive(self):
         GoogleDriveDataImport(self.dict_scenes.keys())
-
-
 
     def connect_signals_and_slots(self):
         """
