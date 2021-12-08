@@ -11,20 +11,19 @@ uiFile, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__),
 
 class UploadDriveFiles(QtWidgets.QDialog, uiFile):
     # TODO FARIS complete
-    def __init__(self, heading1: str, heading2: str = ""):
+    def __init__(self):
         super().__init__()
         self.setupUi(self)
-        self.update_message(heading1, heading2)
-        self.connectSlotsSignals()
+        self.__connectSlotsSignals()
         self.configFile = QtCore.QSettings('DAATA', 'UploadDriveFiles')
         self.oAuth_file_entry.setValue(self.configFile.value("sec_file"))
         self.progressBar.hide()
         self.exec()
 
-    def connectSlotsSignals(self):
-        self.upload_all_button.clicked.connect(self.close_popup)
+    def __connectSlotsSignals(self):
+        self.upload_all_button.clicked.connect(self.__upload_drive_files)
 
-    def upload_drive_files(self):
+    def __upload_drive_files(self):
         sec_file = self.oAuth_file_entry.toPlainText()
         self.configFile.setValue("sec_file", sec_file)
         try:
