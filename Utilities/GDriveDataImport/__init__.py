@@ -16,10 +16,10 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
     DURATION_OPTIONS = GoogleDriveHandler.DURATION_OPTIONS
     TEST_DATE_OPTIONS = GoogleDriveHandler.TEST_DATE_PERIOD_OPTIONS
 
-    def __init__(self, scenes):
+    def __init__(self, dict_scenes: dict):
         super().__init__()
         self.setupUi(self)
-        self.scenes = scenes
+        self.dict_scenes = dict_scenes
         self.checkbox_sensors = dict()
         self.custom_properties = dict()
         self.configFile = QtCore.QSettings('DAATA', 'GDriveDataImport')
@@ -33,7 +33,7 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
         self.sec_file.setPlainText(self.configFile.value("sec_file"))
 
         self.scene_input.addItem("All")
-        for scene in self.scenes:
+        for scene in self.dict_scenes.keys():
             self.scene_input.addItem(scene)
 
         self.sensorsList = data.get_sensors(is_derived=False)
@@ -105,11 +105,17 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
 
         scene_query = str(self.scene_input.currentText())
         if scene_query != "All":
-            custom_prop_query["scene"] = scene_query
+            try:
+                custom_prop_query["scene"] = \
+                    self.dict_scenes[scene_query]["formal_name"]
+            except KeyError:
+                custom_prop_query["scene"] = scene_query
 
         # derived search queries
         test_date_query = str(self.upload_date_input.currentText())
+        test_date_query = None if test_date_query == "All" else test_date_query
         duration_query = str(self.duration_input.currentText())
+        duration_query = None if duration_query == "All" else duration_query
 
         search_q = DriveSearchQuery(
             filename=file_name_query,
