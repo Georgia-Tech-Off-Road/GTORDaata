@@ -209,19 +209,23 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         """
         self.dict_scenes = {
             'Data Collection': {
-                'create_scene': DataCollection
+                'create_scene': DataCollection,
+                'formal_name': "DataCollection"
             },
 
             'Layout Test': {
-                'create_scene': Widget_Test
+                'create_scene': Widget_Test,
+                'formal_name': "Layout_Test"
             },
 
             'Engine Dyno': {
-                'create_scene': EngineDyno
+                'create_scene': EngineDyno,
+                'formal_name': "EngineDyno"
             },
 
             'Blink LED Test': {
-                'create_scene': BlinkLEDTest
+                'create_scene': BlinkLEDTest,
+                'formal_name': "BlinkLEDTest"
             }
         }
         return self.dict_scenes
@@ -281,7 +285,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             pass
 
     def import_from_google_drive(self):
-        GoogleDriveDataImport(self.dict_scenes.keys())
+        GoogleDriveDataImport(self.dict_scenes)
 
     def connect_signals_and_slots(self):
         """

@@ -181,7 +181,7 @@ class GoogleDriveHandler:
             return found_files
 
         if (search_q.year == search_q.month == search_q.day is None
-                and search_q.test_date_period == search_q.duration == "All"):
+                and search_q.test_date_period == search_q.duration is None):
             # if none of the derived filters are set, return original input
             return found_files
 
@@ -593,4 +593,3 @@ class GoogleDriveHandler:
         GenericPopup("No Internet",
                      "All files have been saved offline and will be uploaded "
                      "at the next upload instance")
-
