@@ -1,6 +1,7 @@
 from DataAcquisition import data
 from PyQt5 import QtWidgets, uic, QtCore
-from Utilities.GoogleDriveHandler import GoogleDriveHandler, DriveSearchQuery
+from Utilities.GoogleDriveHandler import GoogleDriveHandler, DriveSearchQuery, \
+    gdrive_constants
 from functools import partial
 import Utilities.Popups.generic_popup as generic_popup
 import logging
@@ -13,8 +14,8 @@ uiFile, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__),
 
 
 class GDriveDataImport(QtWidgets.QDialog, uiFile):
-    DURATION_OPTIONS = GoogleDriveHandler.DURATION_OPTIONS
-    TEST_DATE_OPTIONS = GoogleDriveHandler.TEST_DATE_PERIOD_OPTIONS
+    DURATION_OPTIONS = gdrive_constants.DURATION_OPTIONS
+    TEST_DATE_OPTIONS = gdrive_constants.TEST_DATE_PERIOD_OPTIONS
 
     def __init__(self, dict_scenes: dict):
         super().__init__()

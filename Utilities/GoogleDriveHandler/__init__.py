@@ -3,7 +3,7 @@ from Utilities.Popups.generic_popup import GenericPopup
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from googleapiclient.http import MediaFileUpload, MediaIoBaseDownload
-from pathlib import Path
+import Utilities.GoogleDriveHandler.gdrive_constants
 import httplib2
 import io
 import json
@@ -36,13 +36,10 @@ class GoogleDriveHandler:
     # ROOT_FOLDER is "GTORDaata Graph Files"
     _ROOT_FOLDER_ID = "1OaMbG-wAqC6_Ad8u5FiNS9L8z2W7eB2i"
     _DRIVE_ID = "0AFmSv7widPF9Uk9PVA"  # Drive ID of GTOR_DAQ_DATA shared drive
-    _DEFAULT_DIRECTORY = str(Path.home()) + '\\AppData\\Local\\GTOffRoad\\'
-    DEFAULT_UPLOAD_DIRECTORY = _DEFAULT_DIRECTORY + 'UploadQueue\\'
-    DEFAULT_DOWNLOAD_DIRECTORY = _DEFAULT_DIRECTORY + 'Downloads\\'
-    DURATION_OPTIONS = ("All", "Under 4 minutes", "4-20 minutes",
-                        "Over 20 minutes")
-    TEST_DATE_PERIOD_OPTIONS = ("All", "Last hour", "Today", "This week",
-                                "This month", "This year")
+    DEFAULT_UPLOAD_DIRECTORY = gdrive_constants.DEFAULT_UPLOAD_DIRECTORY
+    DEFAULT_DOWNLOAD_DIRECTORY = gdrive_constants.DEFAULT_DOWNLOAD_DIRECTORY
+    DURATION_OPTIONS = gdrive_constants.DURATION_OPTIONS
+    TEST_DATE_PERIOD_OPTIONS = gdrive_constants.TEST_DATE_PERIOD_OPTIONS
 
     def __init__(self, secret_client_file: str):
         # Mime_type for CSV and MATLAB files, see
