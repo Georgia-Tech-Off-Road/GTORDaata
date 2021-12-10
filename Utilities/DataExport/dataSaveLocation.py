@@ -12,6 +12,7 @@ from Utilities.DataExport.exportCSV import saveCSV
 from Utilities.DataExport.exportMAT import saveMAT
 from Utilities.GoogleDriveHandler import GoogleDriveHandler
 from Utilities.Popups.generic_popup import GenericPopup
+# from Utilities.DataExport.TagDialogue import TagDialogueGUI
 ''' "saveLocationDialog" configFile settings
 
 
@@ -32,7 +33,8 @@ class popup_dataSaveLocation(QtWidgets.QDialog, uiFile):
         self.setWindowFlags(QtCore.Qt.WindowCloseButtonHint)     # hide the question mark in title bar
         self.configFile = QtCore.QSettings('DAATA', 'saveLocationDialog')
         self.loadSettings()
-        self.collection_start_time = collection_start_time
+        self.collection_start_time = collection_start_time \
+            if collection_start_time is not None else datetime.min
         # the time at the instant the Save Data button is clicked
         self.collection_stop_time = datetime.now()
 
@@ -131,19 +133,23 @@ class popup_dataSaveLocation(QtWidgets.QDialog, uiFile):
 
         if self.checkBox_GDrive.isChecked():
             self.progressBar_GD.show()
-            GDFilename = self.collection_start_time\
-                .strftime("%Y-%m-%d-%H-%M-%S") + " " + self.scene_name
 
-            """
-            Creates and saves the CSV and MAT files to the default
-            path. This will create two identical sets of files with
-            different names if the entered test_date is not equal to
-            the default name 
-            """
-            saveCSV(GDFilename, DEFAULT_UPLOAD_DIRECTORY)
-            saveMAT(GDFilename, DEFAULT_UPLOAD_DIRECTORY)
+            default_start_time = self.collection_start_time\
+                .strftime("%Y-%m-%d-%H-%M-%S")
+            default_scene_name = self.scene_name
+            default_GDFilename = f"{default_start_time} {default_scene_name}"
+            # sensorsList = data.get_sensors(is_connected=True, is_derived=False)
 
-            self.dump_custom_properties(GDFilename)
+            # TODO FARIS fix this function
+            # TagDialogueGUI(self.collection_start_time,
+            #                self.collection_stop_time,
+            #                default_scene_name,
+            #                sensorsList)
+
+            saveCSV(default_GDFilename, DEFAULT_UPLOAD_DIRECTORY)
+            saveMAT(default_GDFilename, DEFAULT_UPLOAD_DIRECTORY)
+
+            self.dump_custom_properties(default_GDFilename)
 
             secret_client_file = self.lineEdit_secGD.text()
             if os.path.exists(secret_client_file):
@@ -260,7 +266,7 @@ class popup_dataSaveLocation(QtWidgets.QDialog, uiFile):
         GenericPopup("No Internet")
 
     @staticmethod
-    def verify_custom_prop_len(custom_properties: dict):
+    def __verify_custom_prop_len(custom_properties: dict):
         """
         Verifies each property is max 124 char long to satisfy GDrive
         requirements. Disabled for performance.
