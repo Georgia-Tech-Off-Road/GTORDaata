@@ -4,6 +4,7 @@ from Utilities.Popups.generic_popup import GenericPopup
 from datetime import datetime, timedelta
 import json
 import os
+import re
 
 
 # loads the .ui file from QT Designer
@@ -27,7 +28,10 @@ class TagDialogueGUI(QtWidgets.QDialog, uiFile):
 
         self.fieldRow = 1
         self.custom_props = []
+        self.dec_row_buttons = []
         self.pushTags = dict()
+        self.new_filename = None
+        self.saved_json_dump = False
 
         self.__connectSlotsSignals()
         self.setup()
@@ -39,6 +43,14 @@ class TagDialogueGUI(QtWidgets.QDialog, uiFile):
         self.DoneButton.clicked.connect(self.__save_changes)
 
     def __validate_inputs(self) -> tuple:
+        # validating filename using regex by src
+        # https://stackoverflow.com/a/11794507/11031425
+        filename_regex = "^[\w\-.][\w\-. ]*$"
+        if len(re.findall(filename_regex, self.Name.text())) != 1:
+            GenericPopup("Wrong Filename Format",
+                         "Only use alphanumeric, ., SPACE, and _")
+            return tuple()
+
         # validating test length
         new_length = self.Length.text().split(":")
         try:
@@ -69,7 +81,7 @@ class TagDialogueGUI(QtWidgets.QDialog, uiFile):
     def __save_changes(self):
         validated_inputs = self.__validate_inputs()
         if not validated_inputs:
-            return
+            raise ValueError("Input validation on file upload failed")
 
         new_start_time, new_length = validated_inputs
         custom_props = {
@@ -78,17 +90,22 @@ class TagDialogueGUI(QtWidgets.QDialog, uiFile):
             "test_length": str(new_length),
             "collection_start_time": str(new_start_time),
             "collection_stop_time": str(new_start_time + new_length),
-            "notes": self.Notes.toPlainText()
+            "notes": self.Notes.toPlainText()[:119]
         }
 
         for tagData in self.custom_props:
             if tagData[0].text() and tagData[1].text():
-                custom_props[tagData[0].text()] = tagData[1].text()
+                # Google Drive's max char limit for each custom properties = 124
+                value_limit = 124 - len(tagData[0].text())
+                value_trimmed = tagData[1].text()[:value_limit]
+                custom_props[tagData[0].text()] = value_trimmed
         self.pushTags = custom_props
-        self.close_popup()
 
-        # TODO FARIS fix this function
-        # self.__dump_custom_properties(custom_props)
+        # TODO FARIS validate this function
+        self.__dump_custom_properties(custom_props)
+        self.saved_json_dump = True
+
+        self.close_popup()
 
     def __addField(self):
         newLabel = QtWidgets.QLineEdit()
@@ -96,6 +113,8 @@ class TagDialogueGUI(QtWidgets.QDialog, uiFile):
         newButton = QtWidgets.QPushButton('X')
         newButton.setStyleSheet('QPushButton{ Color: red; font-weight: bold }')
         newButton.setMaximumSize(28, 28)
+        self.dec_row_buttons.append(newButton)
+
         hbox = QtWidgets.QHBoxLayout()
         hbox.addWidget(newData)
         hbox.addWidget(newButton)
@@ -107,26 +126,33 @@ class TagDialogueGUI(QtWidgets.QDialog, uiFile):
         self.fieldRow = self.fieldRow + 1
         newButton.clicked.connect(
             lambda: self.custom_props.remove((newLabel, newData)))
-        newButton.clicked.connect(self.__decRow)
+        newButton.clicked.connect(lambda: self.__decRow(newButton))
         newButton.clicked.connect(lambda: self.CustomFields.removeRow(newLabel))
 
-    def __decRow(self):
+    def __decRow(self, newButton: QtWidgets.QPushButton):
         self.fieldRow = self.fieldRow - 1
+        self.dec_row_buttons.remove(newButton)
+
+    def get_filename(self) -> str:
+        return self.new_filename
 
     def closeEvent(self, event):
         """
         Overrides the default close action on clicking the 'X' close button.
         src: https://stackoverflow.com/a/12366684/11031425.
-        Right now, no changes are made.
         """
-        super(TagDialogueGUI, self).closeEvent(event)
+        if not self.saved_json_dump:
+            self.default()
+            self.__save_changes()
+        event.accept()
 
     def setup(self):
         self.default()
 
     def default(self):
-        default_GDFilename = f"{self.collection_start_time} " \
-                             f"{self.default_scene_name}"
+        formatted_start_time = \
+            self.collection_start_time.strftime(gdrive_constants.TIME_FORMAT)
+        default_GDFilename = f"{formatted_start_time} {self.default_scene_name}"
         self.Name.setText(default_GDFilename)
         self.Date.setText(self.collection_start_time.strftime("%m/%d/%Y"))
 
@@ -137,7 +163,14 @@ class TagDialogueGUI(QtWidgets.QDialog, uiFile):
         second = float(default_length % 60)
         self.Length.setText(f"{hour}:{minute}:{second}")
 
+        self.Time.setText(self.collection_start_time.strftime("%H:%M:%S"))
+        self.Notes.setText("")
+
         self.SensorList.setText(str(", ".join(self.default_sensorsList)))
+
+        for x_button in self.dec_row_buttons.copy():
+            x_button.click()
+        self.dec_row_buttons.clear()
 
     def __dump_custom_properties(self, custom_properties: dict):
         """
@@ -157,16 +190,11 @@ class TagDialogueGUI(QtWidgets.QDialog, uiFile):
 
         # True if some properties are removed; max is 60 keys
         custom_properties["some_properties_removed"] = "False"
-        custom_properties["scene"] = self.scene_name
-        custom_properties["collection_start_time"] \
-            = str(self.collection_start_time)
-        custom_properties["collection_stop_time"] \
-            = str(self.collection_stop_time)
-        custom_properties["test_length"] = str(self.collection_stop_time
-                                               - self.collection_start_time)
+        custom_properties["scene"] = self.default_scene_name
 
         # adds all the sensors to the custom_properties dict up to 60 total
         # custom_properties
+        sensorsList = custom_properties["__Sensors"]
         sensorsList_limit = len(sensorsList)
         TOTAL_LIMIT = PROPERTIES_LIMIT + APP_PROPERTIES_LIMIT  # 60
         if len(sensorsList) + len(custom_properties) > TOTAL_LIMIT:  # 60
@@ -177,9 +205,13 @@ class TagDialogueGUI(QtWidgets.QDialog, uiFile):
 
         # Verifies each property is max 124 char. Disabled for performance.
         # __verify_custom_prop_len(custom_properties)
+        self.new_filename = custom_properties["__Filename"]
+
+        del custom_properties["__Sensors"]
+        del custom_properties["__Filename"]
 
         with open(gdrive_constants.DEFAULT_UPLOAD_DIRECTORY
-                  + filename + ".json", "w") \
+                  + self.new_filename + ".json", "w") \
                 as outfile:
             json.dump(custom_properties, outfile)
 

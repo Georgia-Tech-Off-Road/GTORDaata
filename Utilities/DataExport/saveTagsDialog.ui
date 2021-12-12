@@ -71,23 +71,6 @@
        </property>
       </widget>
      </item>
-     <item row="4" column="0">
-      <widget class="QLabel" name="label_Length">
-       <property name="text">
-        <string>Length</string>
-       </property>
-      </widget>
-     </item>
-     <item row="4" column="1">
-      <widget class="QLineEdit" name="Length">
-       <property name="text">
-        <string/>
-       </property>
-       <property name="placeholderText">
-        <string>hr:min:sec</string>
-       </property>
-      </widget>
-     </item>
      <item row="5" column="0">
       <widget class="QLabel" name="label_Date">
        <property name="text">
@@ -95,14 +78,14 @@
        </property>
       </widget>
      </item>
-     <item row="7" column="0">
+     <item row="8" column="0">
       <widget class="QLabel" name="label_Notes">
        <property name="text">
         <string>Notes</string>
        </property>
       </widget>
      </item>
-     <item row="7" column="1">
+     <item row="8" column="1">
       <widget class="QTextEdit" name="Notes">
        <property name="html">
         <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
@@ -140,6 +123,23 @@ p, li { white-space: pre-wrap; }
        </property>
       </widget>
      </item>
+     <item row="7" column="1">
+      <widget class="QLineEdit" name="Length">
+       <property name="text">
+        <string/>
+       </property>
+       <property name="placeholderText">
+        <string>hh:mm:ss</string>
+       </property>
+      </widget>
+     </item>
+     <item row="7" column="0">
+      <widget class="QLabel" name="label_Length">
+       <property name="text">
+        <string>Length</string>
+       </property>
+      </widget>
+     </item>
     </layout>
    </item>
    <item>
@@ -170,7 +170,7 @@ p, li { white-space: pre-wrap; }
    <item>
     <widget class="QPushButton" name="DoneButton">
      <property name="text">
-      <string>Done</string>
+      <string>Upload</string>
      </property>
      <property name="default">
       <bool>false</bool>
