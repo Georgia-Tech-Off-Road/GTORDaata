@@ -18,7 +18,6 @@ logger = logging.getLogger("GoogleDriveHandler")
 class DriveSearchQuery:
     # concrete search queries
     page_limit: int = 1
-    file_id: str = None
     filename: str = None
     mime_type: str = None
     only_csv_mat: bool = False
@@ -377,7 +376,7 @@ class GoogleDriveHandler:
             return None
 
         # if file being uploaded is a folder, we are not uploading anything but
-        # instead creating a brand new folder
+        # instead creating a new folder
         if mime_type == self.MIME_TYPES["folder"]:
             file_metadata = {
                 'name': filepath,
@@ -414,7 +413,7 @@ class GoogleDriveHandler:
 
             # Limit: https://developers.google.com/drive/api/v3/properties
             PROPERTIES_LIMIT = 30  # public
-            APP_PROPERTIES_LIMIT = 30  # private outside of this application
+            APP_PROPERTIES_LIMIT = 30  # private outside this application
 
             if custom_properties is not None:
                 if len(custom_properties) <= PROPERTIES_LIMIT:  # 30:
@@ -492,7 +491,7 @@ class GoogleDriveHandler:
                 if filename[-3:] == "csv" or filename[-3:] == "mat":
                     filepath = directory + filename
                     self.validate_and_upload(filepath)
-                    # test_file = test_date
+                    # test_file = filename
                 if progressBar_GD is not None:
                     progressBar_GD.setValue(int(
                         (file_i + 1) * 100 / len(files_to_upload)))
@@ -501,16 +500,15 @@ class GoogleDriveHandler:
             progressBar_GD.hide()
 
         # TEST MODULE
-        # print(test_file)
-        # list_of_files = find_file_in_drive(DRIVE_SERVICE,
-        #                                    test_date=test_file,
-        #                                    custom_properties
-        #                                    ={"sensor-test_sensor_0": "True"})
+        # toFind = DriveSearchQuery(filename=test_file)
+        # list_of_files = self.find_file_in_drive(toFind)
         # print("Found = ", end="")
         # if len(list_of_files) > 0:
         #     print(len(list_of_files))
         #     props = list_of_files[0].get('properties')
         #     appProps = list_of_files[0].get('appProperties')
+        #     print(props)
+        #     print(appProps)
         # else:
         #     print("No files to print")
 

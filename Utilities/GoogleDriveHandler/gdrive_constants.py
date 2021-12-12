@@ -15,3 +15,5 @@ CUSTOM_PROPERTIES = ("collection_start_time",
                      "test_length",
                      "notes",
                      "some_properties_removed")
+
+TIME_FORMAT = "%Y-%m-%d-%H-%M-%S"

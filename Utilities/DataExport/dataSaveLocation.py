@@ -8,11 +8,12 @@ import webbrowser
 
 # from Utilities.DataExport.GTORNetwork import get_GTORNetworkDrive#, generate_data_save_location
 from DataAcquisition import data
+from Utilities.DataExport.TagDialogue import TagDialogueGUI
 from Utilities.DataExport.exportCSV import saveCSV
 from Utilities.DataExport.exportMAT import saveMAT
 from Utilities.GoogleDriveHandler import GoogleDriveHandler
 from Utilities.Popups.generic_popup import GenericPopup
-# from Utilities.DataExport.TagDialogue import TagDialogueGUI
+
 ''' "saveLocationDialog" configFile settings
 
 
@@ -30,7 +31,8 @@ class popup_dataSaveLocation(QtWidgets.QDialog, uiFile):
         super().__init__()
         self.scene_name = scene_name
         self.setupUi(self)
-        self.setWindowFlags(QtCore.Qt.WindowCloseButtonHint)     # hide the question mark in title bar
+        self.setWindowFlags(
+            QtCore.Qt.WindowCloseButtonHint)  # hide the question mark in title bar
         self.configFile = QtCore.QSettings('DAATA', 'saveLocationDialog')
         self.loadSettings()
         self.collection_start_time = collection_start_time \
@@ -45,9 +47,12 @@ class popup_dataSaveLocation(QtWidgets.QDialog, uiFile):
     def loadSettings(self):
         self.progressBar_GD.hide()
 
-        self.checkBox_local.setChecked(self.configFile.value("checkBox_local") == 'true')
-        self.checkBox_networkDrive.setChecked(self.configFile.value("checkBox_ND") == 'true')
-        self.checkBox_SDCard.setChecked(self.configFile.value("checkBox_SD") == 'true')
+        self.checkBox_local.setChecked(
+            self.configFile.value("checkBox_local") == 'true')
+        self.checkBox_networkDrive.setChecked(
+            self.configFile.value("checkBox_ND") == 'true')
+        self.checkBox_SDCard.setChecked(
+            self.configFile.value("checkBox_SD") == 'true')
         self.checkBox_GDrive.setChecked(
             self.configFile.value("checkBox_GD") == 'true')
         self.checkBox_GDrive.setChecked(
@@ -60,17 +65,19 @@ class popup_dataSaveLocation(QtWidgets.QDialog, uiFile):
 
         self.lineEdit_filenameLocal.setText("")
         self.lineEdit_filenameLocal.setValidator(validator)
-        self.lineEdit_folderLocal.setText(self.configFile.value("default_localDirectory"))
+        self.lineEdit_folderLocal.setText(
+            self.configFile.value("default_localDirectory"))
         self.lineEdit_folderLocal.setValidator(validator)
 
         self.lineEdit_filenameND.setText("")
         self.lineEdit_filenameND.setValidator(validator)
-        #self.lineEdit_folderND.setText(generate_data_save_location())
+        # self.lineEdit_folderND.setText(generate_data_save_location())
         self.lineEdit_folderND.setValidator(validator)
 
         self.lineEdit_filenameSD.setText("")
         self.lineEdit_filenameSD.setValidator(validator)
-        self.lineEdit_folderSD.setText(self.configFile.value("default_SDFolder"))
+        self.lineEdit_folderSD.setText(
+            self.configFile.value("default_SDFolder"))
         self.lineEdit_folderSD.setValidator(validator)
 
     def toggle_frames(self):
@@ -109,8 +116,9 @@ class popup_dataSaveLocation(QtWidgets.QDialog, uiFile):
             nd_filename = self.lineEdit_filenameND.text()
             nd_folder = self.lineEdit_folderND.text()
             if nd_filename == "":
-                logger.info("Local test_date is empty. File will not be created."
-                            )
+                logger.info(
+                    "Local test_date is empty. File will not be created."
+                    )
 
             self.saveCSV(nd_filename, nd_folder)
             self.saveMAT(nd_filename, nd_folder)
@@ -134,22 +142,24 @@ class popup_dataSaveLocation(QtWidgets.QDialog, uiFile):
         if self.checkBox_GDrive.isChecked():
             self.progressBar_GD.show()
 
-            default_start_time = self.collection_start_time\
+            default_start_time = self.collection_start_time \
                 .strftime("%Y-%m-%d-%H-%M-%S")
             default_scene_name = self.scene_name
             default_GDFilename = f"{default_start_time} {default_scene_name}"
-            # sensorsList = data.get_sensors(is_connected=True, is_derived=False)
+            sensorsList = data.get_sensors(is_connected=True, is_derived=False)
 
             # TODO FARIS fix this function
-            # TagDialogueGUI(self.collection_start_time,
-            #                self.collection_stop_time,
-            #                default_scene_name,
-            #                sensorsList)
+            tagGUI = TagDialogueGUI(self.collection_start_time,
+                                    self.collection_stop_time,
+                                    default_scene_name,
+                                    sensorsList)
+            new_filename = tagGUI.get_filename()
 
-            saveCSV(default_GDFilename, DEFAULT_UPLOAD_DIRECTORY)
-            saveMAT(default_GDFilename, DEFAULT_UPLOAD_DIRECTORY)
+            # TODO save by new filename
+            saveCSV(new_filename, DEFAULT_UPLOAD_DIRECTORY)
+            saveMAT(new_filename, DEFAULT_UPLOAD_DIRECTORY)
 
-            self.dump_custom_properties(default_GDFilename)
+            # self.dump_custom_properties(default_GDFilename)
 
             secret_client_file = self.lineEdit_secGD.text()
             if os.path.exists(secret_client_file):
@@ -256,9 +266,9 @@ class popup_dataSaveLocation(QtWidgets.QDialog, uiFile):
         # Verifies each property is max 124 char. Disabled for performance.
         # verify_custom_prop_len(custom_properties)
 
-        with open(DEFAULT_UPLOAD_DIRECTORY + filename + ".json", "w") \
-                as outfile:
-            json.dump(custom_properties, outfile)
+        # with open(DEFAULT_UPLOAD_DIRECTORY + filename + ".json", "w") \
+        #         as outfile:
+        #     json.dump(custom_properties, outfile)
 
     @staticmethod
     def no_internet():
@@ -289,6 +299,7 @@ class popup_dataSaveLocation(QtWidgets.QDialog, uiFile):
 
 if __name__ == "__main__":
     import sys
+
     app = QtWidgets.QApplication(sys.argv)
     ui = popup_dataSaveLocation()
     sys.exit(app.exec_())
