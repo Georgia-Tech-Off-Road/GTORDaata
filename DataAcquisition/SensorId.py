@@ -680,5 +680,14 @@ SensorId = {
             "display_name": "IMU Temperature",
             "is_float": True
         }
+    },
+
+    # 600 - MISC SENSORS
+    600: {
+        "name": "temperature",
+        "object": "Temperature",
+        "num_bytes": 4,
+        "display_name": "Temperature",
+        "is_float": True
     }
 }
