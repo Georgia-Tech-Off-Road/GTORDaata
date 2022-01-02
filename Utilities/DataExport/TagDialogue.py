@@ -45,10 +45,10 @@ class TagDialogueGUI(QtWidgets.QDialog, uiFile):
     def __validate_inputs(self) -> tuple:
         # validating filename using regex by src
         # https://stackoverflow.com/a/11794507/11031425
-        filename_regex = "^[\w\-.][\w\-. ]*$"
+        filename_regex = gdrive_constants.FILENAME_REGEX
         if len(re.findall(filename_regex, self.Name.text())) != 1:
             GenericPopup("Wrong Filename Format",
-                         "Only use alphanumeric, ., SPACE, and _")
+                         "Only use A-Z, 0-9, ., SPACE, and _")
             return tuple()
 
         # validating test length

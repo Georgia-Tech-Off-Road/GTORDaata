@@ -17,3 +17,7 @@ CUSTOM_PROPERTIES = ("collection_start_time",
                      "some_properties_removed")
 
 TIME_FORMAT = "%Y-%m-%d-%H-%M-%S"
+
+# validating filename using regex by src
+# https://stackoverflow.com/a/11794507/11031425
+FILENAME_REGEX = "^[\w\-.][\w\-. ]*$"
