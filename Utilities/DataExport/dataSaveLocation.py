@@ -139,32 +139,35 @@ class popup_dataSaveLocation(QtWidgets.QDialog, uiFile):
             os.makedirs(DEFAULT_UPLOAD_DIRECTORY)
 
         if self.checkBox_GDrive.isChecked():
-            self.progressBar_GD.show()
+            secret_client_file = self.lineEdit_secGD.text()
+            if not os.path.exists(secret_client_file):
+                GenericPopup("Missing oAuth File",
+                             f"oAuth file not detected in path "
+                             f"{secret_client_file} entered")
+                return
 
-            default_start_time = self.collection_start_time \
-                .strftime("%Y-%m-%d-%H-%M-%S")
             default_scene_name = self.scene_name
-            default_GDFilename = f"{default_start_time} {default_scene_name}"
             sensorsList = data.get_sensors(is_connected=True, is_derived=False)
 
             tagGUI = TagDialogueGUI(self.collection_start_time,
                                     self.collection_stop_time,
                                     default_scene_name,
                                     sensorsList)
-            new_filename = tagGUI.get_filename()
+            if tagGUI.save_button_clicked:
+                # if smooth exit from tagGUI
+                new_filename = tagGUI.get_filename()
 
-            saveCSV(new_filename, DEFAULT_UPLOAD_DIRECTORY)
-            saveMAT(new_filename, DEFAULT_UPLOAD_DIRECTORY)
+                saveCSV(new_filename, DEFAULT_UPLOAD_DIRECTORY)
+                saveMAT(new_filename, DEFAULT_UPLOAD_DIRECTORY)
 
-            # self.dump_custom_properties(default_GDFilename)
-
-            secret_client_file = self.lineEdit_secGD.text()
-            if os.path.exists(secret_client_file):
                 drive_handler = GoogleDriveHandler(secret_client_file)
+                self.progressBar_GD.show()
                 drive_handler.upload_all_to_drive(self.progressBar_GD)
                 self.configFile.setValue("lineEdit_secGD", secret_client_file)
             else:
-                logger.error("Secret client file missing")
+                GenericPopup("Save Canceled",
+                             "Files were not uploaded to Google Drive")
+                return
 
         self.configFile.setValue("checkBox_local",
                                  self.checkBox_local.isChecked())

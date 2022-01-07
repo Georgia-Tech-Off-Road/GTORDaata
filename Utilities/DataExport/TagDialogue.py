@@ -33,6 +33,7 @@ class TagDialogueGUI(QtWidgets.QDialog, uiFile):
         self.pushTags = dict()
         self.new_filename = None
         self.saved_json_dump = False
+        self.save_button_clicked = False
 
         self.__connectSlotsSignals()
         self.setup()
@@ -109,6 +110,7 @@ class TagDialogueGUI(QtWidgets.QDialog, uiFile):
 
         self.__dump_custom_properties(custom_props)
         self.saved_json_dump = True
+        self.save_button_clicked = True
 
         self.close_popup()
 
@@ -147,7 +149,7 @@ class TagDialogueGUI(QtWidgets.QDialog, uiFile):
         src: https://stackoverflow.com/a/12366684/11031425.
         """
         # TODO Faris change to cancel saving when closing 'X'
-        if not self.saved_json_dump:
+        if self.save_button_clicked and not self.saved_json_dump:
             self.default()
             self.__save_changes()
         event.accept()
