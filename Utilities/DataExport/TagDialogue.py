@@ -148,7 +148,6 @@ class TagDialogueGUI(QtWidgets.QDialog, uiFile):
         Overrides the default close action on clicking the 'X' close button.
         src: https://stackoverflow.com/a/12366684/11031425.
         """
-        # TODO Faris change to cancel saving when closing 'X'
         if self.save_button_clicked and not self.saved_json_dump:
             self.default()
             self.__save_changes()
