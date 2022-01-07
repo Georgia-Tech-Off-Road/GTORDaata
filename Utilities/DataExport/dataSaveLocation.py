@@ -1,7 +1,6 @@
 from PyQt5 import QtWidgets, QtGui, uic, QtCore
 from datetime import datetime
 import httplib2
-import json
 import logging
 import os
 import webbrowser
@@ -137,7 +136,7 @@ class popup_dataSaveLocation(QtWidgets.QDialog, uiFile):
             logger.info(
                 "Default path " + DEFAULT_UPLOAD_DIRECTORY
                 + " not found. Making the directory...")
-            os.mkdir(DEFAULT_UPLOAD_DIRECTORY)
+            os.makedirs(DEFAULT_UPLOAD_DIRECTORY)
 
         if self.checkBox_GDrive.isChecked():
             self.progressBar_GD.show()
@@ -148,14 +147,12 @@ class popup_dataSaveLocation(QtWidgets.QDialog, uiFile):
             default_GDFilename = f"{default_start_time} {default_scene_name}"
             sensorsList = data.get_sensors(is_connected=True, is_derived=False)
 
-            # TODO FARIS fix this function
             tagGUI = TagDialogueGUI(self.collection_start_time,
                                     self.collection_stop_time,
                                     default_scene_name,
                                     sensorsList)
             new_filename = tagGUI.get_filename()
 
-            # TODO save by new filename
             saveCSV(new_filename, DEFAULT_UPLOAD_DIRECTORY)
             saveMAT(new_filename, DEFAULT_UPLOAD_DIRECTORY)
 

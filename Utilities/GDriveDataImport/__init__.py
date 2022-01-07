@@ -114,9 +114,7 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
 
         # derived search queries
         test_date_query = str(self.upload_date_input.currentText())
-        test_date_query = None if test_date_query == "All" else test_date_query
         duration_query = str(self.duration_input.currentText())
-        duration_query = None if duration_query == "All" else duration_query
 
         search_q = DriveSearchQuery(
             filename=file_name_query,
@@ -135,7 +133,6 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
             return
 
         found_files = DRIVE_SERVICE.find_file_in_drive(search_q)
-        # found_files_buttons = dict()
 
         # clear all previous buttons and widgets from the layout
         for i in reversed(range(self.gridLayout_2.count())):
@@ -149,7 +146,6 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
             found_file_button = QtWidgets.QPushButton(found_file.get("name"))
             found_file_button.clicked.connect(
                 partial(DRIVE_SERVICE.download, found_file))
-            # found_files_buttons[found_file.get("id")] = found_file_button
             self.gridLayout_2.addWidget(found_file_button, i, 0)
 
     def __addCustomPropsField(self):
