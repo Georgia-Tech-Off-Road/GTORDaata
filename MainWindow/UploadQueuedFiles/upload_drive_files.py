@@ -10,7 +10,6 @@ uiFile, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__),
 
 
 class UploadDriveFiles(QtWidgets.QDialog, uiFile):
-    # TODO FARIS complete
     def __init__(self):
         super().__init__()
         self.setupUi(self)

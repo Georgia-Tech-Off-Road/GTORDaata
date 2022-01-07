@@ -3,6 +3,7 @@ from Utilities.GoogleDriveHandler import gdrive_constants
 from Utilities.Popups.generic_popup import GenericPopup
 from datetime import datetime, timedelta
 import json
+import logging
 import os
 import re
 
@@ -10,7 +11,7 @@ import re
 # loads the .ui file from QT Designer
 uiFile, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__),
                                         'saveTagsDialog.ui'))
-
+logger = logging.getLogger("TagDialogue")
 
 class TagDialogueGUI(QtWidgets.QDialog, uiFile):
     def __init__(self, collection_start_time: datetime,
@@ -68,8 +69,12 @@ class TagDialogueGUI(QtWidgets.QDialog, uiFile):
 
         # validating test start time
         try:
+            # add microseconds if not included
+            if "." not in self.Time.text():
+                self.Time.setText(f"{self.Time.text()}.00")
             new_start_time = datetime.strptime(
-                f"{self.Date.text()} {self.Time.text()}", "%m/%d/%Y %H:%M:%S")
+                f"{self.Date.text()} {self.Time.text()}",
+                "%m/%d/%Y %H:%M:%S.%f")
         except ValueError:
             GenericPopup("Wrong Date or Time Format",
                          "Date should look like 12/27/2021 and Time should "
@@ -81,7 +86,8 @@ class TagDialogueGUI(QtWidgets.QDialog, uiFile):
     def __save_changes(self):
         validated_inputs = self.__validate_inputs()
         if not validated_inputs:
-            raise ValueError("Input validation on file upload failed")
+            logger.error("Input validation on file upload failed")
+            return
 
         new_start_time, new_length = validated_inputs
         custom_props = {
@@ -101,7 +107,6 @@ class TagDialogueGUI(QtWidgets.QDialog, uiFile):
                 custom_props[tagData[0].text()] = value_trimmed
         self.pushTags = custom_props
 
-        # TODO FARIS validate this function
         self.__dump_custom_properties(custom_props)
         self.saved_json_dump = True
 
@@ -141,6 +146,7 @@ class TagDialogueGUI(QtWidgets.QDialog, uiFile):
         Overrides the default close action on clicking the 'X' close button.
         src: https://stackoverflow.com/a/12366684/11031425.
         """
+        # TODO Faris change to cancel saving when closing 'X'
         if not self.saved_json_dump:
             self.default()
             self.__save_changes()
@@ -163,7 +169,7 @@ class TagDialogueGUI(QtWidgets.QDialog, uiFile):
         second = float(default_length % 60)
         self.Length.setText(f"{hour}:{minute}:{second}")
 
-        self.Time.setText(self.collection_start_time.strftime("%H:%M:%S"))
+        self.Time.setText(self.collection_start_time.strftime("%H:%M:%S.%f"))
         self.Notes.setText("")
 
         self.SensorList.setText(str(", ".join(self.default_sensorsList)))

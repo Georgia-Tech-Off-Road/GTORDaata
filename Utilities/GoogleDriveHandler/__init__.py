@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from googleapiclient.http import MediaFileUpload, MediaIoBaseDownload
 import Utilities.GoogleDriveHandler.gdrive_constants
+import google.auth.exceptions
 import httplib2
 import io
 import json
@@ -27,8 +28,8 @@ class DriveSearchQuery:
     month: int = None
     day: int = None
     # derived search queries
-    test_date_period: str = None  # Last hour, Today, This Week, ...
-    duration: str = None  # Under 4 minutes, 4-20 minutes, ...
+    test_date_period: str = "All"  # All, Last hour, Today, This Week, ...
+    duration: str = "All"  # All, Under 4 minutes, 4-20 minutes, ...
 
 
 class GoogleDriveHandler:
@@ -86,7 +87,13 @@ class GoogleDriveHandler:
         API_VERSION = 'v3'
         SCOPES = ['https://www.googleapis.com/auth/drive']
 
-        return Create_Service(CLIENT_SECRET_FILE, API_NAME, API_VERSION, SCOPES)
+        try:
+            return Create_Service(
+                CLIENT_SECRET_FILE, API_NAME, API_VERSION, SCOPES)
+        except google.auth.exceptions.RefreshError:
+            os.remove("token_drive_v3.pickle")
+            return Create_Service(
+                CLIENT_SECRET_FILE, API_NAME, API_VERSION, SCOPES)
 
     def __develop_drive_search_q(self, search_q: DriveSearchQuery) -> str:
         # FUTURE TODO improve performance by filtering by date here instead of
@@ -177,7 +184,8 @@ class GoogleDriveHandler:
             return found_files
 
         if (search_q.year == search_q.month == search_q.day is None
-                and search_q.test_date_period == search_q.duration is None):
+                and search_q.test_date_period == "All"
+                and search_q.duration == "All"):
             # if none of the derived filters are set, return original input
             return found_files
 
@@ -518,19 +526,21 @@ class GoogleDriveHandler:
         for i, d in enumerate(
                 ["collection_start_time", "collection_stop_time"]):
             try:
-                begin_end[i] = datetime.strptime(file.get("properties").get(d),
-                                                 "%Y-%m-%d %H:%M:%S.%f")
-            except TypeError:
-                # data not present in properties but may be present in
-                # appProperties
-                try:
-                    begin_end[i] = datetime.strptime(
-                        file.get("properties").get(d), "%Y-%m-%d %H:%M:%S.%f")
-                except TypeError:
+                retrieved_time = file.get("properties").get(d)
+                if retrieved_time is None:
+                    # data not present in properties but may be present in
+                    # appProperties
+                    retrieved_time = file.get("appProperties").get(d)
+                if retrieved_time is None:
                     # data not present at all
                     return []
+                if "." not in retrieved_time:
+                    # add microseconds parameter if it does not exist
+                    retrieved_time = f"{retrieved_time}.00"
+                begin_end[i] = datetime.strptime(retrieved_time,
+                                                 "%Y-%m-%d %H:%M:%S.%f")
             except AttributeError:
-                # parameter properties is missing
+                # parameter properties or appProperties is missing
                 return []
             except ValueError:
                 # data not of correct format
