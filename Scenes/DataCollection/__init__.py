@@ -1,16 +1,15 @@
 from PyQt5 import QtWidgets, uic, QtGui, QtCore
 from PyQt5.QtCore import QSettings
-from PyQt5.QtGui import QPalette
-import os
 from datetime import datetime
+import os
 
-import pyqtgraph as pg
+from DataAcquisition import data
+from Scenes import DAATAScene
+from Utilities.CustomWidgets.Plotting import CustomPlotWidget, GridPlotLayout
 from functools import partial
 import DataAcquisition
-from DataAcquisition import data
-from Utilities.CustomWidgets.Plotting import CustomPlotWidget, GridPlotLayout
-from Scenes import DAATAScene
 import logging
+import pyqtgraph as pg
 
 # Default plot configuration for pyqtgraph
 pg.setConfigOption('background', 'w')   # white

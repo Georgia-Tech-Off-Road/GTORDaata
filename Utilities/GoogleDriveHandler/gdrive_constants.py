@@ -8,7 +8,7 @@ DURATION_OPTIONS = ("All", "Under 4 minutes", "4-20 minutes",
 TEST_DATE_PERIOD_OPTIONS = ("All", "Last hour", "Today", "This week",
                             "This month", "This year")
 
-# only as guidance, no enforcement
+# CUSTOM_PROPERTIES is only as guidance, no enforcement
 CUSTOM_PROPERTIES = ("collection_start_time",
                      "collection_stop_time",
                      "scene",
