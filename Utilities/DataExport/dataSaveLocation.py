@@ -7,7 +7,7 @@ import webbrowser
 
 # from Utilities.DataExport.GTORNetwork import get_GTORNetworkDrive#, generate_data_save_location
 from DataAcquisition import data
-from Utilities.DataExport.TagDialogue import TagDialogueGUI
+from Utilities.DataExport.UploadTagDialogue import TagDialogueGUI
 from Utilities.DataExport.exportCSV import saveCSV
 from Utilities.DataExport.exportMAT import saveMAT
 from Utilities.GoogleDriveHandler import GoogleDriveHandler
@@ -155,15 +155,17 @@ class popup_dataSaveLocation(QtWidgets.QDialog, uiFile):
                                     sensorsList)
             if tagGUI.save_button_clicked:
                 # if smooth exit from tagGUI
+                self.progressBar_GD.show()
                 new_filename = tagGUI.get_filename()
 
                 saveCSV(new_filename, DEFAULT_UPLOAD_DIRECTORY)
                 saveMAT(new_filename, DEFAULT_UPLOAD_DIRECTORY)
 
                 drive_handler = GoogleDriveHandler(secret_client_file)
-                self.progressBar_GD.show()
                 drive_handler.upload_all_to_drive(self.progressBar_GD)
                 self.configFile.setValue("lineEdit_secGD", secret_client_file)
+                GenericPopup("Upload successful",
+                             "Files were successfully uploaded to Google Drive")
             else:
                 GenericPopup("Save Canceled",
                              "Files were not uploaded to Google Drive")

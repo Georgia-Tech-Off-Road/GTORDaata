@@ -10,7 +10,7 @@ import re
 
 # loads the .ui file from QT Designer
 uiFile, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__),
-                                        'saveTagsDialog.ui'))
+                                        'saveUploadTagsDialog.ui'))
 logger = logging.getLogger("TagDialogue")
 
 class TagDialogueGUI(QtWidgets.QDialog, uiFile):
@@ -19,7 +19,7 @@ class TagDialogueGUI(QtWidgets.QDialog, uiFile):
                  sensorsList: list):
         super().__init__()
         # uic.loadUi(os.path.join(os.path.dirname(__file__),
-        #                         'saveTagsDialog.ui'), self)
+        #                         'saveUploadTagsDialog.ui'), self)
         self.setupUi(self)
 
         self.collection_start_time = collection_start_time
