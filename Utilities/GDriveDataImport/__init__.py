@@ -61,12 +61,29 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
         self.close_btn.clicked.connect(self.close_popup)
         self.adv_options_button.clicked.connect(self.__hide_show_adv_options)
         self.add_field_button.clicked.connect(self.__addCustomPropsField)
+        self.clearButton.clicked.connect(self.__clear_all)
 
     def __hide_show_adv_options(self):
         if self.adv_options_widget.isVisible():
             self.adv_options_widget.hide()
         else:
             self.adv_options_widget.show()
+
+    def __clear_all(self):
+        self.upload_date_input.setCurrentIndex(0)
+        self.scene_input.setCurrentIndex(0)
+        for sensor in self.checkbox_sensors:
+            self.checkbox_sensors[sensor].setChecked(False)
+
+        self.file_name_input.setPlainText("")
+        self.year_input.setPlainText("")
+        self.month_input.setPlainText("")
+        self.day_input.setPlainText("")
+
+        self.duration_input.setCurrentIndex(0)
+        self.__remove_all_custom_props()
+        self.__clear_found_files()
+        self.search_older_dates.setChecked(False)
 
     def __display_data(self):
         sec_file = self.sec_file.toPlainText()
@@ -116,7 +133,13 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
         test_date_query = str(self.upload_date_input.currentText())
         duration_query = str(self.duration_input.currentText())
 
+        if self.search_older_dates.isChecked():
+            page_limit = 100
+        else:
+            page_limit = 1
+
         search_q = DriveSearchQuery(
+            page_limit=page_limit,
             filename=file_name_query,
             only_csv_mat=True,
             year=year_query,
@@ -134,9 +157,7 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
 
         found_files = DRIVE_SERVICE.find_file_in_drive(search_q)
 
-        # clear all previous buttons and widgets from the layout
-        for i in reversed(range(self.gridLayout_2.count())):
-            self.gridLayout_2.itemAt(i).widget().setParent(None)
+        self.__clear_found_files()
 
         if len(found_files) == 0:
             self.gridLayout_2.addWidget(QtWidgets.QLabel("No files found"))
@@ -148,11 +169,21 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
                 partial(DRIVE_SERVICE.download, found_file))
             self.gridLayout_2.addWidget(found_file_button, i, 0)
 
+    def __clear_found_files(self):
+        # clear all previous buttons and widgets from the Results layout
+        for i in reversed(range(self.gridLayout_2.count())):
+            self.gridLayout_2.itemAt(i).widget().setParent(None)
+
     def __addCustomPropsField(self):
         key = QtWidgets.QPlainTextEdit()
         value = QtWidgets.QPlainTextEdit()
         self.custom_properties[key] = value
         self.adv_options_layout.addRow(key, value)
+
+    def __remove_all_custom_props(self):
+        for custom_prop in self.custom_properties:
+            self.adv_options_layout.removeRow(custom_prop)
+        self.custom_properties.clear()
 
     def close_popup(self):
         self.close()
