@@ -161,6 +161,7 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
 
         if len(found_files) == 0:
             self.gridLayout_2.addWidget(QtWidgets.QLabel("No files found"))
+            return
 
         # adds the buttons to the layout in grid format
         for i, found_file in enumerate(found_files):
@@ -168,6 +169,11 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
             found_file_button.clicked.connect(
                 partial(DRIVE_SERVICE.download, found_file))
             self.gridLayout_2.addWidget(found_file_button, i, 0)
+            found_file_metadata_btn = QtWidgets.QPushButton("ℹ")
+            found_file_metadata_btn.setMaximumWidth(50)
+            found_file_metadata_btn.clicked.connect(
+                partial(FileMetadata, found_file.get("name"), str(found_file)))
+            self.gridLayout_2.addWidget(found_file_metadata_btn, i, 1)
 
     def __clear_found_files(self):
         # clear all previous buttons and widgets from the Results layout
@@ -188,7 +194,39 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
     def close_popup(self):
         self.close()
 
+
 # if __name__ == "__main__":
 #     app = QtWidgets.QApplication([])
 #     window = GDriveDataImport(["DataAcqu"])
+#     app.exec_()
+
+# loads the .ui file from QT Designer
+uiFileMetadata, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__),
+                                                'file_metadata.ui'))
+
+
+class FileMetadata(QtWidgets.QDialog, uiFileMetadata):
+    def __init__(self, filename: str, metadata_info: str = ""):
+        super().__init__()
+        self.setupUi(self)
+        self.__update_content(filename, metadata_info)
+        self.__connectSlotsSignals()
+        self.exec()
+
+    def __update_content(self, filename: str, metadata_info: str):
+        self.filename_label.setText(filename)
+        self.metadata_textarea.setText(metadata_info)
+
+    def __connectSlotsSignals(self):
+        self.ok_button.clicked.connect(self.__close_popup)
+
+    def __close_popup(self):
+        self.close()
+
+
+# if __name__ == "__main__":
+#     app = QtWidgets.QApplication([])
+#     metadata = "{'id': '1sT7b2LmdNT9hW0BEagTCN0x1a1YFch9F', 'name': '2022-01-09-18-33-43 DataCollection.mat', 'mimeType': 'text/x-matlab', 'parents': ['1cVEyHfwt4oAfuTK_NUgjNjbt6iIQ8UDb'], 'properties': {'sensor-test_sensor_0': 'True', 'scene': 'DataCollection', 'collection_start_time': '2022-01-09 18:33:43.843106', 'collection_stop_time': '2022-01-09 18:33:43.925883', 'test_length': '0:00:00.082777', 'sensor-time_internal_seconds': 'True', 'sensor-test_sensor_4': 'True', 'some_properties_removed': 'False', 'sensor-test_sensor_3': 'True', 'sensor-test_sensor_2': 'True', 'sensor-test_sensor_1': 'True', 'notes': '', 'sensor-test_sensor_5': 'True'}, 'createdTime': '2022-01-09T23:33:55.598Z', 'modifiedTime': '2022-01-09T23:33:55.598Z'}"
+#     pp = pprint.PrettyPrinter(indent=4)
+#     window = FileMetadata("a.txt", metadata)
 #     app.exec_()
