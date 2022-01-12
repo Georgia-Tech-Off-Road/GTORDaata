@@ -118,12 +118,21 @@ class DataImport:
         :return: None
         """
 
-        while self.teensy_found:
+        i = self.teensy_buffer.find(self.end_code)
+        if i >= 0:
+            r = self.teensy_buffer[:i+1]
+            self.teensy_buffer = self.teensy_buffer[i+1:]
+            return r
+        while True:
             i = max(1, min(2048, self.teensy_ser.in_waiting))
             data = self.teensy_ser.read(i)
-            i = data.find(b"\n")
-            self.teensy_buffer.extend(data)
-            #self.handle_packets()
+            i = data.find(self.end_code)
+            if i >= 0:
+                r = self.teensy_buffer + data[:i+1]
+                self.teensy_buffer[0:] = data[i+1:]
+                return r
+            else:
+                self.teensy_buffer.extend(data)
 
 
     def handle_packets(self):
