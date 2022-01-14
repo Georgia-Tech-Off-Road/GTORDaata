@@ -145,19 +145,12 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
         self.setMinimumSize(QtCore.QSize(200, height))
         self.setMaximumSize(QtCore.QSize(16777215, height))
 
-    def update_graph(self):
-        testdata = numpy.random.normal(size=(10,1000))
-        while True:                        
-            self.plot.setData(testdata[self.ptr%10])
-            self.ptr += 1
-
-        """
+    def update_graph(self):        
         index_time = data.get_most_recent_index()
         index_sensor = data.get_most_recent_index(sensor_name=self.sensor_name)
         self.valueArray = data.get_values(self.sensor_name, index_sensor, self.graph_width)
         self.timeArray = data.get_values("time_internal_seconds", index_time, self.graph_width)
         self.plot.setData(self.timeArray, self.valueArray)
-        """
 
     def create_multi_graphs(self):
         # Maximum of 6 line graphs in one graph.

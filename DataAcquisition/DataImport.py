@@ -110,7 +110,7 @@ class DataImport:
             logger.error(e)
             logger.error("Error in connect_serial")
 
-    def read_serial(self):
+    def read_packet_serial(self):
         """
         Sole purpose is to read incoming data on the Serial port.
         Started by reading thread.
@@ -142,21 +142,12 @@ class DataImport:
         :return: None
         """
 
-        if len(self.teensy_buffer) > 8:
-            try:
-                self.current_packet.append(self.teensy_buffer.pop(8))
-            except Exception as e:
-                logger.error(e)
-            end_code_match = False
-            while not end_code_match:
-                packet_length = len(self.current_packet)         
-                if self.current_packet[(packet_length - 8):(packet_length)] == self.end_code:
-                    end_code_match = True
-                    self.current_packet = self.current_packet[0:(packet_length - 8)]                    
-                    self.unpacketize()
-                    self.current_packet.clear()
-                elif len(self.teensy_buffer) > 0:
-                    self.current_packet.append(self.teensy_buffer.pop())
+        try:
+            self.current_packet = self.read_packet_serial
+            self.unpacketize()
+            self.current_packet.clear()
+        except Exception as e:
+            logger.error(e)
 
     def read_bin_file(self):
         """

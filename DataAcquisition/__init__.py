@@ -55,7 +55,7 @@ def read_data():
             except AttributeError:
                 logger.warning("Unable to flush Serial Buffer. No Serial object connected")                    
             try:
-                data_import.read_serial()
+                data_import.handle_packets()
             except AssertionError:
                 logger.info("Serial port is not open, opening now")
                 try:
