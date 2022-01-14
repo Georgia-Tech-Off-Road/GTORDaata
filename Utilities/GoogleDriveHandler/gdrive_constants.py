@@ -9,12 +9,12 @@ TEST_DATE_PERIOD_OPTIONS = ("All", "Last hour", "Today", "This week",
                             "This month", "This year")
 
 # CUSTOM_PROPERTIES is only as guidance, no enforcement
-CUSTOM_PROPERTIES = ("collection_start_time",
+"""CUSTOM_PROPERTIES = ("collection_start_time",
                      "collection_stop_time",
                      "scene",
                      "test_length",
                      "notes",
-                     "some_properties_removed")
+                     "some_properties_removed")"""
 
 TIME_FORMAT = "%Y-%m-%d-%H-%M-%S"
 

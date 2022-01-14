@@ -249,77 +249,10 @@ class popup_dataSaveLocation(QtWidgets.QDialog, uiFile):
         # for child in self.findChildren(QtWidgets.QCheckBox):
         #     print(child.objectName())
 
-    def dump_custom_properties(self, filename: str):
-        """
-        Creates a JSON file with all the custom properties of the file (in
-        dict format) to be uploaded as custom Google Drive file
-        properties or appProperties. This includes the mandatory custom
-        properties, e.g., collection_start_time and the sensors in the format
-        {"sensor-test_sensor_1": True, "sensor-test_sensor_3"}.
-
-        :param filename: the name of the file to be uploaded, e.g. test1.csv
-        :return: None
-        """
-        # Limit: https://developers.google.com/drive/api/v3/properties
-        PROPERTIES_LIMIT = 30  # public
-        APP_PROPERTIES_LIMIT = 30  # private outside of this application
-
-        custom_properties = dict()
-        # True if some properties are removed; max is 60 keys
-        custom_properties["some_properties_removed"] = "False"
-        custom_properties["scene"] = self.scene_name
-        custom_properties["collection_start_time"] \
-            = str(self.collection_start_time)
-        custom_properties["collection_stop_time"] \
-            = str(self.collection_stop_time)
-        custom_properties["test_length"] = str(self.collection_stop_time
-                                               - self.collection_start_time)
-        custom_properties["note"] = "Put a note here!"
-
-        # adds all the sensors to the custom_properties dict up to 60 total
-        # custom_properties.
-        sensorsList = data.get_sensors(is_connected=True, is_derived=False)
-
-        sensorsList_limit = len(sensorsList)
-        TOTAL_LIMIT = PROPERTIES_LIMIT + APP_PROPERTIES_LIMIT  # 60
-        if len(sensorsList) + len(custom_properties) > TOTAL_LIMIT:  # 60
-            sensorsList_limit = TOTAL_LIMIT - len(custom_properties)
-            custom_properties["some_properties_removed"] = "True"
-        for sensor_i in range(sensorsList_limit):
-            custom_properties["sensor-" + sensorsList[sensor_i]] = "True"
-
-        # Verifies each property is max 124 char. Disabled for performance.
-        # verify_custom_prop_len(custom_properties)
-
-        # with open(DEFAULT_UPLOAD_DIRECTORY + filename + ".json", "w") \
-        #         as outfile:
-        #     json.dump(custom_properties, outfile)
-
     @staticmethod
     def no_internet():
         logger.error("Cannot open info file. Possible internet problems.")
         GenericPopup("No Internet")
-
-    @staticmethod
-    def __verify_custom_prop_len(custom_properties: dict):
-        """
-        Verifies each property is max 124 char long to satisfy GDrive
-        requirements. Disabled for performance.
-
-        https://developers.google.com/drive/api/v3/properties Maximum of 124
-        bytes size per property (including both key and value) string in
-        UTF-8 encoding. For example, a property with a key that is ten
-        characters long can only have 114 characters in the value. A property
-        that requires 100 characters for the value can use up to 24
-        characters for the key.
-        """
-        MAX_BYTES_PER_PROP = 124
-        for key in custom_properties.keys():
-            if len(key) > MAX_BYTES_PER_PROP:
-                del custom_properties[key]
-            elif len(key) + len(custom_properties[key]) > MAX_BYTES_PER_PROP:
-                value_limit = MAX_BYTES_PER_PROP - len(key)
-                custom_properties[key] = custom_properties[key][:value_limit]
 
 
 # loads the .ui file from QT Designer
