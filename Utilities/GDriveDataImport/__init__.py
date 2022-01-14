@@ -23,6 +23,7 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
         self.dict_scenes = dict_scenes
         self.checkbox_sensors = dict()
         self.custom_properties = dict()
+        self.selected_filepath: str = ""
         self.configFile = QtCore.QSettings('DAATA', 'GDriveDataImport')
 
         self.__populate_fields()
@@ -86,6 +87,7 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
         self.search_older_dates.setChecked(False)
 
     def __display_data(self):
+        self.gridLayout_2.addWidget(QtWidgets.QLabel("Loading..."))
         sec_file = self.sec_file.toPlainText()
         self.configFile.setValue("sec_file", sec_file)
 
@@ -108,6 +110,7 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
         else:
             generic_popup.GenericPopup("Type Error",
                                        "Date inputs should be integers")
+            self.__clear_found_files()
             return
 
         custom_prop_query = dict()
@@ -150,12 +153,12 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
             duration=duration_query)
 
         try:
-            DRIVE_SERVICE = GoogleDriveHandler(sec_file)
+            DRIVE_HANDLER = GoogleDriveHandler(sec_file)
         except ValueError:
             logger.error("Error in creating Google Drive Handler")
             return
 
-        found_files = DRIVE_SERVICE.find_file_in_drive(search_q)
+        found_files = DRIVE_HANDLER.find_file_in_drive(search_q)
 
         self.__clear_found_files()
 
@@ -167,13 +170,19 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
         for i, found_file in enumerate(found_files):
             found_file_button = QtWidgets.QPushButton(found_file.get("name"))
             found_file_button.clicked.connect(
-                partial(DRIVE_SERVICE.download, found_file))
+                partial(self.__download_and_display, DRIVE_HANDLER, found_file))
             self.gridLayout_2.addWidget(found_file_button, i, 0)
             found_file_metadata_btn = QtWidgets.QPushButton("ℹ")
             found_file_metadata_btn.setMaximumWidth(50)
             found_file_metadata_btn.clicked.connect(
-                partial(FileMetadata, found_file.get("name"), str(found_file)))
+                partial(_FileMetadata, found_file.get("name"), str(found_file)))
             self.gridLayout_2.addWidget(found_file_metadata_btn, i, 1)
+
+    def __download_and_display(self, drive_handler: GoogleDriveHandler,
+                               found_file: dict):
+        self.selected_filepath = ""
+        self.selected_filepath = \
+            drive_handler.download_and_display(found_file, self)
 
     def __clear_found_files(self):
         # clear all previous buttons and widgets from the Results layout
@@ -195,17 +204,12 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
         self.close()
 
 
-# if __name__ == "__main__":
-#     app = QtWidgets.QApplication([])
-#     window = GDriveDataImport(["DataAcqu"])
-#     app.exec_()
-
 # loads the .ui file from QT Designer
 uiFileMetadata, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__),
                                                 'file_metadata.ui'))
 
 
-class FileMetadata(QtWidgets.QDialog, uiFileMetadata):
+class _FileMetadata(QtWidgets.QDialog, uiFileMetadata):
     def __init__(self, filename: str, metadata_info: str = ""):
         super().__init__()
         self.setupUi(self)

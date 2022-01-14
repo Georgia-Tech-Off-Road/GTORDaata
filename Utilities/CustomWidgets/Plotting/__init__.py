@@ -143,6 +143,11 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
         self.setMinimumSize(QtCore.QSize(200, height))
         self.setMaximumSize(QtCore.QSize(16777215, height))
 
+    def initialize_values(self, timeArray: list, valueArray: list):
+        self.timeArray = timeArray
+        self.valueArray = valueArray
+        self.plot.setData(timeArray, valueArray)
+
     def update_graph(self):
         index_time = data.get_most_recent_index()
         index_sensor = data.get_most_recent_index(sensor_name=self.sensor_name)

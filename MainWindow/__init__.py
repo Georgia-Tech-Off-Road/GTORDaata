@@ -12,6 +12,7 @@ import serial
 from Scenes import DAATAScene
 from Scenes.Homepage import Homepage
 from Scenes.DataCollection import DataCollection
+from Scenes.DataCollectionPreview import DataCollectionPreview
 from Scenes.EngineDyno import EngineDyno
 from Scenes.Layout_Test import Widget_Test
 from Scenes.BlinkLEDTest import BlinkLEDTest
@@ -203,7 +204,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def import_scenes(self):
         """
-        This function used ot add the different scenes to the application.
+        This function used to add the different scenes to the application.
 
         :return: None
         """
@@ -211,6 +212,12 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             'Data Collection': {
                 'create_scene': DataCollection,
                 'formal_name': "DataCollection"
+            },
+
+            'Data Collection Preview': {
+                'create_scene': DataCollectionPreview,
+                'formal_name': "DataCollectionPreview",
+                'disabled': True,
             },
 
             'Layout Test': {
@@ -284,8 +291,24 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             # implement the CSV and BIN Parsers depending on the input mode value
             pass
 
-    def import_from_google_drive(self):
-        GoogleDriveDataImport(self.dict_scenes)
+    def __import_from_google_drive(self):
+        """
+        Opens a 'GDriveDataImport' window asking which file to import from
+        Google Drive and display on the graph. Once a file is selected,
+        the 'GDriveDataImport' window is closed and a new scene tab is opened
+        with the data in that file. Currently, only supports .csv files.
+
+        :return: None
+        """
+        # selected_filepath is "" if an error occurred
+        filepath = GoogleDriveDataImport(self.dict_scenes).selected_filepath
+        if filepath:
+            print("File downloaded")
+            # self.__create_DataCollectionPreview_tab(filepath)
+
+    # def __create_DataCollectionPreview_tab(self, filepath: str):
+    #     # Future TODO figure out a better way to pass in the filepath
+    #     self.create_scene_tab(self, f"Data Collection Preview--{filepath}")
 
     def connect_signals_and_slots(self):
         """
@@ -296,7 +319,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         """
 
         for key in self.dict_scenes.keys():
-            self.dict_scenes[key]['menu_action'].triggered.connect(partial(self.create_scene_tab, key))
+            self.dict_scenes[key]['menu_action'].triggered.connect(
+                partial(self.create_scene_tab, key))
 
         ## Handles event of a COM port being selected
         for key in self.dict_ports.keys():
@@ -307,7 +331,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.actionBIN_File.triggered.connect(lambda: self.setInputMode("BIN"))
         self.actionCSV_File.triggered.connect(lambda: self.setInputMode("CSV"))
         self.import_Google_Drive.\
-            triggered.connect(lambda: self.import_from_google_drive())
+            triggered.connect(lambda: self.__import_from_google_drive())
 
         # self.upload_all_to_drive.triggered.connect()
 
