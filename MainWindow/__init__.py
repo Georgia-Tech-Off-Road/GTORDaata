@@ -325,6 +325,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         if input_mode != "" and not self.data_reading_thread.is_alive() and input_mode != "Auto":
             self.data_reading_thread.start()
         
+    def get_input_mode():
+        return data_import.input_mode
 
     def connect_signals_and_slots(self):
         """
@@ -383,10 +385,13 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         :return: None
         """
         
-        opt = QtGui.QStyleOption()
+        # opt = QtGui.QStyleOption()
+        opt = QtWidgets.QStyleOption()
         opt.initFrom(self)
         p = QtGui.QPainter(self)
         s = self.style()
-        s.drawPrimitive(QtGui.QStyle.PE_Widget, opt, p, self)
+        # s.drawPrimitive(QtGui.QStyle.PE_Widget, opt, p, self)
+        s.drawPrimitive(QtWidgets.QStyle.PE_Widget, opt, p, self)
+
 
     
