@@ -26,7 +26,7 @@ class DataCollectionPreview(DAATAScene, uiFile):
         super().__init__()
         self.aborted = False
 
-        initial_data_filepath = "C:\\Users\\afari\\AppData\\Local\\GTOffRoad\\Downloads\\a.csv"
+        # initial_data_filepath = "C:\\Users\\afari\\AppData\\Local\\GTOffRoad\\Downloads\\a.csv"
         if not initial_data_filepath \
                 or not os.path.exists(initial_data_filepath):
             GenericPopup("Data CSV file does not exist",
