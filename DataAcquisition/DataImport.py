@@ -134,10 +134,9 @@ class DataImport:
             else:
                 self.teensy_buffer.extend(data)
 
-
     def handle_packets(self):
         """
-        Manages packets from both serial read, and bin file parsing.
+        Manages packets from serial read.
 
         :return: None
         """
@@ -148,6 +147,29 @@ class DataImport:
             self.current_packet.clear()
         except Exception as e:
             logger.error(e)
+
+    def handle_bin_packets(self):
+        """
+        Manages packets read from BIN file parsing.
+        
+        :return: None
+        """
+
+        if len(self.teensy_buffer) > 8:
+            try:
+                self.current_packet.append(self.teensy_buffer.pop(8))
+            except Exception as e:
+                logger.error(e)
+            end_code_match = False
+            while not end_code_match:
+                packet_length = len(self.current_packet)         
+                if self.current_packet[(packet_length - 8):(packet_length)] == self.end_code:
+                    end_code_match = True
+                    self.current_packet = self.current_packet[0:(packet_length - 8)]                    
+                    self.unpacketize()
+                    self.current_packet.clear()
+                elif len(self.teensy_buffer) > 0:
+                    self.current_packet.append(self.teensy_buffer.pop())
 
     def read_bin_file(self):
         """
@@ -162,7 +184,7 @@ class DataImport:
                 byte = self.data_file.read(1)
                 self.teensy_buffer.extend(byte)        
         while len(self.teensy_buffer) > 0:
-            self.handle_packets()
+            self.handle_bin_packets()
             print(len(self.teensy_buffer))
         logger.info("Finished BIN file parsing")
         self.input_mode = ""
