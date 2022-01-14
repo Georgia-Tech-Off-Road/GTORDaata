@@ -325,6 +325,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         if input_mode != "" and not self.data_reading_thread.is_alive() and input_mode != "Auto":
             self.data_reading_thread.start()
         
+    def get_input_mode():
+        return data_import.input_mode
 
     def connect_signals_and_slots(self):
         """

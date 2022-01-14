@@ -6,7 +6,7 @@ import os
 import pyqtgraph as pg
 from functools import partial
 import DataAcquisition
-from DataAcquisition import data
+from DataAcquisition import data, data_import
 from Utilities.CustomWidgets.Plotting import CustomPlotWidget, GridPlotLayout
 from Scenes import DAATAScene
 import logging
@@ -257,16 +257,25 @@ class DataCollection(DAATAScene, uiFile):
                 self.update_time_elapsed()
 
         # temporary implementation of global recording button update
-        if self.is_data_collecting.is_set():
+        # first check if the input mode has been specified. If not, disable the button
+        if data_import.input_mode == "":
+            self.indicator_onOrOff.setText("Off")
+            self.indicator_onOrOff.setStyleSheet("color: orange;")
+            self.button_display.setText("Select Input Mode")
+            self.button_display.setChecked(False)
+            self.button_display.setEnabled(False)
+        elif self.is_data_collecting.is_set():
             self.indicator_onOrOff.setText("On")
             self.indicator_onOrOff.setStyleSheet("color: green;")
             self.button_display.setText("Stop Collecting Data")
             self.button_display.setChecked(True)
+            self.button_display.setEnabled(True)
         else:
             self.indicator_onOrOff.setText("Off")
             self.indicator_onOrOff.setStyleSheet("color: red;")
             self.button_display.setText("Start Collecting Data")
             self.button_display.setChecked(False)
+            self.button_display.setEnabled(True)
 
     def update_passive(self):
         """
