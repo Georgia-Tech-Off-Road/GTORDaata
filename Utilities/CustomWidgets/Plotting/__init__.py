@@ -212,11 +212,13 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
 
     # allow color scheme of class to be changed by CSS stylesheets
     def paintEvent(self, pe):
-        opt = QtGui.QStyleOption()
+        # opt = QtGui.QStyleOption()
+        opt = QtWidgets.QStyleOption()
         opt.initFrom(self)
         p = QtGui.QPainter(self)
         s = self.style()
-        s.drawPrimitive(QtGui.QStyle.PE_Widget, opt, p, self)
+        # s.drawPrimitive(QtGui.QStyle.PE_Widget, opt, p, self)
+        s.drawPrimitive(QtWidgets.QStyle.PE_Widget, opt, p, self)
 
 
 uiSettingsDialog, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'plotSettings.ui'))  # loads the .ui file from QT Desginer
