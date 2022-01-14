@@ -297,9 +297,12 @@ class GoogleDriveHandler:
             if file_id is not None:
                 self.remove_file(filepath)
                 return file_id
+        elif filename[-5:] == ".json":
+            logger.info(f"File {filename} not intended to be uploaded.")
+            return None
         else:
-            logger.info(f"File {filename} not of a supported type to be "
-                        f"uploaded.")
+            logger.error(f"File {filename} not of a supported type to be "
+                         f"uploaded.")
             return None
 
     def __get_Day_folder_id(self, test_date: str):

@@ -306,6 +306,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.__create_DataCollectionPreview_tab(filepath)
 
     def __create_DataCollectionPreview_tab(self, filepath: str):
+        # Ignore the parameter 'key' unfilled error; there are no errors here
         self.create_scene_tab("Data Collection Preview",
                               initial_data_filepath=filepath)
 
