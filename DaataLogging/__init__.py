@@ -1,6 +1,15 @@
-import logging
+import coloredlogs, logging
 from logging import StreamHandler, Formatter, Logger, getLogger
 from logging import DEBUG, INFO, WARNING, ERROR, CRITICAL
+
+logging.basicConfig(
+    filename="log_output.log"
+)
+
+# clear file contents before application is run
+log_file = open("log_output.log", "w")
+log_file.truncate(0)
+log_file.close()
 
 logging_objects = {
     "Logging": DEBUG,
@@ -27,6 +36,7 @@ ch.setFormatter(formatter)
 # Create all the logging objects and add the stream handler to them
 for name, level in logging_objects.items():
     logger = getLogger(name)
+    # coloredlogs.install(level=logging.DEBUG, logger=logger)
     logger.setLevel(level)
     logger.addHandler(ch)
 
