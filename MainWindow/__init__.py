@@ -300,15 +300,14 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         :return: None
         """
-        # selected_filepath is "" if an error occurred
+        # filepath is "" if an error occurred
         filepath = GoogleDriveDataImport(self.dict_scenes).selected_filepath
         if filepath:
-            print("File downloaded")
-            # self.__create_DataCollectionPreview_tab(filepath)
+            self.__create_DataCollectionPreview_tab(filepath)
 
-    # def __create_DataCollectionPreview_tab(self, filepath: str):
-    #     # Future TODO figure out a better way to pass in the filepath
-    #     self.create_scene_tab(self, f"Data Collection Preview--{filepath}")
+    def __create_DataCollectionPreview_tab(self, filepath: str):
+        self.create_scene_tab("Data Collection Preview",
+                              initial_data_filepath=filepath)
 
     def connect_signals_and_slots(self):
         """
