@@ -101,6 +101,15 @@ class popup_dataSaveLocation(QtWidgets.QDialog, uiFile):
             self.widget_GD.hide()
 
     def saveData(self):
+        """
+        Saves the recorded data to the chosen places.
+
+        In the case of Google Drive, an active connection is needed, along with
+        an authentication file (instructions included). If the Google Drive
+        option is selected but there is no Internet connection, an offline
+        backup will be saved to be uploaded at the next uploading session.
+        :return: None
+        """
         if self.checkBox_local.isChecked():
             local_filename = self.lineEdit_filenameLocal.text()
             local_folder = self.lineEdit_folderLocal.text()
@@ -116,8 +125,7 @@ class popup_dataSaveLocation(QtWidgets.QDialog, uiFile):
             nd_folder = self.lineEdit_folderND.text()
             if nd_filename == "":
                 logger.info(
-                    "Local test_date is empty. File will not be created."
-                    )
+                    "Local test_date is empty. File will not be created.")
 
             self.saveCSV(nd_filename, nd_folder)
             self.saveMAT(nd_filename, nd_folder)
@@ -132,19 +140,13 @@ class popup_dataSaveLocation(QtWidgets.QDialog, uiFile):
 
             self.configFile.setValue("default_SDFolder", SDFolder)
 
-        if not os.path.exists(DEFAULT_UPLOAD_DIRECTORY):
-            logger.info(
-                "Default path " + DEFAULT_UPLOAD_DIRECTORY
-                + " not found. Making the directory...")
-            os.makedirs(DEFAULT_UPLOAD_DIRECTORY)
-
         if self.checkBox_GDrive.isChecked():
             secret_client_file = self.lineEdit_secGD.text()
+            missing_oauth = False
+            save_offline = False
             if not os.path.exists(secret_client_file):
-                GenericPopup("Missing oAuth File",
-                             f"oAuth file not detected in path "
-                             f"{secret_client_file} entered")
-                return
+                missing_oauth = True
+                save_offline = _MissingOAuthFile().save_offline
 
             default_scene_name = self.scene_name
             sensorsList = data.get_sensors(is_connected=True, is_derived=False)
@@ -152,25 +154,46 @@ class popup_dataSaveLocation(QtWidgets.QDialog, uiFile):
             tagGUI = TagDialogueGUI(self.collection_start_time,
                                     self.collection_stop_time,
                                     default_scene_name,
-                                    sensorsList)
+                                    sensorsList, save_offline)
             if tagGUI.save_button_clicked:
                 # if smooth exit from tagGUI
-                self.progressBar_GD.show()
                 new_filename = tagGUI.get_filename()
+
+                if not os.path.exists(DEFAULT_UPLOAD_DIRECTORY):
+                    logger.info(
+                        "Default path " + DEFAULT_UPLOAD_DIRECTORY
+                        + " not found. Making the directory...")
+                    os.makedirs(DEFAULT_UPLOAD_DIRECTORY)
+
+                if missing_oauth:
+                    if save_offline:
+                        saveCSV(new_filename, DEFAULT_UPLOAD_DIRECTORY)
+                        saveMAT(new_filename, DEFAULT_UPLOAD_DIRECTORY)
+                        GenericPopup("Local copy saved")
+                    self.__close_save_settings()
+                    return
 
                 saveCSV(new_filename, DEFAULT_UPLOAD_DIRECTORY)
                 saveMAT(new_filename, DEFAULT_UPLOAD_DIRECTORY)
 
-                drive_handler = GoogleDriveHandler(secret_client_file)
-                drive_handler.upload_all_to_drive(self.progressBar_GD)
-                self.configFile.setValue("lineEdit_secGD", secret_client_file)
-                GenericPopup("Upload successful",
-                             "Files were successfully uploaded to Google Drive")
+                try:
+                    drive_handler = GoogleDriveHandler(secret_client_file)
+                    self.progressBar_GD.show()
+                    drive_handler.upload_all_to_drive(self.progressBar_GD)
+                    self.configFile.setValue("lineEdit_secGD",
+                                             secret_client_file)
+                    GenericPopup("Upload successful",
+                                 "Files were successfully uploaded to "
+                                 "Google Drive")
+                except GoogleDriveHandler.NoInternetError:
+                    return
             else:
                 GenericPopup("Save Canceled",
                              "Files were not uploaded to Google Drive")
                 return
+        self.__close_save_settings()
 
+    def __close_save_settings(self):
         self.configFile.setValue("checkBox_local",
                                  self.checkBox_local.isChecked())
         self.configFile.setValue("checkBox_ND",
@@ -297,6 +320,36 @@ class popup_dataSaveLocation(QtWidgets.QDialog, uiFile):
             elif len(key) + len(custom_properties[key]) > MAX_BYTES_PER_PROP:
                 value_limit = MAX_BYTES_PER_PROP - len(key)
                 custom_properties[key] = custom_properties[key][:value_limit]
+
+
+# loads the .ui file from QT Designer
+uiFile, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__),
+                                        'missing_oAuth.ui'))
+
+
+class _MissingOAuthFile(QtWidgets.QDialog, uiFile):
+    def __init__(self):
+        super().__init__()
+        self.save_offline = False
+
+        self.setupUi(self)
+        self.__connectSlotsSignals()
+        self.exec()
+
+    def __connectSlotsSignals(self):
+        self.cancel_button.clicked.connect(self.cancel_save)
+        self.yes_button.clicked.connect(self.ok_save)
+
+    def ok_save(self):
+        self.save_offline = True
+        self.close()
+
+    def cancel_save(self):
+        self.close()
+
+    def closeEvent(self, event=None):
+        if event is not None:
+            event.accept()
 
 
 if __name__ == "__main__":

@@ -16,7 +16,7 @@ logger = logging.getLogger("TagDialogue")
 class TagDialogueGUI(QtWidgets.QDialog, uiFile):
     def __init__(self, collection_start_time: datetime,
                  collection_stop_time: datetime, default_scene_name: str,
-                 sensorsList: list):
+                 sensorsList: list, save_offline: bool = False):
         super().__init__()
         # uic.loadUi(os.path.join(os.path.dirname(__file__),
         #                         'saveUploadTagsDialog.ui'), self)
@@ -34,6 +34,8 @@ class TagDialogueGUI(QtWidgets.QDialog, uiFile):
         self.new_filename = None
         self.saved_json_dump = False
         self.save_button_clicked = False
+        if save_offline:
+            self.DoneButton.setText("Save Offline")
 
         self.__connectSlotsSignals()
         self.setup()
@@ -163,6 +165,7 @@ class TagDialogueGUI(QtWidgets.QDialog, uiFile):
         self.Name.setText(default_GDFilename)
         self.Date.setText(self.collection_start_time.strftime("%m/%d/%Y"))
 
+        # TODO Faris refer default_length from data.get_most_recent_index()
         default_length = (self.collection_stop_time
                           - self.collection_start_time).total_seconds()
         hour = int(default_length // 3600)

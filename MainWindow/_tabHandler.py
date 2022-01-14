@@ -23,6 +23,10 @@ def create_scene_tab(self, key):
     # from Utilities.Settings import settings_load, settings_save
     global tabInstances
 
+    # if key[:23] == "Data Collection Preview":
+    #     # only used in DataCollectionPreview scene
+    #     tab = self.dict_scenes[key]['create_scene'](key[25:])
+    # else:
     tab = self.dict_scenes[key]['create_scene']()
     tab.setObjectName(key + " (instance " + str(tabInstances) + ")")  # set object names for each tab's widget (allows duplicate widgets to have a functional parent/child relationship)
     self.tabWidget.addTab(tab, key)

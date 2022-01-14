@@ -1,12 +1,12 @@
 from PyQt5 import QtWidgets, uic, QtGui, QtCore
 from PyQt5.QtCore import QSettings
 from datetime import datetime
+from functools import partial
 import os
 
 from DataAcquisition import data
 from Scenes import DAATAScene
 from Utilities.CustomWidgets.Plotting import CustomPlotWidget, GridPlotLayout
-from functools import partial
 import DataAcquisition
 import logging
 import pyqtgraph as pg

@@ -38,8 +38,6 @@ class GoogleDriveHandler:
     _DRIVE_ID = "0AFmSv7widPF9Uk9PVA"  # Drive ID of GTOR_DAQ_DATA shared drive
     DEFAULT_UPLOAD_DIRECTORY = gdrive_constants.DEFAULT_UPLOAD_DIRECTORY
     DEFAULT_DOWNLOAD_DIRECTORY = gdrive_constants.DEFAULT_DOWNLOAD_DIRECTORY
-    DURATION_OPTIONS = gdrive_constants.DURATION_OPTIONS
-    TEST_DATE_PERIOD_OPTIONS = gdrive_constants.TEST_DATE_PERIOD_OPTIONS
 
     def __init__(self, secret_client_file: str):
         # Mime_type for CSV and MATLAB files, see
@@ -62,13 +60,17 @@ class GoogleDriveHandler:
             logger.info(
                 "Default path " + self.DEFAULT_UPLOAD_DIRECTORY
                 + " not found. Making the directory...")
-            os.mkdir(self.DEFAULT_UPLOAD_DIRECTORY)
+            os.makedirs(self.DEFAULT_UPLOAD_DIRECTORY)
         if not os.path.exists(self.DEFAULT_DOWNLOAD_DIRECTORY):
             logger.info(
                 "Default path " + self.DEFAULT_DOWNLOAD_DIRECTORY
                 + " not found. Making the directory...")
-            os.mkdir(self.DEFAULT_DOWNLOAD_DIRECTORY)
+            os.makedirs(self.DEFAULT_DOWNLOAD_DIRECTORY)
         self.DRIVE_SERVICE = self.__create_drive_service(secret_client_file)
+
+    class NoInternetError(ConnectionError):
+        """No Internet"""
+        pass
 
     def __create_drive_service(self, secret_client_file: str):
         if not os.path.exists(secret_client_file):
@@ -80,7 +82,7 @@ class GoogleDriveHandler:
             requests.head("https://www.google.com/", timeout=1)
         except requests.ConnectionError:
             self.no_internet()
-            raise ValueError("No Internet connection")
+            raise self.NoInternetError
 
         CLIENT_SECRET_FILE = secret_client_file
         API_NAME = 'drive'
@@ -254,7 +256,7 @@ class GoogleDriveHandler:
 
         return filtered_list
 
-    def validate_and_upload(self, filepath: str):
+    def __validate_and_upload(self, filepath: str):
         # get filename from filepath
         split_filepath = filepath.split("\\")
         filename = split_filepath[len(split_filepath) - 1]
@@ -458,9 +460,21 @@ class GoogleDriveHandler:
                 self.no_internet()
                 return None
 
-    def download(self, file: dict):
+    def download(self, file: dict) -> str:
+        """
+        Downloads the file as specified by the Google Drive file metadata
+        dictionary input into the default download directory.
+
+        :param file:
+        :return:
+        """
         # src: https://developers.google.com/drive/api/v3/manage-downloads
-        request = self.DRIVE_SERVICE.files().get_media(fileId=file.get('id'))
+        try:
+            request = self.DRIVE_SERVICE.files().get_media(
+                fileId=file.get('id'))
+        except httplib2.error.ServerNotFoundError:
+            self.no_internet()
+            return ""
         fh = io.BytesIO()
         downloader = MediaIoBaseDownload(fh, request)
         done = False
@@ -470,10 +484,24 @@ class GoogleDriveHandler:
         # The file has been downloaded into RAM, now save it in a file
         # src: https://stackoverflow.com/a/55989689/11031425
         fh.seek(0)
-        with io.open(f"{self.DEFAULT_DOWNLOAD_DIRECTORY}{file.get('name')}",
-                     'wb') as f:
+        filepath = f"{self.DEFAULT_DOWNLOAD_DIRECTORY}{file.get('name')}"
+        with io.open(filepath, 'wb') as f:
             fh.seek(0)
             f.write(fh.read())
+        return filepath
+
+    def download_and_display(self, file: dict, import_window) -> str:
+        """
+        Downloads the chosen file to the local hard disk and displays the
+        graphs. Currently, only implemented for the Data Collection scene.
+
+        :param file: Google Drive metadate of the file that will be downloaded
+        :param import_window: GDriveDataImport object to be closed
+        :return: The full filepath of the downloaded file; "" if an error
+        occurred
+        """
+        import_window.close()
+        return self.download(file)
 
     def upload_all_to_drive(self, progressBar_GD=None):
         """
@@ -498,7 +526,7 @@ class GoogleDriveHandler:
             for file_i, filename in enumerate(files_to_upload):
                 if filename[-3:] == "csv" or filename[-3:] == "mat":
                     filepath = directory + filename
-                    self.validate_and_upload(filepath)
+                    self.__validate_and_upload(filepath)
                     # test_file = filename
                 if progressBar_GD is not None:
                     progressBar_GD.setValue(int(
