@@ -1,17 +1,17 @@
 from PyQt5 import QtWidgets, uic
 from Utilities.GoogleDriveHandler import gdrive_constants
 from Utilities.Popups.generic_popup import GenericPopup
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date as dt_date, time as dt_time
 import json
 import logging
 import os
 import re
 
-
 # loads the .ui file from QT Designer
 uiFile, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__),
                                         'saveUploadTagsDialog.ui'))
 logger = logging.getLogger("TagDialogue")
+
 
 class TagDialogueGUI(QtWidgets.QDialog, uiFile):
     def __init__(self, collection_start_time: datetime,
@@ -26,6 +26,9 @@ class TagDialogueGUI(QtWidgets.QDialog, uiFile):
         self.def_test_duration = def_test_duration
         self.default_scene_name = default_scene_name
         self.default_sensorsList = sensorsList
+
+        self.HUMAN_DATE_FORMAT = "%m/%d/%Y"
+        self.HUMAN_TIME_FORMAT = "%H:%M:%S.%f"
 
         self.fieldRow = 1
         self.custom_props = []
@@ -75,9 +78,11 @@ class TagDialogueGUI(QtWidgets.QDialog, uiFile):
             # add microseconds if not included
             if "." not in self.Time.text():
                 self.Time.setText(f"{self.Time.text()}.00")
-            new_start_time = datetime.strptime(
-                f"{self.Date.text()} {self.Time.text()}",
-                "%m/%d/%Y %H:%M:%S.%f")
+            input_date: dt_date = datetime.strptime(
+                self.Date.text(), self.HUMAN_DATE_FORMAT).date()
+            input_time: dt_time = datetime.strptime(
+                self.Time.text(), self.HUMAN_TIME_FORMAT).time()
+            new_start_time: datetime = datetime.combine(input_date, input_time)
         except ValueError:
             GenericPopup("Wrong Date or Time Format",
                          "Date should look like 12/27/2021 and Time should "
@@ -93,12 +98,14 @@ class TagDialogueGUI(QtWidgets.QDialog, uiFile):
             return
 
         new_start_time, new_length = validated_inputs
+        new_stop_time = new_start_time + new_length
+
         custom_props = {
             "__Filename": self.Name.text(),
             "__Sensors": [s.strip() for s in self.SensorList.text().split(",")],
             "test_length": str(new_length),
-            "collection_start_time": str(new_start_time),
-            "collection_stop_time": str(new_start_time + new_length),
+            "collection_start_time": self.__datetime_to_utc_str(new_start_time),
+            "collection_stop_time": self.__datetime_to_utc_str(new_stop_time),
             "notes": self.Notes.toPlainText()[:119]
         }
 
@@ -160,10 +167,12 @@ class TagDialogueGUI(QtWidgets.QDialog, uiFile):
 
     def default(self):
         formatted_start_time = \
-            self.collection_start_time.strftime(gdrive_constants.FILENAME_TIME_FORMAT)
+            self.collection_start_time.strftime(
+                gdrive_constants.FILENAME_TIME_FORMAT)
         default_GDFilename = f"{formatted_start_time} {self.default_scene_name}"
         self.Name.setText(default_GDFilename)
-        self.Date.setText(self.collection_start_time.strftime("%m/%d/%Y"))
+        self.Date.setText(self.collection_start_time.strftime(
+            self.HUMAN_DATE_FORMAT))
 
         def_test_dur_sec = self.def_test_duration.total_seconds()
         hour = int(def_test_dur_sec % 86400 // 3600)
@@ -171,7 +180,8 @@ class TagDialogueGUI(QtWidgets.QDialog, uiFile):
         second = float(def_test_dur_sec % 60)
         self.Length.setText(f"{hour}:{minute}:{second}")
 
-        self.Time.setText(self.collection_start_time.strftime("%H:%M:%S.%f"))
+        self.Time.setText(self.collection_start_time.strftime(
+            self.HUMAN_TIME_FORMAT))
         self.Notes.setText("")
 
         self.SensorList.setText(str(", ".join(self.default_sensorsList)))
@@ -226,6 +236,18 @@ class TagDialogueGUI(QtWidgets.QDialog, uiFile):
     def close_popup(self):
         self.close()
 
+    @staticmethod
+    def __datetime_to_utc_str(dt: datetime) -> str:
+        """
+        Converts the input datetime object into UTC time and formats it into the
+        ISO datetime format, returning as a string.
+
+        :param dt: input datetime to be converted
+        :return: the input datetime in UTC time in ISO string format
+        """
+        utc_offset = datetime.now() - datetime.utcnow()
+        dt_utc = dt + utc_offset
+        return dt_utc.strftime(gdrive_constants.ISO_TIME_FORMAT)
 
 # app = QtWidgets.QApplication([])
 # window = TagDialogueGUI()

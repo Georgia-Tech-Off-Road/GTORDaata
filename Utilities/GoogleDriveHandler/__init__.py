@@ -206,19 +206,19 @@ class GoogleDriveHandler:
             if search_q.test_date_period == "All":
                 return True
             elif search_q.test_date_period == "Last hour" and \
-                    (datetime.now() - begin_time <= timedelta(hours=1)):
+                    (datetime.utcnow() - begin_time <= timedelta(hours=1)):
                 return True
             elif search_q.test_date_period == "Today" and \
-                    (datetime.now() - begin_time <= timedelta(days=1)):
+                    (datetime.utcnow() - begin_time <= timedelta(days=1)):
                 return True
             elif search_q.test_date_period == "This week" and \
-                    (datetime.now() - begin_time <= timedelta(days=7)):
+                    (datetime.utcnow() - begin_time <= timedelta(days=7)):
                 return True
             elif search_q.test_date_period == "This month" and \
-                    (begin_time.month == datetime.now().month):
+                    (begin_time.month == datetime.utcnow().month):
                 return True
             elif search_q.test_date_period == "This year" and \
-                    (begin_time.year == datetime.now().year):
+                    (begin_time.year == datetime.utcnow().year):
                 return True
             else:
                 return False
@@ -568,8 +568,8 @@ class GoogleDriveHandler:
                 if "." not in retrieved_time:
                     # add microseconds parameter if it does not exist
                     retrieved_time = f"{retrieved_time}.00"
-                begin_end[i] = datetime.strptime(retrieved_time,
-                                                 "%Y-%m-%d %H:%M:%S.%f")
+                begin_end[i] = datetime.strptime(
+                    retrieved_time, gdrive_constants.ISO_TIME_FORMAT)
             except AttributeError:
                 # parameter properties or appProperties is missing
                 return []
