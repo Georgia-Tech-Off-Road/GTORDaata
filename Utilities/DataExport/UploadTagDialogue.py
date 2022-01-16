@@ -15,7 +15,7 @@ logger = logging.getLogger("TagDialogue")
 
 class TagDialogueGUI(QtWidgets.QDialog, uiFile):
     def __init__(self, collection_start_time: datetime,
-                 collection_stop_time: datetime, default_scene_name: str,
+                 def_test_duration: timedelta, default_scene_name: str,
                  sensorsList: list, save_offline: bool = False):
         super().__init__()
         # uic.loadUi(os.path.join(os.path.dirname(__file__),
@@ -23,7 +23,7 @@ class TagDialogueGUI(QtWidgets.QDialog, uiFile):
         self.setupUi(self)
 
         self.collection_start_time = collection_start_time
-        self.collection_stop_time = collection_stop_time
+        self.def_test_duration = def_test_duration
         self.default_scene_name = default_scene_name
         self.default_sensorsList = sensorsList
 
@@ -160,17 +160,15 @@ class TagDialogueGUI(QtWidgets.QDialog, uiFile):
 
     def default(self):
         formatted_start_time = \
-            self.collection_start_time.strftime(gdrive_constants.TIME_FORMAT)
+            self.collection_start_time.strftime(gdrive_constants.FILENAME_TIME_FORMAT)
         default_GDFilename = f"{formatted_start_time} {self.default_scene_name}"
         self.Name.setText(default_GDFilename)
         self.Date.setText(self.collection_start_time.strftime("%m/%d/%Y"))
 
-        # TODO Faris refer default_length from data.get_most_recent_index()
-        default_length = (self.collection_stop_time
-                          - self.collection_start_time).total_seconds()
-        hour = int(default_length // 3600)
-        minute = int(default_length // 60 % 60)
-        second = float(default_length % 60)
+        def_test_dur_sec = self.def_test_duration.total_seconds()
+        hour = int(def_test_dur_sec % 86400 // 3600)
+        minute = int(def_test_dur_sec % 3600 % 60)
+        second = float(def_test_dur_sec % 60)
         self.Length.setText(f"{hour}:{minute}:{second}")
 
         self.Time.setText(self.collection_start_time.strftime("%H:%M:%S.%f"))
