@@ -1,5 +1,5 @@
 from PyQt5 import QtWidgets, QtGui, uic, QtCore
-from datetime import datetime
+from datetime import datetime, timedelta
 import httplib2
 import logging
 import os
@@ -37,7 +37,7 @@ class popup_dataSaveLocation(QtWidgets.QDialog, uiFile):
         self.collection_start_time = collection_start_time \
             if collection_start_time is not None else datetime.min
         # the time at the instant the Save Data button is clicked
-        self.collection_stop_time = datetime.now()
+        # self.collection_stop_time = datetime.now()
 
         self.toggle_frames()
         self.connectSlotsSignals()
@@ -151,8 +151,12 @@ class popup_dataSaveLocation(QtWidgets.QDialog, uiFile):
             default_scene_name = self.scene_name
             sensorsList = data.get_sensors(is_connected=True, is_derived=False)
 
+            lastIndex = data.get_most_recent_index()
+            test_duration_sec = data.get_value('time_internal_seconds',
+                                               lastIndex)
+            test_duration_sec = timedelta(seconds=test_duration_sec)
             tagGUI = TagDialogueGUI(self.collection_start_time,
-                                    self.collection_stop_time,
+                                    test_duration_sec,
                                     default_scene_name,
                                     sensorsList, save_offline)
             if tagGUI.save_button_clicked:

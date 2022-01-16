@@ -16,7 +16,8 @@ TEST_DATE_PERIOD_OPTIONS = ("All", "Last hour", "Today", "This week",
                      "notes",
                      "some_properties_removed")"""
 
-TIME_FORMAT = "%Y-%m-%d-%H-%M-%S"
+FILENAME_TIME_FORMAT = "%Y-%m-%d_%H-%M-%S"
+# ISO_TIME_FORMAT = "%Y-%m-%dT%H:%M:%S.%f"
 
 # validating filename using regex by src
 # https://stackoverflow.com/a/11794507/11031425
