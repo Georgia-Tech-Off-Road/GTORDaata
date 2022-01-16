@@ -211,16 +211,6 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
         for i in reversed(range(self.gridLayout_2.count())):
             self.gridLayout_2.itemAt(i).widget().setParent(None)
 
-    @staticmethod
-    def __download_unsupported_file(drive_handler: GoogleDriveHandler,
-                                    found_file: dict, reason: str):
-        save_offline = \
-            add_qDialogs.ConfirmDownloadNonSupported(reason).save_offline
-        if save_offline:
-            filepath = drive_handler.download(found_file)
-            if filepath:
-                GenericPopup("File downloaded", filepath)
-
     def __addCustomPropsField(self):
         key = QtWidgets.QPlainTextEdit()
         value = QtWidgets.QPlainTextEdit()
@@ -234,5 +224,15 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
 
     def close_popup(self):
         self.close()
+
+    @staticmethod
+    def __download_unsupported_file(drive_handler: GoogleDriveHandler,
+                                    found_file: dict, reason: str):
+        save_offline = \
+            add_qDialogs.ConfirmDownloadNonSupported(reason).save_offline
+        if save_offline:
+            filepath = drive_handler.download(found_file)
+            if filepath:
+                GenericPopup("File downloaded", filepath)
 
 
