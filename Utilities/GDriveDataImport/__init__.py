@@ -23,7 +23,7 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
         self.dict_scenes = dict_scenes
         self.checkbox_sensors = dict()
         self.custom_properties = dict()
-        self.selected_filepath: str = ""
+        self.__selected_filepath: str = ""
         self.configFile = QtCore.QSettings('DAATA', 'GDriveDataImport')
 
         self.__populate_fields()
@@ -181,7 +181,7 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
 
     def __download_and_display(self, drive_handler: GoogleDriveHandler,
                                found_file: dict):
-        self.selected_filepath = ""
+        self.__selected_filepath = ""
 
         if found_file.get("name")[-4:] != ".csv":
             reason = "The selected file cannot be displayed (not a .csv). " \
@@ -203,7 +203,7 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
             self.__download_unsupported_file(drive_handler, found_file, reason)
             return
         else:
-            self.selected_filepath = \
+            self.__selected_filepath = \
                 drive_handler.download_and_display(found_file, self)
 
     def __clear_found_files(self):
@@ -213,7 +213,9 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
 
     def __addCustomPropsField(self):
         key = QtWidgets.QPlainTextEdit()
+        key.setPlaceholderText("Tag Key")
         value = QtWidgets.QPlainTextEdit()
+        value.setPlaceholderText("Tag Value")
         self.custom_properties[key] = value
         self.adv_options_layout.addRow(key, value)
 
@@ -234,5 +236,9 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
             filepath = drive_handler.download(found_file)
             if filepath:
                 GenericPopup("File downloaded", filepath)
+
+    @property
+    def selected_filepath(self) -> str:
+        return self.__selected_filepath
 
 

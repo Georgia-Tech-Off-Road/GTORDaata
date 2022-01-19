@@ -134,8 +134,8 @@ class TagDialogueGUI(QtWidgets.QDialog, uiFile):
         hbox = QtWidgets.QHBoxLayout()
         hbox.addWidget(newData)
         hbox.addWidget(newButton)
-        newLabel.setPlaceholderText("Tag Name")
-        newData.setPlaceholderText("Tag Data")
+        newLabel.setPlaceholderText("Tag Key")
+        newData.setPlaceholderText("Tag Value (Key + Value max 124 char)")
         self.CustomFields.insertRow(self.fieldRow, newLabel, hbox)
         pair = newLabel, newData
         self.custom_props.append(pair)
@@ -239,13 +239,13 @@ class TagDialogueGUI(QtWidgets.QDialog, uiFile):
     @staticmethod
     def __datetime_to_utc_str(dt: datetime) -> str:
         """
-        Converts the input datetime object into UTC time and formats it into the
-        ISO datetime format, returning as a string.
+        Converts the input local datetime object into UTC time and formats it
+        into the ISO datetime format, returning as a string.
 
         :param dt: input datetime to be converted
         :return: the input datetime in UTC time in ISO string format
         """
-        utc_offset = datetime.now() - datetime.utcnow()
+        utc_offset = datetime.utcnow() - datetime.now()  # +5:00
         dt_utc = dt + utc_offset
         return dt_utc.strftime(gdrive_constants.ISO_TIME_FORMAT)
 

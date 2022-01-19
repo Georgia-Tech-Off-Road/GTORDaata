@@ -40,7 +40,7 @@ class DataCollection(DAATAScene, uiFile):
         self.gridPlotLayout.setObjectName("gridPlotLayout")
         self.scrollAreaWidgetContents.setLayout(self.gridPlotLayout)
 
-        self.collection_start_time = None
+        self.collection_start_time: datetime = datetime.min
         self.create_sensor_checkboxes()
         self.create_graph_dimension_combo_box()
         self.create_graphs()
@@ -129,7 +129,7 @@ class DataCollection(DAATAScene, uiFile):
 
     def slot_data_collecting_state_change(self):
         if self.button_display.isChecked():
-            if self.collection_start_time is None:
+            if self.collection_start_time == datetime.min:
                 self.collection_start_time = datetime.now()
             self.indicator_onOrOff.setText("On")
             self.indicator_onOrOff.setStyleSheet("color: green;")
