@@ -2,31 +2,32 @@ from PyQt5 import uic, QtWidgets, QtGui, QtCore
 
 
 from functools import partial
-import threading
 import logging
 import os
-import time
-import sys
 import serial
+import sys
+import threading
+import time
 
 from Scenes import DAATAScene
-from Scenes.Homepage import Homepage
+from Scenes.BlinkLEDTest import BlinkLEDTest
 from Scenes.DataCollection import DataCollection
 from Scenes.DataCollectionPreview import DataCollectionPreview
 from Scenes.EngineDyno import EngineDyno
+from Scenes.Homepage import Homepage
 from Scenes.Layout_Test import Widget_Test
-from Scenes.BlinkLEDTest import BlinkLEDTest
 
 
-from Utilities.Popups.popups import popup_ParentChildrenTree
 from MainWindow._tabHandler import close_tab
+from Utilities.Popups.popups import popup_ParentChildrenTree
 import DataAcquisition
 
 
 from DataAcquisition import is_data_collecting, data_import, stop_thread
 from DataAcquisition.DataImport import DataImport
-from Utilities.GDriveDataImport import GDriveDataImport as GoogleDriveDataImport
 from MainWindow.UploadQueuedFiles.upload_drive_files import UploadDriveFiles
+from Utilities.GDriveDataImport import GDriveDataImport as GoogleDriveDataImport
+from Utilities.GoogleDriveHandler import GoogleDriveHandler
 
 import re, itertools
 import winreg as winreg
@@ -305,6 +306,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         if filepath:
             self.__create_DataCollectionPreview_tab(filepath)
 
+    @staticmethod
+    def __upload_remaining_to_gdrive():
+        UploadDriveFiles()
+
     def __create_DataCollectionPreview_tab(self, filepath: str):
         # Ignore the parameter 'key' unfilled error; there are no errors here
         self.create_scene_tab("Data Collection Preview",
@@ -330,10 +335,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.actionFake_Data.triggered.connect(lambda: self.setInputMode("FAKE"))
         self.actionBIN_File.triggered.connect(lambda: self.setInputMode("BIN"))
         self.actionCSV_File.triggered.connect(lambda: self.setInputMode("CSV"))
-        self.import_Google_Drive.\
-            triggered.connect(lambda: self.__import_from_google_drive())
 
-        # self.upload_all_to_drive.triggered.connect()
+        self.import_from_gDrive_widget.triggered.connect(
+            self.__import_from_google_drive)
+        self.upload_remaining_gDrive_widget.triggered.connect(
+            self.__upload_remaining_to_gdrive)
 
         self.tabWidget.tabBarDoubleClicked.connect(self.rename_tab)
         self.tabWidget.tabCloseRequested.connect(partial(self.close_tab, self))
