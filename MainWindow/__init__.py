@@ -168,7 +168,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             background-color: {bgColor2};
         }}
         QMenuBar {{
-            background: white;
+            background: #ffffff;
             }}
         QMenuBar::item {{
             padding: 4px;
@@ -208,7 +208,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         stylesheet = stylesheet.format(
             testColor = "pink",
-            bgColor = "#dbcc93",
+            bgColor = "##ffffff",
             bgColor2 = "white",
             foreColor = "#f4f4f4",
             #windowBorder = "#B3A369",
