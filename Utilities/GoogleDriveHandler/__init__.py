@@ -11,6 +11,7 @@ import json
 import logging
 import os
 import requests
+import webbrowser
 
 logger = logging.getLogger("GoogleDriveHandler")
 
@@ -39,7 +40,7 @@ class GoogleDriveHandler:
     DEFAULT_UPLOAD_DIRECTORY = gdrive_constants.DEFAULT_UPLOAD_DIRECTORY
     DEFAULT_DOWNLOAD_DIRECTORY = gdrive_constants.DEFAULT_DOWNLOAD_DIRECTORY
 
-    def __init__(self, secret_client_file: str):
+    def __init__(self, secret_client_file_path: str):
         # Mime_type for CSV and MATLAB files, see
         # https://learndataanalysis.org/commonly-used-mime-types/ or
         # https://www.mpi.nl/corpus/html/lamus2/apa.html
@@ -51,10 +52,10 @@ class GoogleDriveHandler:
         }
         self.current_drive_folder = {"id": "", "name": ""}
 
-        if not os.path.exists(secret_client_file):
+        if not os.path.exists(secret_client_file_path):
             GenericPopup("Missing oAuth File",
                          f"oAuth file not detected in path "
-                         f"{secret_client_file} entered")
+                         f"{secret_client_file_path} entered")
             raise ValueError("Missing oAuth file")
         if not os.path.exists(self.DEFAULT_UPLOAD_DIRECTORY):
             logger.info(
@@ -66,7 +67,8 @@ class GoogleDriveHandler:
                 "Default path " + self.DEFAULT_DOWNLOAD_DIRECTORY
                 + " not found. Making the directory...")
             os.makedirs(self.DEFAULT_DOWNLOAD_DIRECTORY)
-        self.DRIVE_SERVICE = self.__create_drive_service(secret_client_file)
+        self.DRIVE_SERVICE = self.__create_drive_service(
+            secret_client_file_path)
 
     class NoInternetError(ConnectionError):
         """No Internet"""
@@ -506,7 +508,7 @@ class GoogleDriveHandler:
         import_window.close()
         return self.download(file)
 
-    def upload_all_to_drive(self, progressBar_GD=None):
+    def upload_all_to_drive(self, progressBar_GD=None) -> bool:
         """
         Uses the Google Drive API to upload all the files in this directory
         into a specific Google Drive folder on an account that has sufficient
@@ -518,13 +520,17 @@ class GoogleDriveHandler:
 
         # test_file = ""
 
+        if self.DRIVE_SERVICE is None:
+            return False
+
         directory = self.DEFAULT_UPLOAD_DIRECTORY
         try:
             files_to_upload = os.listdir(directory)
         except FileNotFoundError:
-            logger.error("Directory not found",
-                         f"Please check if {directory} exists")
-            return
+            logger.error("Upload directory not found",
+                         f"Most probably, this machine has never uploaded "
+                         f"anything using this app.")
+            return False
         if len(files_to_upload) > 0:
             for file_i, filename in enumerate(files_to_upload):
                 if filename[-3:] == "csv" or filename[-3:] == "mat":
@@ -538,7 +544,9 @@ class GoogleDriveHandler:
         if progressBar_GD is not None:
             progressBar_GD.hide()
 
-        # TEST MODULE
+        return True
+
+        # TEST MODULE -- only for debugging
         # toFind = DriveSearchQuery(filename=test_file)
         # list_of_files = self.find_file_in_drive(toFind)
         # print("Found = ", end="")
@@ -550,6 +558,25 @@ class GoogleDriveHandler:
         #     print(appProps)
         # else:
         #     print("No files to print")
+
+    @staticmethod
+    def openSecGDInfo() -> bool:
+        """
+        Opens the information file "How to: Google Drive Secret Client File"
+        on the Google Drive. The file instructs the user how to download
+        their own personal Google Drive secret client file needed to upload
+        things to Google Drive.
+        """
+        try:
+            webbrowser.open("https://docs.google.com/presentation/d/"
+                            "1YInB3CuCPPKrWF0j-Wo1OCaAVuUZlWiRNbc8Bd_sezY/"
+                            "edit?usp=sharing")
+            return True
+        except httplib2.error.ServerNotFoundError:
+            logger.error("Failed to find Google Drive server. "
+                         "Possibly due to internet problems.")
+            GenericPopup("No Internet")
+            return False
 
     @staticmethod
     def __get_test_begin_end_time(file: dict) -> list:
@@ -607,7 +634,7 @@ class GoogleDriveHandler:
         return custom_properties_query
 
     @staticmethod
-    def remove_file(filepath: str):
+    def remove_file(filepath: str) -> bool:
         try:
             # remove the CSV/MAT file
             os.remove(filepath)
@@ -617,10 +644,13 @@ class GoogleDriveHandler:
             if not os.path.exists(filepath[:-3] + "csv") \
                     and not os.path.exists(filepath[:-3] + "mat"):
                 os.remove(filepath[:-3] + "json")
+            return True
         except PermissionError:
             logger.warning("Temp files are in use and cannot be deleted.")
+            return False
         except FileNotFoundError:
             logger.error("File to delete not found.")
+            return False
 
     @staticmethod
     def no_internet():

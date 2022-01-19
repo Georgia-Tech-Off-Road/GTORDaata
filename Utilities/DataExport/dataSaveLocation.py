@@ -224,21 +224,6 @@ class popup_dataSaveLocation(QtWidgets.QDialog, uiFile):
                                                      os.path.expanduser('~'))
         self.lineEdit_folderLocal.setText(dir)
 
-    def openSecGDInfo(self):
-        """
-        Opens the information file "How to: Google Drive Secret Client File"
-        on the Google Drive. The file instructs the user how to download
-        their own personal Google Drive secret client file needed to upload
-        things to Google Drive.
-        """
-        try:
-            webbrowser.open("https://docs.google.com/presentation/d/"
-                            "1YInB3CuCPPKrWF0j-Wo1OCaAVuUZlWiRNbc8Bd_sezY/"
-                            "edit?usp=sharing")
-        except httplib2.error.ServerNotFoundError:
-            self.no_internet()
-            return None
-
     def connectSlotsSignals(self):
         self.checkBox_local.clicked.connect(self.toggle_frames)
         self.checkBox_networkDrive.clicked.connect(self.toggle_frames)
@@ -248,7 +233,8 @@ class popup_dataSaveLocation(QtWidgets.QDialog, uiFile):
         self.pushButton_cancel.clicked.connect(self.cancelSave)
         self.pushButton_browseDir.clicked.connect(self.change_localDir)
         self.pushButton_browseNDDir.clicked.connect(self.change_NDDir)
-        self.pushButton_secGDInfo.clicked.connect(self.openSecGDInfo)
+        self.pushButton_secGDInfo.clicked.connect(
+            GoogleDriveHandler.openSecGDInfo)
         # print(self.label.text())
         # for child in self.findChildren(QtWidgets.QCheckBox):
         #     print(child.objectName())
