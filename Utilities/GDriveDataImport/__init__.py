@@ -172,7 +172,7 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
                 partial(self.__download_and_display, DRIVE_HANDLER, found_file))
             self.gridLayout_2.addWidget(found_file_button, i, 0)
 
-            found_file_metadata_btn = QtWidgets.QPushButton("ℹ")
+            found_file_metadata_btn = QtWidgets.QPushButton("ⓘ")
             found_file_metadata_btn.setMaximumWidth(50)
             found_file_metadata_btn.clicked.connect(
                 partial(add_qDialogs.FileMetadata,
