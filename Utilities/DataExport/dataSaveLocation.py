@@ -152,8 +152,11 @@ class popup_dataSaveLocation(QtWidgets.QDialog, uiFile):
             sensorsList = data.get_sensors(is_connected=True, is_derived=False)
 
             lastIndex = data.get_most_recent_index()
-            test_duration_sec = data.get_value('time_internal_seconds',
-                                               lastIndex)
+            if lastIndex == 0:
+                test_duration_sec = 0
+            else:
+                test_duration_sec = data.get_value('time_internal_seconds',
+                                                   lastIndex)
             test_duration_sec = timedelta(seconds=test_duration_sec)
             tagGUI = TagDialogueGUI(self.collection_start_time,
                                     test_duration_sec,
@@ -192,8 +195,8 @@ class popup_dataSaveLocation(QtWidgets.QDialog, uiFile):
                 except GoogleDriveHandler.NoInternetError:
                     return
             else:
-                GenericPopup("Save Canceled",
-                             "Files were not uploaded to Google Drive")
+                # GenericPopup("Save Canceled",
+                #              "Files were not uploaded to Google Drive")
                 return
         self.__close_save_settings()
 

@@ -202,7 +202,8 @@ class GoogleDriveHandler:
                    begin_time.month == int(search_q.month)
 
         def valid_day(begin_time: datetime) -> bool:
-            return search_q.day is None or begin_time.day == int(search_q.day)
+            return search_q.day is None or \
+                   self.utc_to_local(begin_time).day == int(search_q.day)
 
         def valid_test_date_period(begin_time: datetime) -> bool:
             if search_q.test_date_period == "All":
@@ -246,14 +247,14 @@ class GoogleDriveHandler:
         filtered_list = []
 
         for file in found_files:
-            begin_end = self.__get_test_begin_end_time(file)
-            if not begin_end:  # if begin_end == []
+            begin_end_utc = self.__get_test_begin_end_time(file)
+            if not begin_end_utc:  # if begin_end_utc == []
                 continue
-            if valid_year(begin_end[0]) \
-                    and valid_month(begin_end[0]) \
-                    and valid_day(begin_end[0]) \
-                    and valid_test_date_period(begin_end[0]) \
-                    and valid_duration(begin_end):
+            if valid_year(begin_end_utc[0]) \
+                    and valid_month(begin_end_utc[0]) \
+                    and valid_day(begin_end_utc[0]) \
+                    and valid_test_date_period(begin_end_utc[0]) \
+                    and valid_duration(begin_end_utc):
                 filtered_list.append(file)
 
         return filtered_list
@@ -580,6 +581,11 @@ class GoogleDriveHandler:
 
     @staticmethod
     def __get_test_begin_end_time(file: dict) -> list:
+        """
+
+        :param file: Google Drive file dictionary
+        :return: recorded test begin and end time in UTC time
+        """
         begin_end = [-1, -1]
         for i, d in enumerate(
                 ["collection_start_time", "collection_stop_time"]):
@@ -651,6 +657,16 @@ class GoogleDriveHandler:
         except FileNotFoundError:
             logger.error("File to delete not found.")
             return False
+
+    @staticmethod
+    def utc_to_local(dt_utc: datetime) -> datetime:
+        utc_offset = datetime.utcnow() - datetime.now()  # +5:00
+        return dt_utc - utc_offset
+
+    @staticmethod
+    def local_to_utc(dt_local: datetime) -> datetime:
+        utc_offset = datetime.utcnow() - datetime.now()  # +5:00
+        return dt_local + utc_offset
 
     @staticmethod
     def no_internet():
