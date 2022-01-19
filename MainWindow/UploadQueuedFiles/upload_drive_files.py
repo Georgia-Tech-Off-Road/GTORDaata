@@ -35,7 +35,7 @@ class UploadDriveFiles(QtWidgets.QDialog, uiFile):
             return
         except Exception as e:
             print(e)
-            GenericPopup("Upload Failed", "Check log and terminal")
+            GenericPopup("Upload Failed", str(e))
             return
 
         if drive_handler.upload_all_to_drive(self.progressBar):
