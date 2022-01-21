@@ -3,8 +3,10 @@ import threading
 import logging
 import sys
 from datetime import datetime
+from tkinter.filedialog import Directory
 from DataAcquisition.Data import Data
 from DataAcquisition.DataImport import DataImport
+from Utilities.DataExport.dataFileExplorer import open_data_file
 
 logger = logging.getLogger("DataAcquisition")
 
@@ -20,21 +22,46 @@ data_import = DataImport(data, data_collection_lock, is_data_collecting)
 
 
 def read_data():
+    """
+    Looping function for reading data from all input modes. Executed by
+    data_reading_thread in MainWindow.__init__.py when a valid mode is selected.
+
+    :return: None
+    """
+    
     logger.info("Running read_data")
-    data_was_collecting = False
-    try:
-        data_import.teensy_ser.flushInput()
-    except AttributeError:
-        logger.warning("Unable to flush Serial Buffer. No Serial object connected")
+    data_was_collecting = False    
+    
     while True:
+        if is_data_collecting.is_set() and not data_was_collecting:
+            logger.info("Starting data collection")
+            if "COM" in data_import.input_mode:
+                data.reset()
+            data_was_collecting = True
+
+        if not is_data_collecting.is_set() and data_was_collecting:
+            logger.info("Stopping data collection")
+            data_was_collecting = False
+
+        if stop_thread.is_set():
+            sys.exit()
+
         if data_import.input_mode == "FAKE":
             data_import.check_connected_fake()
             data_import.read_data_fake()
-        else:
+        elif data_import.input_mode == "BIN" and data_import.data_file != None:
+            try:                
+                data_import.read_packet()                                   
+            except Exception as e:
+                logger.error(e)        
+        elif "COM" in data_import.input_mode and data_import.teensy_found:            
             try:
-                if "COM" in data_import.input_mode:
+                try:
+                    data_import.teensy_ser.flushInput()
                     assert data_import.teensy_found
                     assert data_import.check_connected()
+                except AttributeError:
+                    logger.warning("Unable to flush Serial Buffer. No Serial object connected")                    
                 try:                    
                     data_import.read_packet()
                 except AssertionError:
@@ -45,20 +72,21 @@ def read_data():
                         logger.error(e)
             except AssertionError:
                 time.sleep(0)
+        else:   
+            data_import.input_mode = ""                     
+            pass
 
-        if is_data_collecting.is_set() and not data_was_collecting:
-            logger.info("Starting data collection")
-            data.reset()
-            data_was_collecting = True
-
-        if not is_data_collecting.is_set() and data_was_collecting:
-            logger.info("Stopping data collection")
-            data_was_collecting = False
-
-        if stop_thread.is_set():
-            sys.exit()
+        
 
 def send_data():
+    """
+    Handles the sending of packets to Teensy only when a COM input mode is
+    selected. Executed by data_sending_thread in MainWindow.__init__.py.
+
+    :return: None
+    """
+
+    
     if "COM" not in data_import.input_mode:
         pass
     else:
