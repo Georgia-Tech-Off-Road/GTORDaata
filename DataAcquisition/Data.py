@@ -34,7 +34,7 @@ class Data:
                             i = i + 1
                     except KeyError as e:
                         logger.error(e)
-                        logger.error("Key error in __init__ 1")
+                        logger.error("Key error in __init__ 1: {}".format(sensor_id))
 
             for sensor_name in derived_sensors:
                 try:
@@ -46,7 +46,7 @@ class Data:
                     self.generate_object(sensor_name, object_type, param_dict, sensors)
                 except KeyError as e:
                     logger.error(e)
-                    logger.error("Key error in __init__ 2")
+                    logger.error("Key error in __init__ 2: {}".format(sensor_id))
 
             '''
             # Internal sensors
