@@ -14,6 +14,9 @@ class Data:
             logger.debug("Data object is being initialized")
             self.is_connected = False
             self.lock = lock
+            
+            #intializes a pointer to the index of the last graph update pull
+    
 
             # create dictionaries of Sensor objects
             self.__data = dict()
@@ -109,6 +112,14 @@ class Data:
         if object_type == "Ratio":
             self.__data[sensor_name] = Ratio(sensors[0], sensors[1], **param_dict)
 
+    def get_last_updated_index(self, sensor_name="time_internal_seconds"):
+        with self.lock:
+            try: 
+                return self.__data[sensor_name].last_updated_index
+            except KeyError:
+                logger.error("The sensor {} does not exist, check your spelling".format(sensor_name))
+                return None
+        
     def get_most_recent_index(self, sensor_name="time_internal_seconds"):
         with self.lock:
             try:
@@ -117,6 +128,13 @@ class Data:
                 logger.error("The sensor {} does not exist, check your spelling".format(sensor_name))
                 return None
 
+    def update_graph(self, sensor_name="time_interval_seconds"):
+        try: 
+            self.__data[sensor_name].update_graph()
+        except KeyError:
+            logger.error("The sensor {} does not exist, check your spelling".format(sensor_name))
+            return None
+        
     def get_value(self, sensor_name, index):
         with self.lock:
             try:

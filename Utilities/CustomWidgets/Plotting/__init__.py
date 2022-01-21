@@ -150,18 +150,21 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
         self.setMaximumSize(QtCore.QSize(16777215, height))
 
     def update_graph(self):
-        self.valueArray[:-1] = self.valueArray[1:]
+        recentIndex = data.get_most_recent_index(sensor_name=self.sensor_name)
+        lastUpdated = data.get_last_updated_index(sensor_name=self.sensor_name)
+        numpy.append(self.valueArray, data.get_values(self.sensor_name,\
+            recentIndex,recentIndex-lastUpdated+1))
+        #self.valueArray[:-1] = self.valueArray[1:]
         #self.valueArray[-1] = data.get_current_value(self.sensor_name)
-        self.valueArray[-1] = numpy.random.normal()
+        #self.valueArray[-1] = numpy.random.normal()
 
-        self.timeArray[:-1] = self.timeArray[1:]
+        #self.timeArray[:-1] = self.timeArray[1:]
         #self.timeArray[-1] = data.get_current_value("time_internal_seconds")
-        self.timeArray[-1] = numpy.random.normal()
-
-        self.ptr += 1
-
+        #self.timeArray[-1] = numpy.random.normal()
+        numpy.append(self.timeArray, range(lastUpdated+1,recentIndex+1))
+        self.ptr += recentIndex-lastUpdated
         self.plot.setData(self.valueArray)
-
+        data.update_graph(sensor_name=self.sensor_name)
         """
         index_time = data.get_most_recent_index()
         index_sensor = data.get_most_recent_index(sensor_name=self.sensor_name)

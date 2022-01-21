@@ -14,6 +14,7 @@ class Sensor(metaclass=ABCMeta):
         self.name = kwargs.get('name')
         self.object = kwargs.get('object')
         self.most_recent_index = 0
+        self.last_updated_index = 0
         self.current_value = None
         self.display_name = kwargs.get('display_name')
         self.unit = kwargs.get('unit')
@@ -24,7 +25,11 @@ class Sensor(metaclass=ABCMeta):
         self.is_connected = False
         self.is_float = kwargs.get('is_float')
         self.id = kwargs.get('id')
-
+        
+    def update_graph(self): 
+        self.last_updated_index = self.most_recent_index
+    
+    
     def add_value(self, value=None):
         try:
             value = self.transfer_function(value)
@@ -48,7 +53,7 @@ class Sensor(metaclass=ABCMeta):
 
     def get_values(self, index, num_values):
         try:
-            try:
+            try:    
                 assert index - num_values >= 0
                 return self.values[index - num_values:index]
             except AssertionError:
