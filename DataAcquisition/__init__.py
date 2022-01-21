@@ -23,8 +23,7 @@ data_import = DataImport(data, data_collection_lock, is_data_collecting)
 
 def read_data():
     """
-    Looping function for reading data from all input modes. Executed by
-    data_reading_thread in MainWindow.__init__.py when a valid mode is selected.
+    Looping function for reading data from all input modes.
 
     :return: None
     """
@@ -41,35 +40,32 @@ def read_data():
     if not is_data_collecting.is_set() and data_was_collecting:
         logger.info("Stopping data collection")
         data_was_collecting = False
-
-    if stop_thread.is_set():
-        sys.exit()    
     
     elif "COM" in data_import.input_mode and data_import.teensy_found:            
         
         try:
-            try:
-                #data_import.teensy_ser.flushInput()                
-                assert data_import.teensy_found
+            data_import.connect_serial()
+            try:                            
                 assert data_import.check_connected()
-            except AttributeError:
-                logger.warning("Unable to flush Serial Buffer. No Serial object connected")                    
-            try:
-                data_import.handle_packets()
-            except AssertionError:
+                assert data_import.teensy_found
+                data_import.teensy_ser.flushInput()
+            except AttributeError:                
                 logger.info("Serial port is not open, opening now")
                 try:
                     data_import.teensy_ser.open()
                 except Exception as e:
                     logger.error(e)
-        except AssertionError:
-            #time.sleep(0)
-            pass
+            try:
+                data_import.handle_packets()
+            except AssertionError:
+                logger.error("Packets could not be read or unpacked")
+        except Exception as e:
+            logger.error("Couldn't connect to Teensy serial port")
 
 def send_data():
     """
     Handles the sending of packets to Teensy only when a COM input mode is
-    selected. Executed by data_sending_thread in MainWindow.__init__.py.
+    selected.
 
     :return: None
     """

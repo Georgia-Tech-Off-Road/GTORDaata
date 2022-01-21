@@ -101,10 +101,10 @@ class DataImport:
 
         try:
             self.teensy_port = self.input_mode
-            self.teensy_ser = serial.Serial(baudrate=115200, port=self.teensy_port, timeout=2,
+            self.teensy_ser = serial.Serial(baudrate=230400, port=self.teensy_port, timeout=2,
                                             write_timeout=1)
             logger.info("Teensy found on port {}".format(self.teensy_ser.port))
-            self.teensy_found = True
+            self.teensy_found = True            
         except Exception as e:
             self.teensy_found = False
             logger.error(e)
@@ -112,10 +112,9 @@ class DataImport:
 
     def read_packet_serial(self):
         """
-        Sole purpose is to read incoming data on the Serial port.
-        Started by reading thread.
+        Sole purpose is to read incoming data on the serial port.
 
-        :return: None
+        :return: list of bytes
         """
 
         i = self.teensy_buffer.find(self.end_code)
@@ -142,7 +141,7 @@ class DataImport:
         """
 
         try:
-            self.current_packet = self.read_packet_serial
+            self.current_packet = self.read_packet_serial()
             self.unpacketize()
             self.current_packet.clear()
         except Exception as e:
@@ -155,7 +154,7 @@ class DataImport:
         :return: None
         """
 
-        if len(self.teensy_buffer) > 8:
+        while len(self.teensy_buffer) > 8:
             try:
                 self.current_packet.append(self.teensy_buffer.pop(8))
             except Exception as e:

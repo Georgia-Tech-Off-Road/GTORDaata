@@ -41,11 +41,14 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
 
-        # Create the thread and timer objects to manage data communication with microcontrollers
-        self.data_sending_thread = QtCore.QTimer()
-        self.data_sending_thread.timeout.connect(DataAcquisition.read_data)
+        self.timer_reading_data = QtCore.QTimer()
+        self.timer_reading_data.timeout.connect(DataAcquisition.read_data())
 
-        self.data_reading_thread = threading.Thread(target=DataAcquisition.send_data)
+        self.timer_writing_data = QtCore.QTimer()
+        self.timer_writing_data.timeout.connect(DataAcquisition.send_data())
+
+        self.timer_fake_data = QtCore.QTimer()
+        self.timer_fake_data.timeout.connect(DataAcquisition.read_fake())
 
         # Attach the internal timer
         data_import.attach_internal_sensor(101)
@@ -299,6 +302,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         logger.info("Input Mode: " + str(input_mode))
         data_import.input_mode = input_mode
+
+        self.timer_reading_data.stop()
+        self.timer_writing_data.stop()
+        self.timer_fake_data.stop()
+
         if data_import.input_mode == "BIN":
             try:
                 directories = open_data_file(".bin")
@@ -325,8 +333,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             except Exception as e:
                 logger.error(e)
         elif data_import.input_mode == "FAKE":
-            DataAcquisition.read_fake()
-        elif data_import.input_mode == "CSV":        
+            self.timer_fake_data.start(10)
+        elif data_import.input_mode == "CSV":
             try:
                 directory = open_data_file(".csv")
                 if directory != "":     
@@ -338,13 +346,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 logger.error(e)
             finally:
                 data_import.input_mode = ""
-        if "COM" in data_import.input_mode:
-            data_import.connect_serial()
-            if not self.data_sending_thread.isActive():
-                self.data_sending_thread.start(100)
-                logger.info("We connected to serial!")
-            if not self.data_reading_thread.is_alive() and input_mode != "Auto":
-                self.data_reading_thread.start()        
+        if "COM" in data_import.input_mode:            
+            self.timer_reading_data.start(10)
+            self.timer_writing_data.start(10)
 
     def connect_signals_and_slots(self):
         """
@@ -379,19 +383,17 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     # --- Overridden event methods --- #
     def closeEvent(self, event):
         """
-        Handles closing all of our threads and timers when the application
+        Handles closing all of our timers when the application
         is being closed.
 
         :return: None
         """
-        
-        stop_thread.set()
-        if self.data_sending_thread.isActive():
-            self.data_sending_thread.stop()            
-        if self.data_reading_thread.isAlive():
-            self.data_reading_thread.join()
+                
         self.timer_active.stop()
         self.timer_passive.stop()
+        self.timer_reading_data.stop()
+        self.timer_writing_data.stop()
+        self.timer_fake_data.stop()
         sys.exit()
 
         
