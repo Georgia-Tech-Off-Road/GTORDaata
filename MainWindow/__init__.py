@@ -1,27 +1,31 @@
 from PyQt5 import uic, QtWidgets, QtGui, QtCore
 
 from functools import partial
-import threading
 import logging
 import os
-import time
-import sys
 import serial
+import sys
+import threading
+import time
 
 from Scenes import DAATAScene
-from Scenes.Homepage import Homepage
-from Scenes.DataCollection import DataCollection
-from Scenes.EngineDyno import EngineDyno
-from Scenes.Layout_Test import Widget_Test
 from Scenes.BlinkLEDTest import BlinkLEDTest
-from Scenes.EngineDynoExp import EngineDynoExp
+from Scenes.DataCollection import DataCollection
+from Scenes.DataCollectionPreview import DataCollectionPreview
+from Scenes.EngineDyno import EngineDyno
+from Scenes.Homepage import Homepage
+from Scenes.Layout_Test import Widget_Test
 
-from Utilities.Popups.popups import popup_ParentChildrenTree
+
 from MainWindow._tabHandler import close_tab
+from Utilities.Popups.popups import popup_ParentChildrenTree
 import DataAcquisition
 
 from DataAcquisition import is_data_collecting, data_import, stop_thread
 from DataAcquisition.DataImport import DataImport
+from MainWindow.UploadQueuedFiles.upload_drive_files import UploadDriveFiles
+from Utilities.GDriveDataImport import GDriveDataImport as GoogleDriveDataImport
+from Utilities.GoogleDriveHandler import GoogleDriveHandler
 
 from Utilities.DataExport.dataFileExplorer import open_data_file
 
@@ -99,7 +103,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                     try:
                         if (self.update_counter_active % scene.update_period) == 0:
                             scene.update_active()
-                    except:
+                    except Exception:
                         pass
 
     def update_passive(self):
@@ -113,8 +117,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.homepage.update_passive()
         for scene in self.tabWidget.findChildren(DAATAScene):
             scene.update_passive()
-
-
 
     def set_app_icon(self):
         """
@@ -212,25 +214,32 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         self.dict_scenes = {
             'Data Collection': {
-                'create_scene': DataCollection
+                'create_scene': DataCollection,
+                'formal_name': "DataCollection"
+            },
+
+            'Data Collection Preview': {
+                'create_scene': DataCollectionPreview,
+                'formal_name': "DataCollectionPreview",
+                'disabled': True,
             },
 
             'Layout Test': {
-                'create_scene': Widget_Test
+                'create_scene': Widget_Test,
+                'formal_name': "Layout_Test"
             },
 
             'Engine Dyno': {
-                'create_scene': EngineDyno
+                'create_scene': EngineDyno,
+                'formal_name': "EngineDyno"
             },
 
             'Blink LED Test': {
-                'create_scene': BlinkLEDTest
-            },
-
-            'Engine Dyno Exp': {
-                'create_scene': EngineDynoExp
+                'create_scene': BlinkLEDTest,
+                'formal_name': "BlinkLEDTest"
             }
         }
+        return self.dict_scenes
 
     def enumerate_serial_ports(self):
         """ 
@@ -326,6 +335,29 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.data_reading_thread.start()
         
 
+    def __import_from_google_drive(self):
+        """
+        Opens a 'GDriveDataImport' window asking which file to import from
+        Google Drive and display on the graph. Once a file is selected,
+        the 'GDriveDataImport' window is closed and a new scene tab is opened
+        with the data in that file. Currently, only supports .csv files.
+
+        :return: None
+        """
+        # filepath is "" if an error occurred
+        filepath = GoogleDriveDataImport(self.dict_scenes).selected_filepath
+        if filepath:
+            self.__create_DataCollectionPreview_tab(filepath)
+
+    @staticmethod
+    def __upload_remaining_to_gdrive():
+        UploadDriveFiles()
+
+    def __create_DataCollectionPreview_tab(self, filepath: str):
+        # Ignore the parameter 'key' unfilled error; there are no errors here
+        self.create_scene_tab("Data Collection Preview",
+                              initial_data_filepath=filepath)
+
     def connect_signals_and_slots(self):
         """
         This function connects all the Qt signals with the slots so that elements such as buttons or checkboxes
@@ -335,7 +367,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         """
 
         for key in self.dict_scenes.keys():
-            self.dict_scenes[key]['menu_action'].triggered.connect(partial(self.create_scene_tab, key))
+            self.dict_scenes[key]['menu_action'].triggered.connect(
+                partial(self.create_scene_tab, key))
 
         ## Handles event of a COM port being selected
         for key in self.dict_ports.keys():
@@ -345,6 +378,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.actionFake_Data.triggered.connect(lambda: self.set_input_mode("FAKE"))
         self.actionBIN_File.triggered.connect(lambda: self.set_input_mode("BIN"))
         self.actionCSV_File.triggered.connect(lambda: self.set_input_mode("CSV"))
+
+        self.import_from_gDrive_widget.triggered.connect(
+            self.__import_from_google_drive)
+        self.upload_remaining_gDrive_widget.triggered.connect(
+            self.__upload_remaining_to_gdrive)
 
         self.tabWidget.tabBarDoubleClicked.connect(self.rename_tab)
         self.tabWidget.tabCloseRequested.connect(partial(self.close_tab, self))

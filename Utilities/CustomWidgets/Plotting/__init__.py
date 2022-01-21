@@ -117,7 +117,7 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
     def set_graphWidth(self, seconds):
         try:
             self.graph_width = int(seconds) * self.samplingFreq
-        except:
+        except Exception:
             self.graph_width = 10 * self.samplingFreq
 
     def set_yMinMax(self, yMin, yMax):
@@ -142,6 +142,11 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
     def set_height(self, height):
         self.setMinimumSize(QtCore.QSize(200, height))
         self.setMaximumSize(QtCore.QSize(16777215, height))
+
+    def initialize_values(self, timeArray: list, valueArray: list):
+        self.timeArray = timeArray
+        self.valueArray = valueArray
+        self.plot.setData(timeArray, valueArray)
 
     def update_graph(self):
         index_time = data.get_most_recent_index()
