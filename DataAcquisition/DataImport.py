@@ -43,7 +43,7 @@ class DataImport:
         self.end_code = [b'\xff', b'\xff', b'\xff', b'\xff', b'\xff', b'\xff', b'\xff', b'\xf0']
         self.current_sensors = []
         self.current_packet = []
-        self.ack_code = 0
+        self.ack_code = 0 # Two bit variable, 0 1 2 or 3. Three is stable
         self.packet_index = 0
         self.expected_size = 0
 
