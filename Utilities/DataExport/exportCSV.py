@@ -1,21 +1,18 @@
 import csv
 import os
-from DataAcquisition import data 
+from DataAcquisition import data
 
 
-
-def saveCSV(self, filename, directory):
+def saveCSV(filename, directory):
     # with open(filename, 'w', newline='') as csvfile:
 
     #TODO add smarter functionality to automatically make it a csv file
     if filename == "":
         return
 
-
     csvfile = open(os.path.join(directory, filename + ".csv"), 'w')
     writer = csv.writer(csvfile, dialect='excel', lineterminator='\n')
 
-    
     # connected_sensors = data.get_sensors(is_connected=True)
     sensorsList = data.get_sensors(is_connected=True, is_derived=False)
 
@@ -48,6 +45,7 @@ def saveCSV(self, filename, directory):
     #     index += 1
 
     csvfile.close()
+
 
 if __name__ == "__main__":
     pass
