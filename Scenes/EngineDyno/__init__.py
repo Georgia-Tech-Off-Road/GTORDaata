@@ -33,7 +33,7 @@ class EngineDyno(DAATAScene, uiFile):
 
         self.graph_objects = dict()
         # self.current_keys = ["rpm_vs_time", "torque_vs_time", "cvt_ratio_vs_time", "power_vs_rpm"]
-        self.current_keys = ["dyno_engine_speed", "dyno_secondary_speed", "dyno_torque_ftlbs", "ratio_dyno_cvt"]
+        self.current_keys = ["dyno_engine_speed", "dyno_secondary_speed", "force_enginedyno_lbs", "ratio_dyno_cvt"]
         self.create_graphs()
 
         from MainWindow import is_data_collecting
@@ -137,7 +137,7 @@ class EngineDyno(DAATAScene, uiFile):
         if self.force_lcd.isEnabled():
             self.force_lcd.display(data.get_current_value("force_enginedyno_lbs"))
         if self.torque_lcd.isEnabled():
-            self.torque_lcd.display(data.get_current_value("dyno_torque_ftlbs"))
+            self.torque_lcd.display(data.get_current_value("force_enginedyno_lbs"))
         if self.power_lcd.isEnabled():
             self.power_lcd.display(data.get_current_value("power_engine_horsepower"))
         if self.cvt_ratio_lcd.isEnabled():
@@ -177,7 +177,7 @@ class EngineDyno(DAATAScene, uiFile):
         else:
             self.force_lcd.setEnabled(False)
 
-        if data.get_is_connected("dyno_torque_ftlbs"):
+        if data.get_is_connected("force_enginedyno_lbs"):
             self.torque_lcd.setEnabled(True)
         else:
             self.torque_lcd.setEnabled(False)

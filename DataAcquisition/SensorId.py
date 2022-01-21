@@ -381,7 +381,7 @@ SensorId = {
     },
     212: {
         "name": "speed_dynoengine600_rpm",
-        "num_bytes": [4, 2],
+        "num_bytes": [4, 4],
         "h_file_comment": "Speed in RPM and position in ticks (600ppr sensor)",
         0: {
             "name": "dyno_engine_position",
@@ -398,7 +398,7 @@ SensorId = {
     },
     213: {
         "name": "speed_dynosecondary30_rpm",
-        "num_bytes": [4, 2],
+        "num_bytes": [4, 4],
         "h_file_comment": "Speed in RPM and position in ticks (600ppr sensor)",
         0: {
             "name": "dyno_secondary_position",
