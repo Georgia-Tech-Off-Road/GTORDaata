@@ -28,7 +28,7 @@ def read_data():
     :return: None
     """
     
-    logger.info("Running read_data")
+    #logger.info("Running read_data")7
     data_was_collecting = False
 
     if is_data_collecting.is_set() and not data_was_collecting:

@@ -42,13 +42,13 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         super(MainWindow, self).__init__()
 
         self.timer_reading_data = QtCore.QTimer()
-        self.timer_reading_data.timeout.connect(DataAcquisition.read_data())
+        self.timer_reading_data.timeout.connect(DataAcquisition.read_data)
 
         self.timer_writing_data = QtCore.QTimer()
-        self.timer_writing_data.timeout.connect(DataAcquisition.send_data())
+        self.timer_writing_data.timeout.connect(DataAcquisition.send_data)
 
         self.timer_fake_data = QtCore.QTimer()
-        self.timer_fake_data.timeout.connect(DataAcquisition.read_fake())
+        self.timer_fake_data.timeout.connect(DataAcquisition.read_fake)
 
         # Attach the internal timer
         data_import.attach_internal_sensor(101)
@@ -347,8 +347,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             finally:
                 data_import.input_mode = ""
         if "COM" in data_import.input_mode:            
-            self.timer_reading_data.start(10)
-            self.timer_writing_data.start(10)
+            self.timer_reading_data.start(5)
+            self.timer_writing_data.start(5)
 
     def connect_signals_and_slots(self):
         """
