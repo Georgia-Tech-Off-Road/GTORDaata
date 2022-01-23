@@ -33,8 +33,7 @@ def read_data():
     logger.info("Running read_data")
     data_was_collecting = False    
     
-    while True:
-        """
+    while True:        
         if is_data_collecting.is_set() and not data_was_collecting:
             logger.info("Starting data collection")
             if "COM" in data_import.input_mode:
@@ -77,8 +76,7 @@ def read_data():
                 time.sleep(0)
         else:   
             data_import.input_mode = ""                     
-            pass
-        """
+            pass        
 
         
 
