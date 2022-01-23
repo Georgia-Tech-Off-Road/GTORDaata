@@ -64,7 +64,7 @@ Current classes:
 derived_sensors = {
     'dyno_torque_ftlbs': {
         'object': 'Torque',
-        'sensors': ['force_dyno_lbs'],
+        'sensors': ['force_enginedyno_lbs'],
         'display_name': "Dyno Torque",
         'transfer_function': 8/12  # Since the lever arm is 8" away
     },

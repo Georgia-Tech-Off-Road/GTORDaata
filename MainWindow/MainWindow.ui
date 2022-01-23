@@ -207,6 +207,7 @@
     <addaction name="actionBIN_File"/>
     <addaction name="actionCSV_File"/>
     <addaction name="menuCOM_Port"/>
+    <addaction name="google_drive_menu"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
@@ -246,6 +247,11 @@
     <property name="title">
      <string>COM Port</string>
     </property>
+  </widget>
+  <widget class="QMenu" name="google_drive_menu">
+   <property name="title">
+    <string>Google Drive</string>
+   </property>
   </widget>
  </widget>
  <resources/>

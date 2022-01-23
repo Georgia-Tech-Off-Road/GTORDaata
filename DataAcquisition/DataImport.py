@@ -228,7 +228,7 @@ class DataImport:
                 except KeyError as e:
                     logger.error(e)
                     logger.error("Error in packetize with ack 3")
-            logger.info("Sending data : {}".format(byte_data))
+            logger.debug("Sending data : {}".format(byte_data))
             return b'\x03' + byte_data + end_code
         elif self.is_sending_data and not self.is_receiving_data:
             byte_data = b''

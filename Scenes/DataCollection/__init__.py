@@ -1,15 +1,15 @@
 from PyQt5 import QtWidgets, uic, QtGui, QtCore
 from PyQt5.QtCore import QSettings
-from PyQt5.QtGui import QPalette
+from datetime import datetime
+from functools import partial
 import os
 
-import pyqtgraph as pg
-from functools import partial
-import DataAcquisition
 from DataAcquisition import data
-from Utilities.CustomWidgets.Plotting import CustomPlotWidget, GridPlotLayout
 from Scenes import DAATAScene
+from Utilities.CustomWidgets.Plotting import CustomPlotWidget, GridPlotLayout
+import DataAcquisition
 import logging
+import pyqtgraph as pg
 
 # Default plot configuration for pyqtgraph
 pg.setConfigOption('background', 'w')   # white
@@ -41,6 +41,7 @@ class DataCollection(DAATAScene, uiFile):
         self.gridPlotLayout.setObjectName("gridPlotLayout")
         self.scrollAreaWidgetContents.setLayout(self.gridPlotLayout)
 
+        self.collection_start_time: datetime = datetime.min
         self.create_sensor_checkboxes()
         self.create_graph_dimension_combo_box()
         self.create_graphs()
@@ -111,7 +112,7 @@ class DataCollection(DAATAScene, uiFile):
                 try:
                     self.gridPlotLayout.removeWidget(self.graph_objects[key])
                     self.graph_objects[key].hide()
-                except:
+                except Exception:
                     print(key + " is " + self.graph_objects[key].isVisible())
 
         for key in self.checkbox_objects.keys():
@@ -149,6 +150,8 @@ class DataCollection(DAATAScene, uiFile):
         """
 
         if self.button_display.isChecked():
+            if self.collection_start_time == datetime.min:
+                self.collection_start_time = datetime.now()
             self.indicator_onOrOff.setText("On")
             self.indicator_onOrOff.setStyleSheet("color: green;")
             self.button_display.setText("Stop Collecting Data")
@@ -158,7 +161,8 @@ class DataCollection(DAATAScene, uiFile):
             self.indicator_onOrOff.setStyleSheet("color: red;")
             self.button_display.setText("Start Collecting Data")
             self.is_data_collecting.clear()
-            self.popup_dataSaveLocation()
+            self.popup_dataSaveLocation("DataCollection",
+                                        self.collection_start_time)
 
     def slot_checkbox_state_change(self):
         """
