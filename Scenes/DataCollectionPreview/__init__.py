@@ -81,18 +81,17 @@ class DataCollectionPreview(DAATAScene, uiFile):
 
     def __initialize_graphs(self, initial_data_filepath: str):
         csv_data = pandas.read_csv(initial_data_filepath)
+        time_array = csv_data.time_internal_seconds.values
 
         for sensor in csv_data.columns.values[1:]:
             self.checkbox_objects[sensor].setChecked(True)
             csv_data = pandas.read_csv(initial_data_filepath)
-            time_array = csv_data.time_internal_seconds.values
             sensor_array = getattr(csv_data, sensor).values
             self.graph_objects[sensor].initialize_values(
                 time_array, sensor_array)
         self.__create_grid_plot_layout()
 
-        test_duration = csv_data.time_internal_seconds.values[
-            csv_data.time_internal_seconds.size - 1]
+        test_duration = csv_data.time_internal_seconds.values[-1]
         if test_duration > 86400:
             self.label_timeElapsed.setText("> 1 day")
         else:

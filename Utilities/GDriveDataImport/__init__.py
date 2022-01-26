@@ -16,14 +16,16 @@ uiFile, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__),
 class GDriveDataImport(QtWidgets.QDialog, uiFile):
     DURATION_OPTIONS = gdrive_constants.DURATION_OPTIONS
     TEST_DATE_OPTIONS = gdrive_constants.TEST_DATE_PERIOD_OPTIONS
+    DISPLAYABLE_SCENES = {"DataCollection", "EngineDyno"}
 
     def __init__(self, dict_scenes: dict):
         super().__init__()
         self.setupUi(self)
-        self.dict_scenes = dict_scenes
+        self.dict_scenes_copy = dict_scenes
         self.checkbox_sensors = dict()
         self.custom_properties = dict()
         self.__selected_filepath: str = ""
+        self.__selected_file_scene: str = ""
         self.configFile = QtCore.QSettings('DAATA', 'GDriveDataImport')
 
         self.__populate_fields()
@@ -35,7 +37,7 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
         self.sec_file.setPlainText(self.configFile.value("sec_file"))
 
         self.scene_input.addItem("All")
-        for scene in self.dict_scenes.keys():
+        for scene in self.dict_scenes_copy.keys():
             self.scene_input.addItem(scene)
 
         self.sensorsList = data.get_sensors(is_derived=False)
@@ -127,7 +129,7 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
         if scene_query != "All":
             try:
                 custom_prop_query["scene"] = \
-                    self.dict_scenes[scene_query]["formal_name"]
+                    self.dict_scenes_copy[scene_query]["formal_name"]
             except KeyError:
                 custom_prop_query["scene"] = scene_query
 
@@ -152,12 +154,12 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
             duration=duration_query)
 
         try:
-            DRIVE_HANDLER = GoogleDriveHandler(sec_file)
+            drive_handler = GoogleDriveHandler(sec_file)
         except ValueError:
             logger.error("Error in creating Google Drive Handler")
             return
 
-        found_files = DRIVE_HANDLER.find_file_in_drive(search_q)
+        found_files = drive_handler.find_file_in_drive(search_q)
 
         self.__clear_found_files()
 
@@ -169,7 +171,7 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
         for i, found_file in enumerate(found_files):
             found_file_button = QtWidgets.QPushButton(found_file.get("name"))
             found_file_button.clicked.connect(
-                partial(self.__download_and_display, DRIVE_HANDLER, found_file))
+                partial(self.__download_and_display, drive_handler, found_file))
             self.gridLayout_2.addWidget(found_file_button, i, 0)
 
             found_file_metadata_btn = QtWidgets.QPushButton("ⓘ")
@@ -182,6 +184,7 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
     def __download_and_display(self, drive_handler: GoogleDriveHandler,
                                found_file: dict):
         self.__selected_filepath = ""
+        self.__selected_file_scene = ""
 
         if found_file.get("name")[-4:] != ".csv":
             reason = "The selected file cannot be displayed (not a .csv). " \
@@ -197,14 +200,16 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
             self.__download_unsupported_file(drive_handler, found_file, reason)
             return
 
-        if file_scene != "DataCollection":
+        if file_scene not in self.DISPLAYABLE_SCENES:
             reason = "The selected file cannot be displayed (not " \
-                     "DataCollection). Proceed to download anyways?"
+                     "supported). Proceed to download anyways?"
             self.__download_unsupported_file(drive_handler, found_file, reason)
             return
         else:
+            self.__selected_file_scene = file_scene
+            # self.__selected_filepath used in MainWindow to plot the file data
             self.__selected_filepath = \
-                drive_handler.download_and_display(found_file, self)
+                drive_handler.download_and_close(found_file, self)
 
     def __clear_found_files(self):
         # clear all previous buttons and widgets from the Results layout
@@ -238,7 +243,6 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
                 GenericPopup("File downloaded", filepath)
 
     @property
-    def selected_filepath(self) -> str:
-        return self.__selected_filepath
-
+    def selected_filepath_and_scene(self) -> tuple:
+        return self.__selected_filepath, self.__selected_file_scene
 

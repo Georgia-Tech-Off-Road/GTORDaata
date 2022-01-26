@@ -496,7 +496,7 @@ class GoogleDriveHandler:
             f.write(fh.read())
         return filepath
 
-    def download_and_display(self, file: dict, import_window) -> str:
+    def download_and_close(self, file: dict, import_window) -> str:
         """
         Downloads the chosen file to the local hard disk and displays the
         graphs. Currently, only implemented for the Data Collection scene.
