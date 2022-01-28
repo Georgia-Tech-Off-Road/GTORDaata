@@ -59,6 +59,17 @@ SensorId = {
         "object": "Command",
         "num_bytes": 1
     },
+    6: {
+        "name": "command_motor_enable",
+        "object": "Command",
+        "num_bytes": 1
+    },
+    7: {
+        "name": "command_scale_load_cell",
+        "object": "Command",
+        "num_bytes": 4,
+        "is_float": True
+    },
     90: {
         "name": "test_sensor_0",
         "object": "Generic",
