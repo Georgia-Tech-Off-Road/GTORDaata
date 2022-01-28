@@ -25,13 +25,12 @@ class Data:
                     self.generate_object(SensorId[sensor_id]["name"], object_type, param_dict)
                 except KeyError:
                     try:
-                        i = 0
-                        while True:
+                        num_sub_ids = len(SensorId[sensor_id]["num_bytes"])
+                        for i in range(num_sub_ids):
                             object_type = SensorId[sensor_id][i]["object"]
                             param_dict = SensorId[sensor_id][i]
                             param_dict["id"] = sensor_id
                             self.generate_object(SensorId[sensor_id][i]["name"], object_type, param_dict)
-                            i = i + 1
                     except KeyError as e:
                         logger.error(e)
                         logger.error("Key error in __init__ 1: {}".format(sensor_id))
