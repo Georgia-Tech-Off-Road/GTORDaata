@@ -28,12 +28,12 @@ cpp_stuff = """
 
 *******************************************************************************************/
 
-#ifndef SENSORID_H
-#define SENSORID_H
+#ifndef BLOCKID_H
+#define BLOCKID_H
 
 #include <Arduino.h>
 
-enum sensor_id_t : uint16_t
+enum block_id_t : uint16_t
 {
 """
 file_beginning = description + time_stamp + cpp_stuff
