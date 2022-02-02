@@ -1,6 +1,7 @@
 import logging
 import sys, os
 import time
+from matplotlib.pyplot import text
 import pyqtgraph as pg
 from functools import partial
 from PyQt5 import QtCore, QtWidgets, uic, QtGui
@@ -50,9 +51,10 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
                 bottom='Time (s)',
                 title=str(data.get_display_name(sensor_name))
                       + ' Graph')
-
+        
         self.plotWidget.showGrid(x=True, y=True, alpha=.2)
-        self.plotWidget.setBackground(None)
+        self.plotWidget.setBackground("#343538")
+
         # Number of value to show on the x_axis
         self.samplingFreq = 200
         self.graph_width = kwargs.get("graph_width_seconds", 10) \
@@ -76,40 +78,46 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
         else:
             self.plot = self.plotWidget.plot(self.valueArray,
                                              name=self.sensor_name,
-                                             pen='b',
+                                             pen=pg.mkPen(color="#ff0d9e"),                                             
                                              width=1)
 
         self.initialCounter = 0
 
         self.configFile = QtCore.QSettings('DAATA_plot', self.sensor_name)
         self.configFile.clear()
-        self.loadStylesheet()
+        #self.loadStylesheet()
         self.loadSettings()
 
     def loadStylesheet(self):
         self.stylesheetDefault = """
         CustomPlotWidget {
-        background-color: white;
+        background-color: #343538;
+        color: white;
         }
         CustomPlotWidget * { 
         background-color: transparent;
+        color: white;
         }
         """
 
         self.stylesheetHighlight = """
         CustomPlotWidget {
-        background-color: white;
+        background-color: #343538;
         border: 3px solid #196dff;
+        color: white;
         }
         CustomPlotWidget * { 
         background-color: transparent;
+        color: white;
         }
         """"""
         CustomPlotWidget {
-        background-color: white;
+        background-color: #343538;
+        color: white;
         }
         CustomPlotWidget * { 
         background-color: transparent;
+        color: white;
         }
         """
         self.setStyleSheet(self.stylesheetDefault)
