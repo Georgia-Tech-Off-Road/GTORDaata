@@ -324,7 +324,7 @@
         <x>0</x>
         <y>0</y>
         <width>900</width>
-        <height>199</height>
+        <height>190</height>
        </rect>
       </property>
       <layout class="QGridLayout" name="gridLayout_2"/>

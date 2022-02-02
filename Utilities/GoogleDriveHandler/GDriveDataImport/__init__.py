@@ -1,7 +1,7 @@
 from DataAcquisition import data
 from PyQt5 import QtWidgets, uic, QtCore
-from Utilities.GDriveDataImport import add_qDialogs
 from Utilities.GoogleDriveHandler import GoogleDriveHandler, DriveSearchQuery, gdrive_constants
+from Utilities.GoogleDriveHandler.GDriveDataImport import add_qDialogs
 from Utilities.Popups.generic_popup import GenericPopup
 from functools import partial
 import logging
@@ -28,17 +28,23 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
         self.__selected_file_scene: str = ""
         self.configFile = QtCore.QSettings('DAATA', 'GDriveDataImport')
 
+        self.__setup()
+        self.exec()
+
+    def __setup(self):
+        GoogleDriveHandler.initialize_download_upload_directories()
         self.__populate_fields()
         self.adv_options_widget.hide()
         self.__connectSlotsSignals()
-        self.exec()
 
     def __populate_fields(self):
         self.sec_file.setPlainText(self.configFile.value("sec_file"))
 
         self.scene_input.addItem("All")
         for scene in self.dict_scenes_copy.keys():
-            self.scene_input.addItem(scene)
+            scene_hidden = self.dict_scenes_copy[scene].get("disabled")
+            if not scene_hidden:
+                self.scene_input.addItem(scene)
 
         self.sensorsList = data.get_sensors(is_derived=False)
         self.checkbox_sensors = dict()
@@ -155,7 +161,16 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
 
         try:
             drive_handler = GoogleDriveHandler(sec_file)
+        except GoogleDriveHandler.MissingOAuthFileError:
+            self.__clear_found_files()
+            GenericPopup("Missing oAuth file")
+            return
+        except GoogleDriveHandler.NoInternetError:
+            self.__clear_found_files()
+            GenericPopup("No Internet")
+            return
         except ValueError:
+            self.__clear_found_files()
             logger.error("Error in creating Google Drive Handler")
             return
 

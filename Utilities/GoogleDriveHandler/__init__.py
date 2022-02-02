@@ -34,6 +34,14 @@ class DriveSearchQuery:
 
 
 class GoogleDriveHandler:
+    class NoInternetError(ConnectionError):
+        """No Internet"""
+        pass
+
+    class MissingOAuthFileError(AttributeError):
+        """Missing oAuth file"""
+        pass
+
     # ROOT_FOLDER is "GTORDaata Graph Files"
     _ROOT_FOLDER_ID = "1OaMbG-wAqC6_Ad8u5FiNS9L8z2W7eB2i"
     _DRIVE_ID = "0AFmSv7widPF9Uk9PVA"  # Drive ID of GTOR_DAQ_DATA shared drive
@@ -53,26 +61,11 @@ class GoogleDriveHandler:
         self.current_drive_folder = {"id": "", "name": ""}
 
         if not os.path.exists(secret_client_file_path):
-            GenericPopup("Missing oAuth File",
-                         f"oAuth file not detected in path "
-                         f"{secret_client_file_path} entered")
-            raise ValueError("Missing oAuth file")
-        if not os.path.exists(self.DEFAULT_UPLOAD_DIRECTORY):
-            logger.info(
-                "Default path " + self.DEFAULT_UPLOAD_DIRECTORY
-                + " not found. Making the directory...")
-            os.makedirs(self.DEFAULT_UPLOAD_DIRECTORY)
-        if not os.path.exists(self.DEFAULT_DOWNLOAD_DIRECTORY):
-            logger.info(
-                "Default path " + self.DEFAULT_DOWNLOAD_DIRECTORY
-                + " not found. Making the directory...")
-            os.makedirs(self.DEFAULT_DOWNLOAD_DIRECTORY)
+            raise self.MissingOAuthFileError()
+        self.initialize_download_upload_directories()
         self.DRIVE_SERVICE = self.__create_drive_service(
             secret_client_file_path)
-
-    class NoInternetError(ConnectionError):
-        """No Internet"""
-        pass
+        self.__warning_msg: str = ""
 
     def __create_drive_service(self, secret_client_file: str):
         if not os.path.exists(secret_client_file):
@@ -83,8 +76,8 @@ class GoogleDriveHandler:
         try:
             requests.head("https://www.google.com/", timeout=1)
         except requests.ConnectionError:
-            self.no_internet()
-            raise self.NoInternetError
+            self.__no_internet()
+            return
 
         CLIENT_SECRET_FILE = secret_client_file
         API_NAME = 'drive'
@@ -95,7 +88,7 @@ class GoogleDriveHandler:
             return Create_Service(
                 CLIENT_SECRET_FILE, API_NAME, API_VERSION, SCOPES)
         except google.auth.exceptions.RefreshError:
-            os.remove("token_drive_v3.pickle")
+            os.remove("token_drive_v3.pickle")  # the file must exist
             return Create_Service(
                 CLIENT_SECRET_FILE, API_NAME, API_VERSION, SCOPES)
 
@@ -173,8 +166,7 @@ class GoogleDriveHandler:
                 found_files.extend(response.get('files', []))
                 page_token = response.get('nextPageToken', None)
             except httplib2.error.ServerNotFoundError:
-                self.no_internet()
-                break
+                raise self.NoInternetError
             if page_token is None:
                 break
 
@@ -270,6 +262,8 @@ class GoogleDriveHandler:
                       + '.json') as json_file:
                 file_metadata = json.load(json_file)
         except FileNotFoundError:
+            self.__warning_msg = f"{self.__warning_msg}; Metadata JSON file " \
+                                 f"missing for {filename}"
             logger.error("Metadata JSON file missing.")
             return None
 
@@ -408,7 +402,7 @@ class GoogleDriveHandler:
                     "Folder " + filepath + " successfully created in GDrive.")
                 return folder.get('id')
             except httplib2.error.ServerNotFoundError:
-                self.no_internet()
+                self.__no_internet()
                 return None
         else:
             # check if file exists
@@ -463,8 +457,8 @@ class GoogleDriveHandler:
                 logger.info("Files successfully saved to Google Drive")
                 return file.get('id')
             except httplib2.error.ServerNotFoundError:
-                self.no_internet()
-                return None
+                self.__no_internet()
+                return
 
     def download(self, file: dict) -> str:
         """
@@ -479,7 +473,7 @@ class GoogleDriveHandler:
             request = self.DRIVE_SERVICE.files().get_media(
                 fileId=file.get('id'))
         except httplib2.error.ServerNotFoundError:
-            self.no_internet()
+            self.__no_internet()
             return ""
         fh = io.BytesIO()
         downloader = MediaIoBaseDownload(fh, request)
@@ -520,6 +514,7 @@ class GoogleDriveHandler:
         """
 
         # test_file = ""
+        self.__warning_msg = ""
 
         if self.DRIVE_SERVICE is None:
             return False
@@ -542,9 +537,7 @@ class GoogleDriveHandler:
                     progressBar_GD.setValue(int(
                         (file_i + 1) * 100 / len(files_to_upload)))
             logger.info("Uploading done")
-        if progressBar_GD is not None:
-            progressBar_GD.hide()
-
+        progressBar_GD.setValue(100)
         return True
 
         # TEST MODULE -- only for debugging
@@ -559,6 +552,11 @@ class GoogleDriveHandler:
         #     print(appProps)
         # else:
         #     print("No files to print")
+
+    def __no_internet(self) -> None:
+        logger.error("Failed to find Google Drive server. "
+                     "Possibly due to internet problems.")
+        raise self.NoInternetError
 
     @staticmethod
     def openSecGDInfo() -> bool:
@@ -659,6 +657,19 @@ class GoogleDriveHandler:
             return False
 
     @staticmethod
+    def initialize_download_upload_directories() -> None:
+        if not os.path.exists(gdrive_constants.DEFAULT_UPLOAD_DIRECTORY):
+            logger.info(
+                f"Default path {gdrive_constants.DEFAULT_UPLOAD_DIRECTORY} not "
+                f"found. Making the directory...")
+            os.makedirs(gdrive_constants.DEFAULT_UPLOAD_DIRECTORY)
+        if not os.path.exists(gdrive_constants.DEFAULT_DOWNLOAD_DIRECTORY):
+            logger.info(
+                f"Default path {gdrive_constants.DEFAULT_DOWNLOAD_DIRECTORY} "
+                f"not found. Making the directory...")
+            os.makedirs(gdrive_constants.DEFAULT_DOWNLOAD_DIRECTORY)
+
+    @staticmethod
     def utc_to_local(dt_utc: datetime) -> datetime:
         utc_offset = datetime.utcnow() - datetime.now()  # +5:00
         return dt_utc - utc_offset
@@ -668,10 +679,7 @@ class GoogleDriveHandler:
         utc_offset = datetime.utcnow() - datetime.now()  # +5:00
         return dt_local + utc_offset
 
-    @staticmethod
-    def no_internet():
-        logger.error("Failed to find Google Drive server. "
-                     "Possibly due to internet problems.")
-        GenericPopup("No Internet",
-                     "All files have been saved offline and will be uploaded "
-                     "at the next upload instance")
+    @property
+    def warning_msg(self):
+        return self.__warning_msg
+
