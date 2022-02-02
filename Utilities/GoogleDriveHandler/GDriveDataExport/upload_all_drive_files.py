@@ -1,4 +1,5 @@
 from PyQt5 import QtWidgets, uic, QtCore
+from Utilities.DataExport.dataFileExplorer import open_data_file
 from Utilities.GoogleDriveHandler import GoogleDriveHandler
 from Utilities.Popups.generic_popup import GenericPopup
 import logging
@@ -22,6 +23,7 @@ class UploadDriveFiles(QtWidgets.QDialog, uiFile):
 
     def __connectSlotsSignals(self):
         self.upload_all_button.clicked.connect(self.__upload_drive_files)
+        self.selectFile.clicked.connect(self.__find_sec_file)
         self.oAuth_info.clicked.connect(GoogleDriveHandler.openSecGDInfo)
 
     def __upload_drive_files(self):
@@ -47,8 +49,11 @@ class UploadDriveFiles(QtWidgets.QDialog, uiFile):
 
         if drive_handler.upload_all_to_drive(self.progressBar):
             GenericPopup("All files uploaded", drive_handler.warning_msg)
-            self.close_popup()
+            self.close()
         self.progressBar.hide()
 
-    def close_popup(self):
-        self.close()
+    def __find_sec_file(self):
+        selected_file = open_data_file(".json")
+        if selected_file:
+            self.oAuth_file_entry.setPlainText(selected_file)
+

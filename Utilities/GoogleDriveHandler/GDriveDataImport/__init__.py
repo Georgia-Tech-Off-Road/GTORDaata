@@ -1,5 +1,6 @@
 from DataAcquisition import data
 from PyQt5 import QtWidgets, uic, QtCore
+from Utilities.DataExport.dataFileExplorer import open_data_file
 from Utilities.GoogleDriveHandler import GoogleDriveHandler, DriveSearchQuery, gdrive_constants
 from Utilities.GoogleDriveHandler.GDriveDataImport import add_qDialogs
 from Utilities.Popups.generic_popup import GenericPopup
@@ -71,6 +72,12 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
         self.adv_options_button.clicked.connect(self.__hide_show_adv_options)
         self.add_field_button.clicked.connect(self.__addCustomPropsField)
         self.clearButton.clicked.connect(self.__clear_all)
+        self.selectFile.clicked.connect(self.__find_oAuth_file)
+
+    def __find_oAuth_file(self):
+        filepath = open_data_file(".json")
+        if filepath:
+            self.sec_file.setPlainText(filepath)
 
     def __hide_show_adv_options(self):
         if self.adv_options_widget.isVisible():
