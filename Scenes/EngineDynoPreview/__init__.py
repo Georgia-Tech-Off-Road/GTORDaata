@@ -27,20 +27,16 @@ logger = logging.getLogger("EngineDynoPreview")
 class EngineDynoPreview(DAATAScene, uiFile):
     def __init__(self, initial_data_filepath: str = None):
         super().__init__()
-        # self.aborted = False
 
-        initial_data_filepath = "C:\\Users\\afari\\Downloads\\a.csv"
         if not initial_data_filepath \
-                or not os.path.exists(initial_data_filepath):
+                or not os.path.isfile(initial_data_filepath):
             GenericPopup("Data CSV file does not exist",
                          "Unable to initialize graphs due to missing file.")
-            # self.aborted = True
             self.close()
             return
         if initial_data_filepath[-4:] != ".csv":
             GenericPopup("Data file not of CSV type",
                          "Only .csv files supported")
-            # self.aborted = True
             self.close()
             return
 

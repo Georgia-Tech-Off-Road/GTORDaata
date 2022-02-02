@@ -95,7 +95,7 @@ class CreateUploadJSON(QtWidgets.QDialog, uiFile):
         if self.MANUAL_UPLOAD:
             abnormal_file_location = self.file_location.text()
             if not (abnormal_file_location and
-                    os.path.exists(abnormal_file_location)):
+                    os.path.isfile(abnormal_file_location)):
                 GenericPopup(f"File {abnormal_file_location} does not "
                              f"exist")
                 return tuple()
@@ -181,7 +181,7 @@ class CreateUploadJSON(QtWidgets.QDialog, uiFile):
             self.close()
             return True
         else:
-            if self.__oAuth_file_input and os.path.exists(
+            if self.__oAuth_file_input and os.path.isfile(
                     self.__oAuth_file_input):
                 if not self.__save_locally(custom_props):
                     self.progress_widget.hide()
