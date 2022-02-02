@@ -1,6 +1,5 @@
 from DataAcquisition import data
 from PyQt5 import QtWidgets, uic
-# from PyQt5.QtCore import QSettings
 from Scenes import DAATAScene
 from Utilities.CustomWidgets.Plotting import CustomPlotWidget, GridPlotLayout
 from Utilities.Popups.generic_popup import GenericPopup
@@ -24,20 +23,16 @@ logger = logging.getLogger("DataCollectionPreview")
 class DataCollectionPreview(DAATAScene, uiFile):
     def __init__(self, initial_data_filepath: str = None):
         super().__init__()
-        self.aborted = False
 
-        # initial_data_filepath = "C:\\Users\\afari\\AppData\\Local\\GTOffRoad\\Downloads\\a.csv"
         if not initial_data_filepath \
-                or not os.path.exists(initial_data_filepath):
+                or not os.path.isfile(initial_data_filepath):
             GenericPopup("Data CSV file does not exist",
                          "Unable to initialize graphs due to missing file.")
-            self.aborted = True
             self.close()
             return
         if initial_data_filepath[-4:] != ".csv":
             GenericPopup("Data file not of CSV type",
                          "Only .csv files supported")
-            self.aborted = True
             self.close()
             return
         self.setupUi(self)

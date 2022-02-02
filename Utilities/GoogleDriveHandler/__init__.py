@@ -60,7 +60,7 @@ class GoogleDriveHandler:
         }
         self.current_drive_folder = {"id": "", "name": ""}
 
-        if not os.path.exists(secret_client_file_path):
+        if not os.path.isfile(secret_client_file_path):
             raise self.MissingOAuthFileError()
         self.initialize_download_upload_directories()
         self.DRIVE_SERVICE = self.__create_drive_service(
@@ -68,10 +68,6 @@ class GoogleDriveHandler:
         self.__warning_msg: str = ""
 
     def __create_drive_service(self, secret_client_file: str):
-        if not os.path.exists(secret_client_file):
-            GenericPopup("oAuth file not detected")
-            return None
-
         # checks internet connection
         try:
             requests.head("https://www.google.com/", timeout=1)
@@ -406,7 +402,7 @@ class GoogleDriveHandler:
                 return None
         else:
             # check if file exists
-            if not os.path.exists(filepath):
+            if not os.path.isfile(filepath):
                 logging.error(f"File {filepath} does not exist and thus, "
                               f"cannot be uploaded to Google Drive")
                 return None
