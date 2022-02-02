@@ -1,4 +1,5 @@
 from PyQt5 import QtWidgets, QtCore, uic
+from Utilities.DataExport.dataFileExplorer import open_data_file
 from Utilities.DataExport.exportCSV import saveCSV
 from Utilities.DataExport.exportMAT import saveMAT
 from Utilities.GoogleDriveHandler import gdrive_constants, GoogleDriveHandler
@@ -79,6 +80,18 @@ class CreateUploadJSON(QtWidgets.QDialog, uiFile):
         self.save_offline_only_option.stateChanged.connect(
             show_hide_oAuthFileEntry_info)
         self.openSecGDInfoBtn.clicked.connect(GoogleDriveHandler.openSecGDInfo)
+        self.select_upload_file.clicked.connect(self.__find_uploading_file)
+        self.select_sec_file.clicked.connect(self.__find_sec_file)
+
+    def __find_uploading_file(self):
+        uploading_file_selected = open_data_file(".csv .mat")
+        if uploading_file_selected:
+            self.file_location.setText(uploading_file_selected)
+
+    def __find_sec_file(self):
+        sec_file_selected = open_data_file(".json")
+        if sec_file_selected:
+            self.oAuth_entry.setText(sec_file_selected)
 
     def __validate_inputs(self) -> tuple:
         def valid_windows_filename(filename: str) -> bool:
@@ -354,9 +367,6 @@ class CreateUploadJSON(QtWidgets.QDialog, uiFile):
 
         del custom_properties["__Sensors"]
 
-        if not self.MANUAL_UPLOAD:
-            pass
-
         with open(f"{gdrive_constants.DEFAULT_UPLOAD_DIRECTORY}"
                   f"{self.__new_filename_without_extension}.json", "w") \
                 as outfile:
@@ -378,10 +388,6 @@ class CreateUploadJSON(QtWidgets.QDialog, uiFile):
     def complete_save_and_exit(self):
         # normal and expected close, file should be uploaded later
         return self.__complete_save_and_exit
-
-    # @property
-    # def new_extensionless_filename(self):
-    #     return self.__new_filename_without_extension
 
     @property
     def oAuth_file_input(self):
