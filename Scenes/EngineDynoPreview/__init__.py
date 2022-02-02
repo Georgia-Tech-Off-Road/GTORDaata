@@ -54,12 +54,12 @@ class EngineDynoPreview(DAATAScene, uiFile):
         self.current_keys = ["dyno_engine_speed", "dyno_secondary_speed",
                              "force_enginedyno_lbs", "ratio_dyno_cvt"]
         self.collection_start_time: datetime = datetime.min
-        self.create_graphs()
+        self.__create_graphs()
 
         self.is_sensors_attached = False
         self.load_cell_taring = False
 
-        self.connect_slots_and_signals()
+        self.__connect_slots_and_signals()
         self.configFile = QSettings('DAATA', 'data_collection')
 
         self.__initialize_graphs(initial_data_filepath)
@@ -67,7 +67,7 @@ class EngineDynoPreview(DAATAScene, uiFile):
         # self.configFile.clear()
         # self.load_settings()
 
-    def create_graphs(self):
+    def __create_graphs(self):
         """
         This should make 4 graphs
         1. RPM vs. Time scrolling graph, width as 15 seconds
@@ -98,9 +98,6 @@ class EngineDynoPreview(DAATAScene, uiFile):
             col = not col
             if not col:
                 row = 1
-
-    def slot_data_collecting_state_change(self):
-        pass
 
     def __initialize_graphs(self, initial_data_filepath: str):
         csv_data = pandas.read_csv(initial_data_filepath)
@@ -164,10 +161,10 @@ class EngineDynoPreview(DAATAScene, uiFile):
     def update_passive(self):
         pass
 
-    def connect_slots_and_signals(self):
+    def __connect_slots_and_signals(self):
         pass
 
-    def save_settings(self):
+    def __save_settings(self):
         """
         This function will save the settings for a given scene to a config file so that they can be loaded in again
         the next time that the scene is opened (even if the entire GUI is restarted).
@@ -186,7 +183,7 @@ class EngineDynoPreview(DAATAScene, uiFile):
         logger.debug("Data Collection config files saved")
         # self.debug_settings()
 
-    def load_settings(self):
+    def __load_settings(self):
         """
         This function loads in the previously saved settings.
 
@@ -211,7 +208,7 @@ class EngineDynoPreview(DAATAScene, uiFile):
         logger.debug("Data Collection config files loaded")
         # self.debug_settings()
 
-    def debug_settings(self):
+    def __debug_settings(self):
         """
         This method allows you to view the contents of what is currently stored in settings
         :return:
