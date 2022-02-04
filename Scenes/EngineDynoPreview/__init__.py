@@ -1,16 +1,13 @@
+from DataAcquisition import DerivedSensors
 from PyQt5 import uic, QtGui
 from PyQt5.QtCore import QSettings
-from datetime import time as datetime_time, datetime
-import os
-import pandas
-
-from DataAcquisition import DerivedSensors
-from DataAcquisition import data
 from Scenes import DAATAScene
 from Utilities.CustomWidgets.Plotting import CustomPlotWidget
 from Utilities.Popups.generic_popup import GenericPopup
-import DataAcquisition
+from datetime import time as datetime_time, datetime
 import logging
+import os
+import pandas
 import pyqtgraph as pg
 
 # Default plot configuration for pyqtgraph

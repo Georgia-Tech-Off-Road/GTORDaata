@@ -116,7 +116,8 @@ class CreateUploadJSON(QtWidgets.QDialog, uiFile):
                       abnormal_file_location[-3:] == "mat"):
                 GenericPopup(f"File not of type csv or mat")
                 return tuple()
-            new_extensionless_filename = abnormal_file_location.split("\\")[-1][:-4]
+            new_extensionless_filename = \
+                abnormal_file_location.split("\\")[-1][:-4]
             if not valid_windows_filename(self.Name.text()):
                 return tuple()
         else:
@@ -304,7 +305,7 @@ class CreateUploadJSON(QtWidgets.QDialog, uiFile):
         else:
             # meaning no file metadata was given, implying manual upload instead
             # of straight uploading from GUI after data collection
-            self.file_location.hide()
+            self.file_widget.hide()
             self.filepath_label.hide()
 
         self.__default()
@@ -342,8 +343,7 @@ class CreateUploadJSON(QtWidgets.QDialog, uiFile):
         properties, e.g., collection_start_time and the sensors in the format
         {"sensor-test_sensor_1": True, "sensor-test_sensor_3"}.
 
-        :param filename: the name of the file to be uploaded, e.g. test1.csv
-        :param sensorsList: list of all connected, non-derived sensors
+        :param custom_properties: custom properties to be saved in the JSON
         :return: None
         """
         # Limits: https://developers.google.com/drive/api/v3/properties
