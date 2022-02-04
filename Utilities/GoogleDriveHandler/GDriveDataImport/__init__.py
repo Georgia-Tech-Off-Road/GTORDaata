@@ -34,6 +34,7 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
 
     def __setup(self):
         GoogleDriveHandler.initialize_download_upload_directories()
+        self.progressBar.hide()
         self.__populate_fields()
         self.adv_options_widget.hide()
         self.__connectSlotsSignals()
@@ -95,6 +96,8 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
         self.year_input.setPlainText("")
         self.month_input.setPlainText("")
         self.day_input.setPlainText("")
+        self.progressBar.setValue(0)
+        self.progressBar.hide()
 
         self.duration_input.setCurrentIndex(0)
         self.__remove_all_custom_props()
@@ -207,11 +210,13 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
                                found_file: dict):
         self.__selected_filepath = ""
         self.__selected_file_scene = ""
+        self.progressBar.show()
 
         if found_file.get("name")[-4:] != ".csv":
             reason = "The selected file cannot be displayed (not a .csv). " \
                      "Proceed to download anyways?"
-            self.__download_unsupported_file(drive_handler, found_file, reason)
+            self.__download_unsupported_file(drive_handler, found_file, reason,
+                                             self.progressBar)
             return
 
         try:
@@ -219,19 +224,22 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
         except AttributeError:
             reason = "The selected file cannot be displayed (unknown scene). " \
                      "Proceed to download anyways?"
-            self.__download_unsupported_file(drive_handler, found_file, reason)
+            self.__download_unsupported_file(drive_handler, found_file, reason,
+                                             self.progressBar)
             return
 
         if file_scene not in self.DISPLAYABLE_SCENES:
-            reason = "The selected file cannot be displayed (not " \
+            reason = "The selected file cannot be displayed (scene not " \
                      "supported). Proceed to download anyways?"
-            self.__download_unsupported_file(drive_handler, found_file, reason)
+            self.__download_unsupported_file(drive_handler, found_file, reason,
+                                             self.progressBar)
             return
         else:
             self.__selected_file_scene = file_scene
             # self.__selected_filepath used in MainWindow to plot the file data
             self.__selected_filepath = \
-                drive_handler.download_and_close(found_file, self)
+                drive_handler.download_and_close(found_file, self,
+                                                 self.progressBar)
 
     def __clear_found_files(self):
         # clear all previous buttons and widgets from the Results layout
@@ -256,11 +264,13 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
 
     @staticmethod
     def __download_unsupported_file(drive_handler: GoogleDriveHandler,
-                                    found_file: dict, reason: str):
+                                    found_file: dict, reason: str,
+                                    progressBar=None):
         save_offline = \
             add_qDialogs.ConfirmDownloadNonSupported(reason).save_offline
         if save_offline:
-            filepath = drive_handler.download(found_file)
+            filepath = drive_handler.download(file=found_file,
+                                              progressBar=progressBar)
             if filepath:
                 GenericPopup("File downloaded", filepath)
 
