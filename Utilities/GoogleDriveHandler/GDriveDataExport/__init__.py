@@ -117,7 +117,7 @@ class CreateUploadJSON(QtWidgets.QDialog, uiFile):
                 GenericPopup(f"File not of type csv or mat")
                 return tuple()
             new_extensionless_filename = \
-                abnormal_file_location.split("\\")[-1][:-4]
+                os.path.basename(abnormal_file_location)[:-4]
             if not valid_windows_filename(self.Name.text()):
                 return tuple()
         else:
