@@ -76,8 +76,11 @@
           </property>
           <item row="0" column="0">
            <widget class="QPlainTextEdit" name="oAuth_file_entry">
+            <property name="readOnly">
+             <bool>false</bool>
+            </property>
             <property name="placeholderText">
-             <string>C:\Users\afari\Documents\sec.json</string>
+             <string>C:/Users/afari/Documents/sec.json</string>
             </property>
            </widget>
           </item>

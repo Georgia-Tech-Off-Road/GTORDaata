@@ -407,9 +407,7 @@ class GoogleDriveHandler:
                               f"cannot be uploaded to Google Drive")
                 return None
 
-            # get test_date from filepath
-            split_filepath = filepath.split("\\")
-            filename = split_filepath[len(split_filepath) - 1]
+            filename = filepath.split("\\")[-1]
 
             # if len(custom_properties) > 30, put the first 30 in
             # 'properties' and the next 30 in 'appProperties'. The rest are
@@ -456,12 +454,16 @@ class GoogleDriveHandler:
                 self.__no_internet()
                 return
 
-    def download(self, file: dict) -> str:
+    def download(self, file: dict, progressBar=None, file_i: int = 0,
+                 total_files: int = 1) -> str:
         """
         Downloads the file as specified by the Google Drive file metadata
         dictionary input into the default download directory.
 
+        :param total_files:
         :param file:
+        :param progressBar:
+        :param file_i:
         :return:
         """
         # src: https://developers.google.com/drive/api/v3/manage-downloads
@@ -473,9 +475,18 @@ class GoogleDriveHandler:
             return ""
         fh = io.BytesIO()
         downloader = MediaIoBaseDownload(fh, request)
+
+        each_file_full_progress = 1 / total_files
+        completed_progress = file_i / total_files
         done = False
-        while done is False:
+        while not done:
+            # TODO Faris add progress bar
             status, done = downloader.next_chunk()
+            if progressBar and total_files != 0:
+                current_file_progress = status.progress() \
+                                        * each_file_full_progress
+                progressBar.setValue(int((completed_progress
+                                         + current_file_progress) * 100))
 
         # The file has been downloaded into RAM, now save it in a file
         # src: https://stackoverflow.com/a/55989689/11031425
