@@ -25,16 +25,15 @@ class Data:
                     self.generate_object(SensorId[sensor_id]["name"], object_type, param_dict)
                 except KeyError:
                     try:
-                        i = 0
-                        while True:
+                        num_sub_ids = len(SensorId[sensor_id]["num_bytes"])
+                        for i in range(num_sub_ids):
                             object_type = SensorId[sensor_id][i]["object"]
                             param_dict = SensorId[sensor_id][i]
                             param_dict["id"] = sensor_id
                             self.generate_object(SensorId[sensor_id][i]["name"], object_type, param_dict)
-                            i = i + 1
                     except KeyError as e:
                         logger.error(e)
-                        logger.error("Key error in __init__ 1")
+                        logger.error("Key error in __init__ 1: {}".format(sensor_id))
 
             for sensor_name in derived_sensors:
                 try:
@@ -46,7 +45,7 @@ class Data:
                     self.generate_object(sensor_name, object_type, param_dict, sensors)
                 except KeyError as e:
                     logger.error(e)
-                    logger.error("Key error in __init__ 2")
+                    logger.error("Key error in __init__ 2: {}".format(sensor_id))
 
             '''
             # Internal sensors
@@ -175,7 +174,7 @@ class Data:
         :param is_plottable: If the sensor can be plotted against time (True/False, defaults to None)
         :param is_derived: If the value of the 'sensor' is derived from other sensors (True/False, defaults to None)
         :param is_connected: If the sensor is connected (True/False, defaults to None)
-        :return: A list of sensor key names
+        :return: A list of sensor key (ID's)
         """
 
         logger.debug("Getting a list of sensors")
@@ -267,7 +266,7 @@ class Data:
             for sensor in sensors:
                 self.__data[sensor].reset()
 
-    # ---------------------------- Below are functions to only be used by DataImport ----------------------------
+    # ---------------------------- Below are functions to only be used by GDriveDataImport ----------------------------
     def set_connected(self, sensor_id):
         try:
             self.__data[SensorId[sensor_id]["name"]].is_connected = True

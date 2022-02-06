@@ -10,7 +10,7 @@ logging_objects = {
     "GTORNetwork": CRITICAL,
     "Homepage": INFO,
     "DataCollection": DEBUG,
-    "DataImport": ERROR,
+    "GDriveDataImport": ERROR,
     "BlinkLEDTest": DEBUG,
     "EngineDyno": DEBUG
 }

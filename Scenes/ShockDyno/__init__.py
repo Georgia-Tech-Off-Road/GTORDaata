@@ -11,7 +11,7 @@ from DataAcquisition import data_import
 from Utilities.CustomWidgets.Plotting import CustomPlotWidget, GridPlotLayout
 from Scenes import DAATAScene
 import logging
-import time
+from datetime import datetime
 
 # Default plot configuration for pyqtgraph
 pg.setConfigOption('background', 'w')   # white
@@ -65,6 +65,8 @@ class ShockDyno(DAATAScene, uiFile):
 
     def slot_data_collecting_state_change(self):
         if self.button_display.isChecked():
+            if self.collection_start_time == datetime.min:
+                self.collection_start_time = datetime.now()
             self.indicator_onOrOff.setText("On")
             self.indicator_onOrOff.setStyleSheet("color: green;")
             self.button_display.setText("Stop Collecting Data")
@@ -74,7 +76,8 @@ class ShockDyno(DAATAScene, uiFile):
             self.indicator_onOrOff.setStyleSheet("color: red;")
             self.button_display.setText("Start Collecting Data")
             self.is_data_collecting.clear()
-            self.popup_dataSaveLocation()
+            self.popup_dataSaveLocation("ShockDynoTest",
+                                        self.collection_start_time)
 
     def slot_tare_load_cell(self):
         logger.info("Taring load cell")
