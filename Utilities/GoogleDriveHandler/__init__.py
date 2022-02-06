@@ -34,6 +34,14 @@ class DriveSearchQuery:
 
 
 class GoogleDriveHandler:
+    class NoInternetError(ConnectionError):
+        """No Internet"""
+        pass
+
+    class MissingOAuthFileError(AttributeError):
+        """Missing oAuth file"""
+        pass
+
     # ROOT_FOLDER is "GTORDaata Graph Files"
     _ROOT_FOLDER_ID = "1OaMbG-wAqC6_Ad8u5FiNS9L8z2W7eB2i"
     _DRIVE_ID = "0AFmSv7widPF9Uk9PVA"  # Drive ID of GTOR_DAQ_DATA shared drive
@@ -52,39 +60,20 @@ class GoogleDriveHandler:
         }
         self.current_drive_folder = {"id": "", "name": ""}
 
-        if not os.path.exists(secret_client_file_path):
-            GenericPopup("Missing oAuth File",
-                         f"oAuth file not detected in path "
-                         f"{secret_client_file_path} entered")
-            raise ValueError("Missing oAuth file")
-        if not os.path.exists(self.DEFAULT_UPLOAD_DIRECTORY):
-            logger.info(
-                "Default path " + self.DEFAULT_UPLOAD_DIRECTORY
-                + " not found. Making the directory...")
-            os.makedirs(self.DEFAULT_UPLOAD_DIRECTORY)
-        if not os.path.exists(self.DEFAULT_DOWNLOAD_DIRECTORY):
-            logger.info(
-                "Default path " + self.DEFAULT_DOWNLOAD_DIRECTORY
-                + " not found. Making the directory...")
-            os.makedirs(self.DEFAULT_DOWNLOAD_DIRECTORY)
+        if not os.path.isfile(secret_client_file_path):
+            raise self.MissingOAuthFileError()
+        self.initialize_download_upload_directories()
         self.DRIVE_SERVICE = self.__create_drive_service(
             secret_client_file_path)
-
-    class NoInternetError(ConnectionError):
-        """No Internet"""
-        pass
+        self.__warning_msg: str = ""
 
     def __create_drive_service(self, secret_client_file: str):
-        if not os.path.exists(secret_client_file):
-            GenericPopup("oAuth file not detected")
-            return None
-
         # checks internet connection
         try:
             requests.head("https://www.google.com/", timeout=1)
         except requests.ConnectionError:
-            self.no_internet()
-            raise self.NoInternetError
+            self.__no_internet()
+            return
 
         CLIENT_SECRET_FILE = secret_client_file
         API_NAME = 'drive'
@@ -95,7 +84,7 @@ class GoogleDriveHandler:
             return Create_Service(
                 CLIENT_SECRET_FILE, API_NAME, API_VERSION, SCOPES)
         except google.auth.exceptions.RefreshError:
-            os.remove("token_drive_v3.pickle")
+            os.remove("token_drive_v3.pickle")  # the file must exist
             return Create_Service(
                 CLIENT_SECRET_FILE, API_NAME, API_VERSION, SCOPES)
 
@@ -173,8 +162,7 @@ class GoogleDriveHandler:
                 found_files.extend(response.get('files', []))
                 page_token = response.get('nextPageToken', None)
             except httplib2.error.ServerNotFoundError:
-                self.no_internet()
-                break
+                raise self.NoInternetError
             if page_token is None:
                 break
 
@@ -259,7 +247,9 @@ class GoogleDriveHandler:
 
         return filtered_list
 
-    def __validate_and_upload(self, filepath: str):
+    def __validate_and_upload(self, filepath: str,
+                              progressBar=None, file_i: int = 0,
+                              total_files: int = 1):
         # get filename from filepath
         split_filepath = filepath.split("\\")
         filename = split_filepath[len(split_filepath) - 1]
@@ -270,6 +260,8 @@ class GoogleDriveHandler:
                       + '.json') as json_file:
                 file_metadata = json.load(json_file)
         except FileNotFoundError:
+            self.__warning_msg = f"{self.__warning_msg}; Metadata JSON file " \
+                                 f"missing for {filename}"
             logger.error("Metadata JSON file missing.")
             return None
 
@@ -289,15 +281,19 @@ class GoogleDriveHandler:
         if filename[-4:] == ".csv":
             file_id = self.upload(filepath, self.MIME_TYPES["csv"],
                                   day_folder_id,
-                                  custom_properties=file_metadata)
-            if file_id is not None:
+                                  custom_properties=file_metadata,
+                                  progressBar=progressBar, file_i=file_i,
+                                  total_files=total_files)
+            if file_id:
                 self.remove_file(filepath)
                 return file_id
         elif filename[-4:] == ".mat":
             file_id = self.upload(filepath, self.MIME_TYPES["mat"],
                                   day_folder_id,
-                                  custom_properties=file_metadata)
-            if file_id is not None:
+                                  custom_properties=file_metadata,
+                                  progressBar=progressBar, file_i=file_i,
+                                  total_files=total_files)
+            if file_id:
                 self.remove_file(filepath)
                 return file_id
         elif filename[-5:] == ".json":
@@ -378,7 +374,8 @@ class GoogleDriveHandler:
                            self.MIME_TYPES["folder"], parent_folder_id)
 
     def upload(self, filepath: str, mime_type: str,
-               parent_folder_id: str = 'root', custom_properties: dict = None):
+               parent_folder_id: str = 'root', custom_properties: dict = None,
+               progressBar=None, file_i: int = 0, total_files: int = 1) -> str:
         """
         Uploads the file or creates a new folder in the specified Google Drive
         parent folder. Returns file or folder ID, or None if an error occurs.
@@ -387,9 +384,9 @@ class GoogleDriveHandler:
         'myFolder'
         """
 
-        if mime_type is None:
+        if not mime_type:
             logging.error("Mime type not given.")
-            return None
+            return ""
 
         # if file being uploaded is a folder, we are not uploading anything but
         # instead creating a new folder
@@ -408,18 +405,16 @@ class GoogleDriveHandler:
                     "Folder " + filepath + " successfully created in GDrive.")
                 return folder.get('id')
             except httplib2.error.ServerNotFoundError:
-                self.no_internet()
-                return None
+                self.__no_internet()
+                return ""
         else:
             # check if file exists
-            if not os.path.exists(filepath):
+            if not os.path.isfile(filepath):
                 logging.error(f"File {filepath} does not exist and thus, "
                               f"cannot be uploaded to Google Drive")
-                return None
+                return ""
 
-            # get test_date from filepath
-            split_filepath = filepath.split("\\")
-            filename = split_filepath[len(split_filepath) - 1]
+            filename = filepath.split("\\")[-1]
 
             # if len(custom_properties) > 30, put the first 30 in
             # 'properties' and the next 30 in 'appProperties'. The rest are
@@ -446,32 +441,63 @@ class GoogleDriveHandler:
                             break
 
             # upload to GDrive
+            # src: https://stackoverflow.com/a/49483101/11031425
             file_metadata = {
                 'name': filename,
                 'parents': [parent_folder_id],
                 'properties': gDrive_properties,
                 'appProperties': gDrive_appProperties
             }
-            media = MediaFileUpload(filepath, mimetype=mime_type)
+            media = MediaFileUpload(filepath,
+                                    chunksize=1024 * 1024,
+                                    mimetype=mime_type,
+                                    resumable=True)
             try:
-                file = self.DRIVE_SERVICE.files().create(
+                request = self.DRIVE_SERVICE.files().create(
                     body=file_metadata,
                     supportsAllDrives=True,
                     media_body=media,
                     fields='id'
-                ).execute()
+                )
+                response = None
+                each_file_full_progress = 1 / total_files
+                completed_progress = file_i / total_files
+                if progressBar:
+                    logger.info(
+                        "Uploading from GDrive starting... Program may hang "
+                        "for a while during uploading")
+                    while response is None:
+                        status, response = request.next_chunk()
+                        if not status:
+                            continue
+                        current_file_progress = \
+                            status.progress() * each_file_full_progress
+                        completed_current_progress_pc \
+                            = round((completed_progress
+                                     + current_file_progress) * 100, 2)
+                        logger.info(
+                            f"Uploading: {completed_current_progress_pc}%")
+                        progressBar.setValue(int(completed_current_progress_pc))
+                    logger.info(f"Upload of {filepath} complete")
+                else:
+                    while response is None:
+                        status, response = request.next_chunk()
                 logger.info("Files successfully saved to Google Drive")
-                return file.get('id')
+                return response.get('id')
             except httplib2.error.ServerNotFoundError:
-                self.no_internet()
-                return None
+                self.__no_internet()
+                return ""
 
-    def download(self, file: dict) -> str:
+    def download(self, file: dict, progressBar=None, file_i: int = 0,
+                 total_files: int = 1) -> str:
         """
         Downloads the file as specified by the Google Drive file metadata
         dictionary input into the default download directory.
 
+        :param total_files:
         :param file:
+        :param progressBar:
+        :param file_i:
         :return:
         """
         # src: https://developers.google.com/drive/api/v3/manage-downloads
@@ -479,13 +505,33 @@ class GoogleDriveHandler:
             request = self.DRIVE_SERVICE.files().get_media(
                 fileId=file.get('id'))
         except httplib2.error.ServerNotFoundError:
-            self.no_internet()
+            self.__no_internet()
             return ""
         fh = io.BytesIO()
         downloader = MediaIoBaseDownload(fh, request)
+
+        each_file_full_progress = 1 / total_files
+        completed_progress = file_i / total_files
         done = False
-        while done is False:
-            status, done = downloader.next_chunk()
+        if progressBar:
+            logger.info("Downloading from GDrive starting... Program may hang "
+                        "for a while during downloading")
+            while not done:
+                status, done = downloader.next_chunk()
+                if not status:
+                    continue
+                current_file_progress = status.progress() \
+                                        * each_file_full_progress
+                completed_current_progress_pc \
+                    = round((completed_progress
+                             + current_file_progress) * 100, 2)
+                logger.info(
+                    f"Downloading: {completed_current_progress_pc}%")
+                progressBar.setValue(int(completed_current_progress_pc))
+            logger.info(f"Download of {file.get('name')} complete")
+        else:
+            while not done:
+                status, done = downloader.next_chunk()
 
         # The file has been downloaded into RAM, now save it in a file
         # src: https://stackoverflow.com/a/55989689/11031425
@@ -496,18 +542,20 @@ class GoogleDriveHandler:
             f.write(fh.read())
         return filepath
 
-    def download_and_display(self, file: dict, import_window) -> str:
+    def download_and_close(self, file: dict, import_window, progressBar=None) \
+            -> str:
         """
         Downloads the chosen file to the local hard disk and displays the
         graphs. Currently, only implemented for the Data Collection scene.
 
+        :param progressBar:
         :param file: Google Drive metadate of the file that will be downloaded
         :param import_window: GDriveDataImport object to be closed
         :return: The full filepath of the downloaded file; "" if an error
         occurred
         """
         import_window.close()
-        return self.download(file)
+        return self.download(file=file, progressBar=progressBar)
 
     def upload_all_to_drive(self, progressBar_GD=None) -> bool:
         """
@@ -519,7 +567,7 @@ class GoogleDriveHandler:
         09/30/2021
         """
 
-        # test_file = ""
+        self.__warning_msg = ""
 
         if self.DRIVE_SERVICE is None:
             return False
@@ -536,29 +584,21 @@ class GoogleDriveHandler:
             for file_i, filename in enumerate(files_to_upload):
                 if filename[-3:] == "csv" or filename[-3:] == "mat":
                     filepath = directory + filename
-                    self.__validate_and_upload(filepath)
-                    # test_file = filename
-                if progressBar_GD is not None:
-                    progressBar_GD.setValue(int(
-                        (file_i + 1) * 100 / len(files_to_upload)))
-            logger.info("Uploading done")
-        if progressBar_GD is not None:
-            progressBar_GD.hide()
-
+                    self.__validate_and_upload(filepath=filepath,
+                                               progressBar=progressBar_GD,
+                                               file_i=file_i,
+                                               total_files=len(files_to_upload))
+                # if progressBar_GD is not None:
+                #     progressBar_GD.setValue(int(
+                #         (file_i + 1) * 100 / len(files_to_upload)))
+            logger.info("Uploading of all files done")
+        progressBar_GD.setValue(100)
         return True
 
-        # TEST MODULE -- only for debugging
-        # toFind = DriveSearchQuery(filename=test_file)
-        # list_of_files = self.find_file_in_drive(toFind)
-        # print("Found = ", end="")
-        # if len(list_of_files) > 0:
-        #     print(len(list_of_files))
-        #     props = list_of_files[0].get('properties')
-        #     appProps = list_of_files[0].get('appProperties')
-        #     print(props)
-        #     print(appProps)
-        # else:
-        #     print("No files to print")
+    def __no_internet(self) -> None:
+        logger.error("Failed to find Google Drive server. "
+                     "Possibly due to internet problems.")
+        raise self.NoInternetError
 
     @staticmethod
     def openSecGDInfo() -> bool:
@@ -659,6 +699,19 @@ class GoogleDriveHandler:
             return False
 
     @staticmethod
+    def initialize_download_upload_directories() -> None:
+        if not os.path.exists(gdrive_constants.DEFAULT_UPLOAD_DIRECTORY):
+            logger.info(
+                f"Default path {gdrive_constants.DEFAULT_UPLOAD_DIRECTORY} not "
+                f"found. Making the directory...")
+            os.makedirs(gdrive_constants.DEFAULT_UPLOAD_DIRECTORY)
+        if not os.path.exists(gdrive_constants.DEFAULT_DOWNLOAD_DIRECTORY):
+            logger.info(
+                f"Default path {gdrive_constants.DEFAULT_DOWNLOAD_DIRECTORY} "
+                f"not found. Making the directory...")
+            os.makedirs(gdrive_constants.DEFAULT_DOWNLOAD_DIRECTORY)
+
+    @staticmethod
     def utc_to_local(dt_utc: datetime) -> datetime:
         utc_offset = datetime.utcnow() - datetime.now()  # +5:00
         return dt_utc - utc_offset
@@ -668,10 +721,7 @@ class GoogleDriveHandler:
         utc_offset = datetime.utcnow() - datetime.now()  # +5:00
         return dt_local + utc_offset
 
-    @staticmethod
-    def no_internet():
-        logger.error("Failed to find Google Drive server. "
-                     "Possibly due to internet problems.")
-        GenericPopup("No Internet",
-                     "All files have been saved offline and will be uploaded "
-                     "at the next upload instance")
+    @property
+    def warning_msg(self):
+        return self.__warning_msg
+

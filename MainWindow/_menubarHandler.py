@@ -53,8 +53,16 @@ def create_google_drive_menu(self):
     self.upload_remaining_gDrive_widget.setCheckable(False)
     self.upload_remaining_gDrive_widget.setToolTip(
         "Upload remaining files to Google Drive")
-    self.upload_remaining_gDrive_widget.setText("Upload remaining files")
+    self.upload_remaining_gDrive_widget.setText("Upload all remaining files")
     self.google_drive_menu.addAction(self.upload_remaining_gDrive_widget)
+
+    # Add upload manual to Google Drive button
+    self.manual_upload_gDrive_widget = QtWidgets.QAction(self)
+    self.manual_upload_gDrive_widget.setCheckable(False)
+    self.manual_upload_gDrive_widget.setToolTip(
+        "Upload one file manually to Google Drive")
+    self.manual_upload_gDrive_widget.setText("Upload a file manually")
+    self.google_drive_menu.addAction(self.manual_upload_gDrive_widget)
 
 
 # class MenuAction:

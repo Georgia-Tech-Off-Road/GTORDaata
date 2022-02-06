@@ -1,8 +1,10 @@
 from pathlib import Path
 
+# do not change the \\ to / as it will require change in code in other areas
 _DEFAULT_DIRECTORY = str(Path.home()) + '\\AppData\\Local\\GTOffRoad\\'
 DEFAULT_UPLOAD_DIRECTORY = _DEFAULT_DIRECTORY + 'UploadQueue\\'
 DEFAULT_DOWNLOAD_DIRECTORY = _DEFAULT_DIRECTORY + 'Downloads\\'
+
 DURATION_OPTIONS = ("All", "Under 4 minutes", "4-20 minutes",
                     "Over 20 minutes")
 TEST_DATE_PERIOD_OPTIONS = ("All", "Last hour", "Today", "This week",

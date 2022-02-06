@@ -1,10 +1,12 @@
-import numpy
-import scipy.io as sio
-import os
 from DataAcquisition import data
+import logging
+import os
+import scipy.io as sio
 
+logger = logging.getLogger("DataExport")
 
 def saveMAT(filename, directory):
+    logger.info("Constructing MAT file...")
     if filename == "":
         return
     if ".mat" not in filename:
@@ -21,6 +23,8 @@ def saveMAT(filename, directory):
         dataDict['collected_data'][sensor] = data.get_values(sensor, lastIndex, lastIndex+1)
 
     sio.savemat(os.path.join(directory, filename), dataDict, appendmat=True, oned_as="column")
+
+    logger.info("MAT file constructed successfully")
 
 
 if __name__ == "__main__":

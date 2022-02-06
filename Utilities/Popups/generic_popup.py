@@ -19,7 +19,16 @@ class GenericPopup(QtWidgets.QDialog, uiFile):
         self.heading2_text.setText(heading2)
 
     def __connectSlotsSignals(self):
-        self.ok_button.clicked.connect(self.__close_popup)
+        self.ok_button.clicked.connect(self.close)
 
-    def __close_popup(self):
-        self.close()
+    def closeEvent(self, event):
+        event.accept()
+
+
+# from PyQt5.QtWidgets import QApplication
+# import sys
+#
+# if __name__ == "__main__":
+#     app = QApplication(sys.argv)
+#     G = GenericPopup("blob", "blob2")
+#     sys.exit(app.exec_())
