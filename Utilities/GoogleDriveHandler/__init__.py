@@ -463,16 +463,22 @@ class GoogleDriveHandler:
                 each_file_full_progress = 1 / total_files
                 completed_progress = file_i / total_files
                 if progressBar:
+                    logger.info(
+                        "Uploading from GDrive starting... Program may hang "
+                        "for a while during uploading")
                     while response is None:
                         status, response = request.next_chunk()
                         if not status:
                             continue
                         current_file_progress = \
                             status.progress() * each_file_full_progress
-                        # TODO Faris remove
-                        print(completed_progress + current_file_progress)
-                        progressBar.setValue(int(
-                            (completed_progress + current_file_progress) * 100))
+                        completed_current_progress_pc \
+                            = round((completed_progress
+                                     + current_file_progress) * 100, 2)
+                        logger.info(
+                            f"Uploading: {completed_current_progress_pc}%")
+                        progressBar.setValue(int(completed_current_progress_pc))
+                    logger.info(f"Upload of {filepath} complete")
                 else:
                     while response is None:
                         status, response = request.next_chunk()
@@ -508,16 +514,21 @@ class GoogleDriveHandler:
         completed_progress = file_i / total_files
         done = False
         if progressBar:
+            logger.info("Downloading from GDrive starting... Program may hang "
+                        "for a while during downloading")
             while not done:
                 status, done = downloader.next_chunk()
                 if not status:
                     continue
                 current_file_progress = status.progress() \
                                         * each_file_full_progress
-                # TODO Faris remove
-                print(completed_progress + current_file_progress)
-                progressBar.setValue(int((completed_progress
-                                         + current_file_progress) * 100))
+                completed_current_progress_pc \
+                    = round((completed_progress
+                             + current_file_progress) * 100, 2)
+                logger.info(
+                    f"Downloading: {completed_current_progress_pc}%")
+                progressBar.setValue(int(completed_current_progress_pc))
+            logger.info(f"Download of {file.get('name')} complete")
         else:
             while not done:
                 status, done = downloader.next_chunk()
@@ -580,7 +591,7 @@ class GoogleDriveHandler:
                 # if progressBar_GD is not None:
                 #     progressBar_GD.setValue(int(
                 #         (file_i + 1) * 100 / len(files_to_upload)))
-            logger.info("Uploading done")
+            logger.info("Uploading of all files done")
         progressBar_GD.setValue(100)
         return True
 
