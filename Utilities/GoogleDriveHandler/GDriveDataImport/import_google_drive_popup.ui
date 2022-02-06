@@ -260,11 +260,11 @@
     </layout>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout">
+    <layout class="QGridLayout" name="gridLayout_4">
      <property name="sizeConstraint">
       <enum>QLayout::SetDefaultConstraint</enum>
      </property>
-     <item>
+     <item row="0" column="0">
       <widget class="QLabel" name="label_10">
        <property name="maximumSize">
         <size>
@@ -277,7 +277,7 @@
        </property>
       </widget>
      </item>
-     <item>
+     <item row="0" column="1">
       <widget class="QPlainTextEdit" name="sec_file">
        <property name="maximumSize">
         <size>
@@ -287,6 +287,19 @@
        </property>
        <property name="placeholderText">
         <string>C:\Users\afari\Documents\secret.json</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="2">
+      <widget class="QPushButton" name="selectFile">
+       <property name="maximumSize">
+        <size>
+         <width>75</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>📁</string>
        </property>
       </widget>
      </item>
@@ -324,11 +337,18 @@
         <x>0</x>
         <y>0</y>
         <width>900</width>
-        <height>199</height>
+        <height>176</height>
        </rect>
       </property>
       <layout class="QGridLayout" name="gridLayout_2"/>
      </widget>
+    </widget>
+   </item>
+   <item>
+    <widget class="QProgressBar" name="progressBar">
+     <property name="value">
+      <number>0</number>
+     </property>
     </widget>
    </item>
    <item>
