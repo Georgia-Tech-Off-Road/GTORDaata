@@ -4,6 +4,8 @@ from pathlib import Path
 _DEFAULT_DIRECTORY = str(Path.home()) + '\\AppData\\Local\\GTOffRoad\\'
 DEFAULT_UPLOAD_DIRECTORY = _DEFAULT_DIRECTORY + 'UploadQueue\\'
 DEFAULT_DOWNLOAD_DIRECTORY = _DEFAULT_DIRECTORY + 'Downloads\\'
+PICKLE_DIRECTORY = './Utilities/GoogleDriveHandler'
+GDRIVE_OAUTH2_SECRET = "./Utilities/GoogleDriveHandler/gdrive_sec_client.json"
 
 DURATION_OPTIONS = ("All", "Under 4 minutes", "4-20 minutes",
                     "Over 20 minutes")
