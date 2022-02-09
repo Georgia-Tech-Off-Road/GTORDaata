@@ -349,7 +349,7 @@ class GridPlotLayout(QGridLayout):
             self.addWidget(widg, newRow, newCol)
             self.addWidget(displacedWidg, oldRow, oldCol)
         except AttributeError:
-            pass
+            logger.debug(logger.findCaller(True))
 
     def widgetAtPosition(self, row, col):
         return self.itemAtPosition(row, col).widget()

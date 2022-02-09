@@ -124,7 +124,7 @@ class EngineDyno(DAATAScene, uiFile):
             str_time = format_time.format(hours=hours_elapsed, minutes=minutes_elapsed, seconds=seconds_elapsed)
             self.label_timeElapsed.setText(str_time)
         except TypeError:
-            pass
+            logger.debug(logger.findCaller(True))
 
     def update_active(self):
         """
@@ -259,7 +259,7 @@ class EngineDyno(DAATAScene, uiFile):
                     '(' + str(active_sensor_count) + '/' + str(len(self.graph_objects)) + ')')
         except TypeError or KeyError:
             logger.error("Possibly invalid key in config. May need to clear config file using self.configFile.clear()")
-            pass
+            logger.debug(logger.findCaller(True))
 
         self.comboBox_graphDimension.setCurrentText(self.configFile.value('graph_dimension'))
         # self.slot_graphDimension()

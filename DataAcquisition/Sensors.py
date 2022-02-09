@@ -36,6 +36,7 @@ class Sensor(metaclass=ABCMeta):
                 self.most_recent_index = len(self.values) - 1
         except Exception as e:
             logger.error(e)
+            logger.debug(logger.findCaller(True))
 
     def get_value(self, index=None):
         try:
@@ -65,6 +66,7 @@ class Sensor(metaclass=ABCMeta):
             self.most_recent_index = 0
         except Exception as e:
             logger.error(e)
+            logger.debug(logger.findCaller(True))
 
     def transfer_function(self, value):
         return value
@@ -110,6 +112,7 @@ class Time(Sensor):
             self.start_time = datetime.now()
         except Exception as e:
             logger.error(e)
+            logger.debug(logger.findCaller(True))
 
 
 class Speed(Sensor):
