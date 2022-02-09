@@ -159,6 +159,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             }}
         QStackedWidget {{
             background-color: {bg_color_2};
+            color: {default_text};
         }}
         QMenuBar {{
             background: {bg_color};
@@ -169,10 +170,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             background: transparent;
             border-right: 1px solid lightGray;
             background-color: {bg_color_2};
-
+            color: {default_text};
             }}
         QMenuBar::item:selected {{
             background: {bg_color};
+            color: {default_text};
             }}
         
         

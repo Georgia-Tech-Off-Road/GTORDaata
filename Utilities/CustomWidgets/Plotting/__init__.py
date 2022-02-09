@@ -20,6 +20,8 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
         self.setupUi(self)
         self.sensor_name = sensor_name
 
+        pg.setConfigOption('foreground', 'w')
+
         self.enable_multi_plot = kwargs.get("enable_multi_plot", False)
         self.multi_sensors = kwargs.get("multi_sensors", None)
 
@@ -85,7 +87,7 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
 
         self.configFile = QtCore.QSettings('DAATA_plot', self.sensor_name)
         self.configFile.clear()
-        #self.loadStylesheet()
+        self.loadStylesheet()
         self.loadSettings()
 
     def loadStylesheet(self):
