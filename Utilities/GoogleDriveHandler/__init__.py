@@ -618,25 +618,6 @@ class GoogleDriveHandler:
         raise self.NoInternetError
 
     @staticmethod
-    def openSecGDInfo() -> bool:
-        """
-        Opens the information file "How to: Google Drive Secret Client File"
-        on the Google Drive. The file instructs the user how to download
-        their own personal Google Drive secret client file needed to upload
-        things to Google Drive.
-        """
-        try:
-            webbrowser.open("https://docs.google.com/presentation/d/"
-                            "1YInB3CuCPPKrWF0j-Wo1OCaAVuUZlWiRNbc8Bd_sezY/"
-                            "edit?usp=sharing")
-            return True
-        except httplib2.error.ServerNotFoundError:
-            logger.error("Failed to find Google Drive server. "
-                         "Possibly due to internet problems.")
-            GenericPopup("No Internet")
-            return False
-
-    @staticmethod
     def __get_test_begin_end_time(file: dict) -> list:
         """
 
