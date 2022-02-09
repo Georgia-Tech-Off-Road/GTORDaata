@@ -33,6 +33,7 @@ class Data:
                             self.generate_object(SensorId[sensor_id][i]["name"], object_type, param_dict)
                     except KeyError as e:
                         logger.error(e)
+                        logger.debug(logger.findCaller(True))
                         logger.error("Key error in __init__ 1: {}".format(sensor_id))
 
             for sensor_name in derived_sensors:
@@ -45,6 +46,7 @@ class Data:
                     self.generate_object(sensor_name, object_type, param_dict, sensors)
                 except KeyError as e:
                     logger.error(e)
+                    logger.debug(logger.findCaller(True))
                     logger.error("Key error in __init__ 2: {}".format(sensor_id))
 
             '''
@@ -138,6 +140,7 @@ class Data:
                 return self.__data[sensor_name].current_value
             except Exception as e:
                 logger.error(e)
+                logger.debug(logger.findCaller(True))
                 logger.error("Error in get_current_value for sensor {}".format(sensor_name))
                 return None
 
@@ -147,6 +150,7 @@ class Data:
                 self.__data[sensor_name].current_value = value
             except Exception as e:
                 logger.error(e)
+                logger.debug(logger.findCaller(True))
                 logger.error("Error in set_current_value for sensor {}".format(sensor_name))
 
     def set_sensor_scale(self, sensor_name, scale_factor):
@@ -162,6 +166,7 @@ class Data:
                 self.__data[sensor_name].scale = scale_factor
             except Exception as e:
                 logger.error(e)
+                logger.debug(logger.findCaller(True))
                 logger.error("Error in set_sensor_scale for sensor {}".format(sensor_name))
 
     def get_sensors(self, is_external=None, is_plottable=None, is_derived=None, is_connected=None):
@@ -281,6 +286,7 @@ class Data:
                 logger.error("Key error occurred in add_value for sensor with ID: {}".format(sensor_id))
         except Exception as e:
             logger.error(e)
+            logger.debug(logger.findCaller(True))
             logger.error("Error in set_connected")
 
     def set_disconnected(self, sensor_id):
@@ -297,6 +303,7 @@ class Data:
                 logger.error("Key error occurred in add_value for sensor with ID: {}".format(sensor_id))
         except Exception as e:
             logger.error(e)
+            logger.debug(logger.findCaller(True))
             logger.error("Error in set_disconnected")
 
     def pack(self, sensor_id):
@@ -309,6 +316,7 @@ class Data:
                 return bytearray(data)
         except Exception as e:
             logger.error(e)
+            logger.debug(logger.findCaller(True))
             logger.error("Error in pack")
 
     def add_value(self, sensor_id, value=None):
@@ -323,6 +331,7 @@ class Data:
                 logger.error("Key error occurred in add_value for sensor with ID: {}".format(sensor_id))
         except Exception as e:
             logger.error(e)
+            logger.debug(logger.findCaller(True))
             logger.error("Error in add_value")
 
 

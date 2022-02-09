@@ -104,8 +104,9 @@ class DataImport:
             logger.info("Teensy found on port {}".format(self.teensy_ser.port))
             self.teensy_found = True
         except Exception as e:
-            self.teensy_found = False
+            self.teensy_found = False            
             logger.error(e)
+            logger.debug(logger.findCaller(True))
             logger.error("Error in connect_serial")
 
         
@@ -207,6 +208,7 @@ class DataImport:
                 self.teensy_ser.write(packet)
         except Exception as e:
             logger.error(e)
+            logger.debug(logger.findCaller(True))
             logger.error("Error in sending packet")
 
     def packetize(self):
@@ -227,6 +229,7 @@ class DataImport:
                     byte_data = byte_data + self.data.pack(sensor_id)
                 except KeyError as e:
                     logger.error(e)
+                    logger.debug(logger.findCaller(True))
                     logger.error("Error in packetize with ack 3")
             logger.debug("Sending data : {}".format(byte_data))
             return b'\x03' + byte_data + end_code
@@ -237,6 +240,7 @@ class DataImport:
                     byte_data = byte_data + self.data.pack(sensor_id)
                 except KeyError as e:
                     logger.error(e)
+                    logger.debug(logger.findCaller(True))
                     logger.error("Error in packetize with ack 2")
             logger.debug("Sending packet : {}".format(b'\x02' + byte_data + end_code))
             return b'\x02' + byte_data + end_code
@@ -249,6 +253,7 @@ class DataImport:
                         num_bytes = SensorId[sensor_id]['num_bytes']
                     except KeyError as e:
                         logger.error(e)
+                        logger.debug(logger.findCaller(True))
                         logger.error("Error in packetize with ack 1")
                     settings_array = [sensor_id % 256, sensor_id // 256, num_bytes]
                     settings = settings + bytearray(settings_array)
@@ -266,6 +271,7 @@ class DataImport:
                         num_bytes = SensorId[sensor_id]['num_bytes']
                     except KeyError as e:
                         logger.error(e)
+                        logger.debug(logger.findCaller(True))
                         logger.error("Error in packetize with ack 0")
                     settings_array = [sensor_id % 256, sensor_id // 256, num_bytes]
                     settings = settings + bytearray(settings_array)
@@ -351,6 +357,7 @@ class DataImport:
                         self.teensy_ser.flushInput()
                 except Exception as e:
                     logger.error(e)
+                    logger.debug(logger.findCaller(True))
                     logger.error("Error reading data from teensy")
 
         # if 0x00, then parse settings and send settings
@@ -385,6 +392,7 @@ class DataImport:
                 logger.error("Expected {} bytes from block_id: {} but got {} bytes.".format(num_bytes, this_sensor_id, int.from_bytes(self.current_packet[i + 2], "little")))
             except KeyError as e:
                 logger.error("May have received the erroneous block_id: {}".format(this_sensor_id))
+                logger.debug(logger.findCaller(True))
         else:
             logger.error("The ack code that was received was not a valid value")
 
