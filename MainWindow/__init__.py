@@ -25,7 +25,12 @@ from Utilities.DataExport.dataFileExplorer import open_data_file
 from Utilities.GoogleDriveHandler.GDriveDataExport import CreateUploadJSON
 from Utilities.GoogleDriveHandler.GDriveDataImport import GDriveDataImport as GoogleDriveDataImport
 
-import itertools
+from PyQt5.QtCore import QFile, QTextStream, Qt
+from PyQt5.QtGui import QPalette, QColor
+from PyQt5.QtWidgets import QApplication
+#import breeze_resources
+
+import re, itertools
 import winreg as winreg
 
 logger = logging.getLogger("MainWindow")
@@ -46,7 +51,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         data_import.attach_internal_sensor(101)
 
         # Set up all the elements of the UI
-        self.setupUi(self)
+        self.setupUi(self)        
 
         # instantiates dictionary that holds objects for widgets
         self.dict_scenes = {}
@@ -99,8 +104,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                     try:
                         if (self.update_counter_active % scene.update_period) == 0:
                             scene.update_active()
-                    except Exception:
-                        pass
+                    except Exception as e:
+                        logger.error(e)
+                        logger.debug(logger.findCaller(True))
 
     def update_passive(self):
         """
@@ -137,66 +143,77 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         """
 
         stylesheet = """
-        /*  MainWindow color scheme  */
+        /*  MainWindow color scheme  */        
         QMainWindow {{
-            background: {bgColor};
+            background: {bg_color};
+            color: {default_text};
             }}
 
         QMainWindow [objectName^="tab_scenes"] {{
-            background: {bgColor};
+            background: {bg_color};
+            color: {default_text};
             }}
         QMainWindow QTabWidget {{
             }}
         QStackedWidget {{
-            background-color: {bgColor2};
+            background-color: {bg_color_2};
+            color: {default_text};
         }}
         QMenuBar {{
-            background: white;
+            background: {bg_color};
+            color: {default_text};
             }}
         QMenuBar::item {{
             padding: 4px;
             background: transparent;
             border-right: 1px solid lightGray;
-
+            background-color: {bg_color_2};
+            color: {default_text};
             }}
         QMenuBar::item:selected {{
-            background: rgb(237,237,237,100);
+            background: {bg_color};
+            color: {default_text};
             }}
         
         
         
         /*  DataCollection scene color scheme   */
         DataCollection QWidget {{
-            background-color: {foreColor};
+            background-color: {bg_color};
+            color: {default_text};
             }}
         DataCollection QPushButton {{
-            background-color: white;
+            background-color: {bg_color_2};
+            color: {default_text};
             }}
         DataCollection CustomPlotWidget {{
             border-radius: 7px;
             border: 1px solid gray;
+            background-color: {bg_color_2};
+            color: {default_text};
             }}
         
         
         
         /*  Homepage scene color scheme */
-        Homepage .QWidget {{
-            background-color: {foreColor};
+        Homepage QWidget {{
+            background-color: {bg_color};
+            color: {default_text};
             }}
-        Homepage .QFrame {{
-            background-color: {foreColor};
+        Homepage QFrame {{
+            background-color: {bg_color};
+            color: {default_text};
             }}
         
         """
 
         stylesheet = stylesheet.format(
-            testColor = "pink",
-            bgColor = "#dbcc93",
-            bgColor2 = "white",
-            foreColor = "#f4f4f4",
-            #windowBorder = "#B3A369",
-            windowBorder = "white",
-            defaultText = "white"
+            test_color = "pink",
+            bg_color = "#28292b",
+            bg_color_2 = "#A9A9A9",
+            fore_color = "#f4f4f4",
+            window_border = "white",
+            default_text = "white"
         )
 
         self.setStyleSheet(stylesheet)
@@ -255,6 +272,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         try:
             key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, path)
         except WindowsError:
+            logger.debug(logger.findCaller(True))
             raise StopIteration
 
         for i in itertools.count():
@@ -262,6 +280,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 val = winreg.EnumValue(key, i)
                 yield str(val[1])
             except EnvironmentError:
+                logger.debug(logger.findCaller(True))
                 break
 
     def import_coms(self):
@@ -316,6 +335,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                     logger.info("You must open a BIN file before changing to BIN input mode")
             except Exception as e:
                 logger.error(e)
+                logger.debug(logger.findCaller(True))
         elif data_import.input_mode == "CSV":        
             try:
                 directory = open_data_file(".csv")
@@ -326,6 +346,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                     logger.info("You must open a CSV file before changing to CSV input mode")
             except Exception as e:
                 logger.error(e)
+                logger.debug(logger.findCaller(True))
             finally:
                 data_import.input_mode = ""
         if "COM" in data_import.input_mode:
