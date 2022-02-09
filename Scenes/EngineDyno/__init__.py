@@ -230,7 +230,7 @@ class EngineDyno(DAATAScene, uiFile):
 
         :return: None
         """
-        self.configFile.setValue('graph_dimension', self.comboBox_graphDimension.currentText())
+        #self.configFile.setValue('graph_dimension', self.comboBox_graphDimension.currentText())
         self.configFile.setValue('scrollArea_graphs_height', self.scrollArea_graphs.height())
 
         enabledSensors = []

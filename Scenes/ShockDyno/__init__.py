@@ -29,6 +29,8 @@ class ShockDyno(DAATAScene, uiFile):
         self.setupUi(self)
         self.hide()
 
+        self.motor_state = 0
+
         self.update_period = 3  # the tab updates every x*10 ms (ex. 3*10 = every 30 ms)
 
         self.graph_objects = dict()
@@ -92,9 +94,10 @@ class ShockDyno(DAATAScene, uiFile):
         motor_speed = self.horizontalSlider.value()
         data.set_current_value("command_motor_speed", motor_speed)
 
-    def slot_kill_motor(self):
-        logger.info("Killing motor")
-        data.set_current_value("command_motor_speed", 0)
+    def slot_toggle_motor(self):
+        logger.info("Toggling motor")
+        #data.set_current_value("command_motor_enable", not self.motor_state)
+        self.motor_state = not self.motor_state
 
     def slot_set_load_cell_scale(self):
         logger.info("Changing load cell scale")
@@ -189,6 +192,8 @@ class ShockDyno(DAATAScene, uiFile):
         else:
             data.set_current_value("command_tare_load_cell", 0)
 
+        data.set_current_value("command_motor_speed", self.motor_state)
+
     def connect_slots_and_signals(self):
         self.button_display.clicked.connect(self.slot_data_collecting_state_change)
 
@@ -196,7 +201,7 @@ class ShockDyno(DAATAScene, uiFile):
         self.load_cell_scale.valueChanged.connect(self.slot_set_load_cell_scale)
 
         self.horizontalSlider.valueChanged.connect(self.slot_display_motor_speed)
-        self.kill_motor.clicked.connect(self.slot_kill_motor) #set speed to 0
+        self.kill_motor.clicked.connect(self.slot_toggle_motor) #toggle motor on and off
         self.send_speed.clicked.connect(self.slot_set_motor_speed) #set speed to value from slider
         self.sweep.clicked.connect(self.slot_sweep)
 
