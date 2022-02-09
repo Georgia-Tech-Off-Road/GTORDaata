@@ -25,7 +25,12 @@ from Utilities.DataExport.dataFileExplorer import open_data_file
 from Utilities.GoogleDriveHandler.GDriveDataExport import CreateUploadJSON
 from Utilities.GoogleDriveHandler.GDriveDataImport import GDriveDataImport as GoogleDriveDataImport
 
-import itertools
+from PyQt5.QtCore import QFile, QTextStream, Qt
+from PyQt5.QtGui import QPalette, QColor
+from PyQt5.QtWidgets import QApplication
+#import breeze_resources
+
+import re, itertools
 import winreg as winreg
 
 logger = logging.getLogger("MainWindow")
@@ -46,7 +51,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         data_import.attach_internal_sensor(101)
 
         # Set up all the elements of the UI
-        self.setupUi(self)
+        self.setupUi(self)        
 
         # instantiates dictionary that holds objects for widgets
         self.dict_scenes = {}
@@ -138,66 +143,77 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         """
 
         stylesheet = """
-        /*  MainWindow color scheme  */
+        /*  MainWindow color scheme  */        
         QMainWindow {{
-            background: {bgColor};
+            background: {bg_color};
+            color: {default_text};
             }}
 
         QMainWindow [objectName^="tab_scenes"] {{
-            background: {bgColor};
+            background: {bg_color};
+            color: {default_text};
             }}
         QMainWindow QTabWidget {{
             }}
         QStackedWidget {{
-            background-color: {bgColor2};
+            background-color: {bg_color_2};
+            color: {default_text};
         }}
         QMenuBar {{
-            background: white;
+            background: {bg_color};
+            color: {default_text};
             }}
         QMenuBar::item {{
             padding: 4px;
             background: transparent;
             border-right: 1px solid lightGray;
-
+            background-color: {bg_color_2};
+            color: {default_text};
             }}
         QMenuBar::item:selected {{
-            background: rgb(237,237,237,100);
+            background: {bg_color};
+            color: {default_text};
             }}
         
         
         
         /*  DataCollection scene color scheme   */
         DataCollection QWidget {{
-            background-color: {foreColor};
+            background-color: {bg_color};
+            color: {default_text};
             }}
         DataCollection QPushButton {{
-            background-color: white;
+            background-color: {bg_color_2};
+            color: {default_text};
             }}
         DataCollection CustomPlotWidget {{
             border-radius: 7px;
             border: 1px solid gray;
+            background-color: {bg_color_2};
+            color: {default_text};
             }}
         
         
         
         /*  Homepage scene color scheme */
-        Homepage .QWidget {{
-            background-color: {foreColor};
+        Homepage QWidget {{
+            background-color: {bg_color};
+            color: {default_text};
             }}
-        Homepage .QFrame {{
-            background-color: {foreColor};
+        Homepage QFrame {{
+            background-color: {bg_color};
+            color: {default_text};
             }}
         
         """
 
         stylesheet = stylesheet.format(
-            testColor = "pink",
-            bgColor = "#dbcc93",
-            bgColor2 = "white",
-            foreColor = "#f4f4f4",
-            #windowBorder = "#B3A369",
-            windowBorder = "white",
-            defaultText = "white"
+            test_color = "pink",
+            bg_color = "#28292b",
+            bg_color_2 = "#A9A9A9",
+            fore_color = "#f4f4f4",
+            window_border = "white",
+            default_text = "white"
         )
 
         self.setStyleSheet(stylesheet)
