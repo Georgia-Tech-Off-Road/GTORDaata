@@ -40,8 +40,6 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
         self.__connectSlotsSignals()
 
     def __populate_fields(self):
-        self.sec_file.setPlainText(self.configFile.value("sec_file"))
-
         self.scene_input.addItem("All")
         for scene in self.dict_scenes_copy.keys():
             scene_hidden = self.dict_scenes_copy[scene].get("disabled")
@@ -73,12 +71,6 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
         self.adv_options_button.clicked.connect(self.__hide_show_adv_options)
         self.add_field_button.clicked.connect(self.__addCustomPropsField)
         self.clearButton.clicked.connect(self.__clear_all)
-        self.selectFile.clicked.connect(self.__find_oAuth_file)
-
-    def __find_oAuth_file(self):
-        filepath = open_data_file(".json")
-        if filepath:
-            self.sec_file.setPlainText(filepath)
 
     def __hide_show_adv_options(self):
         if self.adv_options_widget.isVisible():
@@ -106,8 +98,7 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
 
     def __display_data(self):
         self.gridLayout_2.addWidget(QtWidgets.QLabel("Loading..."))
-        sec_file = self.sec_file.toPlainText()
-        self.configFile.setValue("sec_file", sec_file)
+        sec_file = gdrive_constants.GDRIVE_OAUTH2_SECRET
 
         # generate search queries
         file_name_query = self.file_name_input.toPlainText()

@@ -88,7 +88,8 @@ class GoogleDriveHandler:
             return Create_Service(
                 CLIENT_SECRET_FILE, API_NAME, API_VERSION, SCOPES)
         except google.auth.exceptions.RefreshError:
-            os.remove("token_drive_v3.pickle")  # the file must exist
+            # the file must exist
+            os.remove(f"{gdrive_constants.PICKLE_DIRECTORY}/token_drive_v3.pickle")
             return Create_Service(
                 CLIENT_SECRET_FILE, API_NAME, API_VERSION, SCOPES)
 
