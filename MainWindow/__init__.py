@@ -103,8 +103,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                     try:
                         if (self.update_counter_active % scene.update_period) == 0:
                             scene.update_active()
-                    except Exception:
-                        pass
+                    except Exception as e:
+                        logger.error(e)
+                        logger.debug(logger.findCaller(True))
 
     def update_passive(self):
         """
@@ -253,6 +254,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         try:
             key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, path)
         except WindowsError:
+            logger.debug(logger.findCaller(True))
             raise StopIteration
 
         for i in itertools.count():
@@ -260,6 +262,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 val = winreg.EnumValue(key, i)
                 yield str(val[1])
             except EnvironmentError:
+                logger.debug(logger.findCaller(True))
                 break
 
     def import_coms(self):
@@ -314,6 +317,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                     logger.info("You must open a BIN file before changing to BIN input mode")
             except Exception as e:
                 logger.error(e)
+                logger.debug(logger.findCaller(True))
         elif data_import.input_mode == "CSV":        
             try:
                 directory = open_data_file(".csv")
@@ -324,6 +328,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                     logger.info("You must open a CSV file before changing to CSV input mode")
             except Exception as e:
                 logger.error(e)
+                logger.debug(logger.findCaller(True))
             finally:
                 data_import.input_mode = ""
         if "COM" in data_import.input_mode:
