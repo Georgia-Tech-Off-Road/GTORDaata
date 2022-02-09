@@ -42,6 +42,10 @@ class GoogleDriveHandler:
         """Missing oAuth file"""
         pass
 
+    # class NoAccessError(PermissionError):
+    #     """User does not have access to the GTOR Google Drive"""
+    #     pass
+
     # ROOT_FOLDER is "GTORDaata Graph Files"
     _ROOT_FOLDER_ID = "1OaMbG-wAqC6_Ad8u5FiNS9L8z2W7eB2i"
     _DRIVE_ID = "0AFmSv7widPF9Uk9PVA"  # Drive ID of GTOR_DAQ_DATA shared drive
@@ -78,7 +82,7 @@ class GoogleDriveHandler:
         CLIENT_SECRET_FILE = secret_client_file
         API_NAME = 'drive'
         API_VERSION = 'v3'
-        SCOPES = ['https://www.googleapis.com/auth/drive']
+        SCOPES = ['https://www.googleapis.com/auth/drive.file']
 
         try:
             return Create_Service(
@@ -163,6 +167,9 @@ class GoogleDriveHandler:
                 page_token = response.get('nextPageToken', None)
             except httplib2.error.ServerNotFoundError:
                 raise self.NoInternetError
+            # except googleapiclient.errors.HttpError as e:
+            #     logger.error(str(e))
+            #     raise self.NoAccessError
             if page_token is None:
                 break
 
@@ -407,6 +414,9 @@ class GoogleDriveHandler:
             except httplib2.error.ServerNotFoundError:
                 self.__no_internet()
                 return ""
+            # except googleapiclient.errors.HttpError as e:
+            #     logger.error(str(e))
+            #     raise self.NoAccessError
         else:
             # check if file exists
             if not os.path.isfile(filepath):
@@ -487,6 +497,9 @@ class GoogleDriveHandler:
             except httplib2.error.ServerNotFoundError:
                 self.__no_internet()
                 return ""
+            # except googleapiclient.errors.HttpError as e:
+            #     logger.error(str(e))
+            #     raise self.NoAccessError
 
     def download(self, file: dict, progressBar=None, file_i: int = 0,
                  total_files: int = 1) -> str:
@@ -507,6 +520,9 @@ class GoogleDriveHandler:
         except httplib2.error.ServerNotFoundError:
             self.__no_internet()
             return ""
+        # except googleapiclient.errors.HttpError as e:
+        #     logger.error(str(e))
+        #     raise self.NoAccessError
         fh = io.BytesIO()
         downloader = MediaIoBaseDownload(fh, request)
 

@@ -8,6 +8,7 @@ logging_objects = {
     "DataCollection": DEBUG,
     "DataExport": DEBUG,
     "EngineDyno": DEBUG,
+    "GDriveDataExport": DEBUG,
     "GDriveDataImport": DEBUG,
     "GTORNetwork": CRITICAL,
     "GoogleDriveHandler": DEBUG,
