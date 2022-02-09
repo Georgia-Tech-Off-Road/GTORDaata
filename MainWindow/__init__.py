@@ -3,33 +3,29 @@ from PyQt5 import uic, QtWidgets, QtGui, QtCore
 from functools import partial
 import logging
 import os
-import serial
 import sys
 import threading
-import time
 
 from Scenes import DAATAScene
 from Scenes.BlinkLEDTest import BlinkLEDTest
 from Scenes.DataCollection import DataCollection
 from Scenes.DataCollectionPreview import DataCollectionPreview
 from Scenes.EngineDyno import EngineDyno
+from Scenes.EngineDynoPreview import EngineDynoPreview
 from Scenes.Homepage import Homepage
 from Scenes.Layout_Test import Widget_Test
-
 
 from MainWindow._tabHandler import close_tab
 from Utilities.Popups.popups import popup_ParentChildrenTree
 import DataAcquisition
 
 from DataAcquisition import is_data_collecting, data_import, stop_thread
-from DataAcquisition.DataImport import DataImport
-from MainWindow.UploadQueuedFiles.upload_drive_files import UploadDriveFiles
-from Utilities.GDriveDataImport import GDriveDataImport as GoogleDriveDataImport
-from Utilities.GoogleDriveHandler import GoogleDriveHandler
-
+from Utilities.GoogleDriveHandler.GDriveDataExport.upload_all_drive_files import UploadDriveFiles
 from Utilities.DataExport.dataFileExplorer import open_data_file
+from Utilities.GoogleDriveHandler.GDriveDataExport import CreateUploadJSON
+from Utilities.GoogleDriveHandler.GDriveDataImport import GDriveDataImport as GoogleDriveDataImport
 
-import re, itertools
+import itertools
 import winreg as winreg
 
 logger = logging.getLogger("MainWindow")
@@ -235,6 +231,12 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 'formal_name': "EngineDyno"
             },
 
+            'Engine Dyno Preview': {
+                'create_scene': EngineDynoPreview,
+                'formal_name': "EngineDynoPreview",
+                'disabled': True,
+            },
+
             'Blink LED Test': {
                 'create_scene': BlinkLEDTest,
                 'formal_name': "BlinkLEDTest"
@@ -338,7 +340,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 logger.info("We connected to serial!")
         if input_mode != "" and not self.data_reading_thread.is_alive() and input_mode != "Auto":
             self.data_reading_thread.start()
-        
 
     def __import_from_google_drive(self):
         """
@@ -350,18 +351,27 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         :return: None
         """
         # filepath is "" if an error occurred
-        filepath = GoogleDriveDataImport(self.dict_scenes).selected_filepath
+        filepath, file_scene = GoogleDriveDataImport(self.dict_scenes)\
+            .selected_filepath_and_scene
         if filepath:
-            self.__create_DataCollectionPreview_tab(filepath)
+            self.__create_preview_scene_tab(filepath, file_scene)
 
     @staticmethod
     def __upload_remaining_to_gdrive():
         UploadDriveFiles()
 
-    def __create_DataCollectionPreview_tab(self, filepath: str):
+    @staticmethod
+    def __manual_upload_to_gdrive():
+        CreateUploadJSON()
+
+    def __create_preview_scene_tab(self, filepath: str, file_scene: str):
         # Ignore the parameter 'key' unfilled error; there are no errors here
-        self.create_scene_tab("Data Collection Preview",
-                              initial_data_filepath=filepath)
+        if file_scene == "DataCollection":
+            self.create_scene_tab("Data Collection Preview",
+                                  initial_data_filepath=filepath)
+        elif file_scene == "EngineDyno":
+            self.create_scene_tab("Engine Dyno Preview",
+                                  initial_data_filepath=filepath)
 
     def connect_signals_and_slots(self):
         """
@@ -388,6 +398,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.__import_from_google_drive)
         self.upload_remaining_gDrive_widget.triggered.connect(
             self.__upload_remaining_to_gdrive)
+        self.manual_upload_gDrive_widget.triggered.connect(
+            self.__manual_upload_to_gdrive)
 
         self.tabWidget.tabBarDoubleClicked.connect(self.rename_tab)
         self.tabWidget.tabCloseRequested.connect(partial(self.close_tab, self))
@@ -416,7 +428,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.timer_active.stop()
         self.timer_passive.stop()
         sys.exit()
-
         
     def paintEvent(self, pe):
         """
