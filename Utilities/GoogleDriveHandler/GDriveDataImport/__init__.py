@@ -179,6 +179,11 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
             self.__clear_found_files()
             GenericPopup("No Internet")
             return
+        # except GoogleDriveHandler.NoAccessError:
+        #     self.__clear_found_files()
+        #     GenericPopup("No Access", "You need to request access to the GTOR "
+        #                               "shared Google Drive")
+        #     return
         except ValueError:
             self.__clear_found_files()
             logger.error("Error in creating Google Drive Handler")
@@ -217,6 +222,7 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
                      "Proceed to download anyways?"
             self.__download_unsupported_file(drive_handler, found_file, reason,
                                              self.progressBar)
+            self.progressBar.hide()
             return
 
         try:
@@ -226,6 +232,7 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
                      "Proceed to download anyways?"
             self.__download_unsupported_file(drive_handler, found_file, reason,
                                              self.progressBar)
+            self.progressBar.hide()
             return
 
         if file_scene not in self.DISPLAYABLE_SCENES:
@@ -233,6 +240,7 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
                      "supported). Proceed to download anyways?"
             self.__download_unsupported_file(drive_handler, found_file, reason,
                                              self.progressBar)
+            self.progressBar.hide()
             return
         else:
             self.__selected_file_scene = file_scene
@@ -265,7 +273,7 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
     @staticmethod
     def __download_unsupported_file(drive_handler: GoogleDriveHandler,
                                     found_file: dict, reason: str,
-                                    progressBar=None):
+                                    progressBar=None) -> bool:
         save_offline = \
             add_qDialogs.ConfirmDownloadNonSupported(reason).save_offline
         if save_offline:
@@ -273,6 +281,10 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
                                               progressBar=progressBar)
             if filepath:
                 GenericPopup("File downloaded", filepath)
+                return True
+            else:
+                return False
+        return True
 
     @property
     def selected_filepath_and_scene(self) -> tuple:

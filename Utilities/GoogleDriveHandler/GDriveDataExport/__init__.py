@@ -15,7 +15,7 @@ import shutil
 # loads the .ui file from QT Designer
 uiFile, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__),
                                         'saveUploadTagsDialog.ui'))
-logger = logging.getLogger("TagDialogue")
+logger = logging.getLogger("GDriveDataExport")
 
 
 class CreateUploadJSON(QtWidgets.QDialog, uiFile):
@@ -164,7 +164,7 @@ class CreateUploadJSON(QtWidgets.QDialog, uiFile):
 
         validated_inputs = self.__validate_inputs()
         if not validated_inputs:
-            logger.error("Input validation on file upload failed")
+            logger.debug("Input validation on file upload failed")
             self.progress_widget.hide()
             return False
 
@@ -247,10 +247,15 @@ class CreateUploadJSON(QtWidgets.QDialog, uiFile):
                              "All files have been saved offline and will be "
                              "uploaded at the next upload instance")
                 return True
+            # except GoogleDriveHandler.NoAccessError:
+            #     self.__clear_found_files()
+            #     GenericPopup("No Access to the shared GTOR Google Drive",
+            #                  "All files have been saved offline and will be "
+            #                  "uploaded at the next upload instance")
+            #     return False
             except Exception as e:
                 GenericPopup("Upload Failed", str(e))
                 return False
-
             if drive_handler.upload_all_to_drive(self.uploadProgressBar):
                 GenericPopup("All files uploaded", drive_handler.warning_msg)
                 self.close()
