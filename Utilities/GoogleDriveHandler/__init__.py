@@ -571,8 +571,10 @@ class GoogleDriveHandler:
         :return: The full filepath of the downloaded file; "" if an error
         occurred
         """
-        import_window.close()
-        return self.download(file=file, progressBar=progressBar)
+        downloaded_filepath = self.download(file=file, progressBar=progressBar)
+        if downloaded_filepath:
+            import_window.close()
+        return downloaded_filepath
 
     def upload_all_to_drive(self, progressBar_GD=None) -> bool:
         """
