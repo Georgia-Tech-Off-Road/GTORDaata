@@ -1,0 +1,13 @@
+*****************************************************************
+GTOR DAATA (Data Acquisition and Telemetry Application) Installer
+*****************************************************************
+
+The installer has finished!
+
+The application can be used by double clicking the shortcut that has
+been added to your Desktop labeled "GTOR DAATA".
+
+Please direct any problems or issues in using the installer or the 
+application to Benjamin Boeckman on the Data Acquisition subteam.
+
+Enjoy collecting that juicy data:)
