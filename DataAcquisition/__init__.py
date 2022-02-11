@@ -53,7 +53,8 @@ def read_data():
             try:                
                 data_import.read_packet()                                   
             except Exception as e:
-                logger.error(e)        
+                logger.error(e)                        
+                logger.debug(logger.findCaller(True))                
         elif "COM" in data_import.input_mode and data_import.teensy_found:            
             try:
                 try:
@@ -70,6 +71,7 @@ def read_data():
                         data_import.teensy_ser.open()
                     except Exception as e:
                         logger.error(e)
+                        logger.debug(logger.findCaller(True))                        
             except AssertionError:
                 time.sleep(0)
         else:   

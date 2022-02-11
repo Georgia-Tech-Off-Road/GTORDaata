@@ -3,31 +3,32 @@ from PyQt5 import uic, QtWidgets, QtGui, QtCore
 from functools import partial
 import logging
 import os
-import serial
 import sys
 import threading
-import time
 
 from Scenes import DAATAScene
 from Scenes.BlinkLEDTest import BlinkLEDTest
 from Scenes.DataCollection import DataCollection
 from Scenes.DataCollectionPreview import DataCollectionPreview
 from Scenes.EngineDyno import EngineDyno
+from Scenes.EngineDynoPreview import EngineDynoPreview
 from Scenes.Homepage import Homepage
 from Scenes.Layout_Test import Widget_Test
-
 
 from MainWindow._tabHandler import close_tab
 from Utilities.Popups.popups import popup_ParentChildrenTree
 import DataAcquisition
 
 from DataAcquisition import is_data_collecting, data_import, stop_thread
-from DataAcquisition.DataImport import DataImport
-from MainWindow.UploadQueuedFiles.upload_drive_files import UploadDriveFiles
-from Utilities.GDriveDataImport import GDriveDataImport as GoogleDriveDataImport
-from Utilities.GoogleDriveHandler import GoogleDriveHandler
-
+from Utilities.GoogleDriveHandler.GDriveDataExport.upload_all_drive_files import UploadDriveFiles
 from Utilities.DataExport.dataFileExplorer import open_data_file
+from Utilities.GoogleDriveHandler.GDriveDataExport import CreateUploadJSON
+from Utilities.GoogleDriveHandler.GDriveDataImport import GDriveDataImport as GoogleDriveDataImport
+
+from PyQt5.QtCore import QFile, QTextStream, Qt
+from PyQt5.QtGui import QPalette, QColor
+from PyQt5.QtWidgets import QApplication
+#import breeze_resources
 
 import re, itertools
 import winreg as winreg
@@ -50,7 +51,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         data_import.attach_internal_sensor(101)
 
         # Set up all the elements of the UI
-        self.setupUi(self)
+        self.setupUi(self)        
 
         # instantiates dictionary that holds objects for widgets
         self.dict_scenes = {}
@@ -103,8 +104,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                     try:
                         if (self.update_counter_active % scene.update_period) == 0:
                             scene.update_active()
-                    except Exception:
-                        pass
+                    except Exception as e:
+                        logger.error(e)
+                        logger.debug(logger.findCaller(True))
 
     def update_passive(self):
         """
@@ -141,66 +143,77 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         """
 
         stylesheet = """
-        /*  MainWindow color scheme  */
+        /*  MainWindow color scheme  */        
         QMainWindow {{
-            background: {bgColor};
+            background: {bg_color};
+            color: {default_text};
             }}
 
         QMainWindow [objectName^="tab_scenes"] {{
-            background: {bgColor};
+            background: {bg_color};
+            color: {default_text};
             }}
         QMainWindow QTabWidget {{
             }}
         QStackedWidget {{
-            background-color: {bgColor2};
+            background-color: {bg_color_2};
+            color: {default_text};
         }}
         QMenuBar {{
-            background: white;
+            background: {bg_color};
+            color: {default_text};
             }}
         QMenuBar::item {{
             padding: 4px;
             background: transparent;
             border-right: 1px solid lightGray;
-
+            background-color: {bg_color_2};
+            color: {default_text};
             }}
         QMenuBar::item:selected {{
-            background: rgb(237,237,237,100);
+            background: {bg_color};
+            color: {default_text};
             }}
         
         
         
         /*  DataCollection scene color scheme   */
         DataCollection QWidget {{
-            background-color: {foreColor};
+            background-color: {bg_color};
+            color: {default_text};
             }}
         DataCollection QPushButton {{
-            background-color: white;
+            background-color: {bg_color_2};
+            color: {default_text};
             }}
         DataCollection CustomPlotWidget {{
             border-radius: 7px;
             border: 1px solid gray;
+            background-color: {bg_color_2};
+            color: {default_text};
             }}
         
         
         
         /*  Homepage scene color scheme */
-        Homepage .QWidget {{
-            background-color: {foreColor};
+        Homepage QWidget {{
+            background-color: {bg_color};
+            color: {default_text};
             }}
-        Homepage .QFrame {{
-            background-color: {foreColor};
+        Homepage QFrame {{
+            background-color: {bg_color};
+            color: {default_text};
             }}
         
         """
 
         stylesheet = stylesheet.format(
-            testColor = "pink",
-            bgColor = "#dbcc93",
-            bgColor2 = "white",
-            foreColor = "#f4f4f4",
-            #windowBorder = "#B3A369",
-            windowBorder = "white",
-            defaultText = "white"
+            test_color = "pink",
+            bg_color = "#28292b",
+            bg_color_2 = "#A9A9A9",
+            fore_color = "#f4f4f4",
+            window_border = "white",
+            default_text = "white"
         )
 
         self.setStyleSheet(stylesheet)
@@ -234,6 +247,12 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 'formal_name': "EngineDyno"
             },
 
+            'Engine Dyno Preview': {
+                'create_scene': EngineDynoPreview,
+                'formal_name': "EngineDynoPreview",
+                'disabled': True,
+            },
+
             'Blink LED Test': {
                 'create_scene': BlinkLEDTest,
                 'formal_name': "BlinkLEDTest"
@@ -253,6 +272,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         try:
             key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, path)
         except WindowsError:
+            logger.debug(logger.findCaller(True))
             raise StopIteration
 
         for i in itertools.count():
@@ -260,6 +280,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 val = winreg.EnumValue(key, i)
                 yield str(val[1])
             except EnvironmentError:
+                logger.debug(logger.findCaller(True))
                 break
 
     def import_coms(self):
@@ -314,6 +335,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                     logger.info("You must open a BIN file before changing to BIN input mode")
             except Exception as e:
                 logger.error(e)
+                logger.debug(logger.findCaller(True))
         elif data_import.input_mode == "CSV":        
             try:
                 directory = open_data_file(".csv")
@@ -324,6 +346,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                     logger.info("You must open a CSV file before changing to CSV input mode")
             except Exception as e:
                 logger.error(e)
+                logger.debug(logger.findCaller(True))
             finally:
                 data_import.input_mode = ""
         if "COM" in data_import.input_mode:
@@ -333,7 +356,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 logger.info("We connected to serial!")
         if input_mode != "" and not self.data_reading_thread.is_alive() and input_mode != "Auto":
             self.data_reading_thread.start()
-        
 
     def __import_from_google_drive(self):
         """
@@ -345,18 +367,27 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         :return: None
         """
         # filepath is "" if an error occurred
-        filepath = GoogleDriveDataImport(self.dict_scenes).selected_filepath
+        filepath, file_scene = GoogleDriveDataImport(self.dict_scenes)\
+            .selected_filepath_and_scene
         if filepath:
-            self.__create_DataCollectionPreview_tab(filepath)
+            self.__create_preview_scene_tab(filepath, file_scene)
 
     @staticmethod
     def __upload_remaining_to_gdrive():
         UploadDriveFiles()
 
-    def __create_DataCollectionPreview_tab(self, filepath: str):
+    @staticmethod
+    def __manual_upload_to_gdrive():
+        CreateUploadJSON()
+
+    def __create_preview_scene_tab(self, filepath: str, file_scene: str):
         # Ignore the parameter 'key' unfilled error; there are no errors here
-        self.create_scene_tab("Data Collection Preview",
-                              initial_data_filepath=filepath)
+        if file_scene == "DataCollection":
+            self.create_scene_tab("Data Collection Preview",
+                                  initial_data_filepath=filepath)
+        elif file_scene == "EngineDyno":
+            self.create_scene_tab("Engine Dyno Preview",
+                                  initial_data_filepath=filepath)
 
     def connect_signals_and_slots(self):
         """
@@ -383,6 +414,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.__import_from_google_drive)
         self.upload_remaining_gDrive_widget.triggered.connect(
             self.__upload_remaining_to_gdrive)
+        self.manual_upload_gDrive_widget.triggered.connect(
+            self.__manual_upload_to_gdrive)
 
         self.tabWidget.tabBarDoubleClicked.connect(self.rename_tab)
         self.tabWidget.tabCloseRequested.connect(partial(self.close_tab, self))
@@ -411,7 +444,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.timer_active.stop()
         self.timer_passive.stop()
         sys.exit()
-
         
     def paintEvent(self, pe):
         """

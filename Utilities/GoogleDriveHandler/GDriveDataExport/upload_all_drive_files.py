@@ -1,14 +1,14 @@
 from PyQt5 import QtWidgets, uic, QtCore
+from Utilities.DataExport.dataFileExplorer import open_data_file
 from Utilities.GoogleDriveHandler import GoogleDriveHandler
+from Utilities.Popups.generic_popup import GenericPopup
 import logging
 import os
-
-from Utilities.Popups.generic_popup import GenericPopup
 
 logger = logging.getLogger("MainWindow")
 # loads the .ui file from QT Designer
 uiFile, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__),
-                                        'upload_drive_files.ui'))
+                                        'upload_all_drive_files.ui'))
 
 
 class UploadDriveFiles(QtWidgets.QDialog, uiFile):
@@ -23,24 +23,37 @@ class UploadDriveFiles(QtWidgets.QDialog, uiFile):
 
     def __connectSlotsSignals(self):
         self.upload_all_button.clicked.connect(self.__upload_drive_files)
+        self.selectFile.clicked.connect(self.__find_sec_file)
         self.oAuth_info.clicked.connect(GoogleDriveHandler.openSecGDInfo)
 
     def __upload_drive_files(self):
+        self.progressBar.show()
         sec_file = self.oAuth_file_entry.toPlainText()
         self.configFile.setValue("sec_file", sec_file)
         try:
             drive_handler = GoogleDriveHandler(sec_file)
         except GoogleDriveHandler.NoInternetError:
             GenericPopup("No Internet")
+            self.progressBar.hide()
+            return
+        except GoogleDriveHandler.MissingOAuthFileError:
+            GenericPopup("Missing oAuth File",
+                         f"oAuth file not detected in path {sec_file} entered")
+            self.progressBar.hide()
             return
         except Exception as e:
             print(e)
             GenericPopup("Upload Failed", str(e))
+            self.progressBar.hide()
             return
 
         if drive_handler.upload_all_to_drive(self.progressBar):
-            GenericPopup("All files uploaded")
-            self.close_popup()
+            GenericPopup("All files uploaded", drive_handler.warning_msg)
+            self.close()
+        self.progressBar.hide()
 
-    def close_popup(self):
-        self.close()
+    def __find_sec_file(self):
+        selected_file = open_data_file(".json")
+        if selected_file:
+            self.oAuth_file_entry.setPlainText(selected_file)
+
