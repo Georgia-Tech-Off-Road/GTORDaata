@@ -34,8 +34,10 @@ class UploadDriveFiles(QtWidgets.QDialog, uiFile):
             self.progressBar.hide()
             return
         except GoogleDriveHandler.MissingOAuthFileError:
-            GenericPopup("Missing oAuth File",
-                         f"oAuth file not detected in {sec_file}")
+            GenericPopup("Missing oAuth file",
+                         f"oAuth file not detected in {sec_file}. <br /> "
+                         f"<a href='https://drive.google.com/file/d/117yhiyV2BAZNxityj4la6J50FECaEPJB/view?usp=sharing'>"
+                         f"Download here</a>.")
             self.progressBar.hide()
             return
         # except GoogleDriveHandler.NoAccessError:
