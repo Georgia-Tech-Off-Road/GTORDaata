@@ -1,0 +1,20 @@
+*****************************************************************
+GTOR DAATA (Data Acquisition and Telemetry Application) Installer
+*****************************************************************
+
+This is the official installer for the GTOR DAATA application used to
+collect and show data collected during various tests for Georgia Tech's
+Off Road club.
+
+As you click through the next few prompts a lot of files will be copied to
+your machine. Let it keep running until otherwise prompted. 
+
+One part of the process is that you will have to install the version of Python 
+that we use for the application so that it works correctly. Follow its prompts 
+and MAKE SURE THAT "Add to Path" IS CHECKED in the Python installer prompts.
+
+The latest version of the installer can be downloaded from the GTOR website 
+(www.gtoffroad.org).
+
+Please direct any problems or issues in using the installer to Benjamin Boeckman
+on the Data Acquisition subteam.
