@@ -5,7 +5,7 @@ from logging import DEBUG, INFO, WARNING, ERROR, CRITICAL
 logging_objects = {
     "BlinkLEDTest": DEBUG,
     "DataAcquisition": INFO,
-    "DataCollection": DEBUG,
+    "DataCollection": INFO,
     "DataExport": DEBUG,
     "EngineDyno": DEBUG,
     "GDriveDataImport": DEBUG,
