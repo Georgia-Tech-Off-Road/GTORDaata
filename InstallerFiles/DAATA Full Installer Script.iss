@@ -17,13 +17,14 @@ AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
+CreateAppDir=yes
 DefaultDirName={autopf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
-InfoBeforeFile=C:\Users\benbo\Repositories\GTOR\GTORDaata\InstallerFiles\InstallationInfo.txt
-InfoAfterFile=C:\Users\benbo\Repositories\GTOR\GTORDaata\InstallerFiles\CompletionInfo.txt
+InfoBeforeFile=.\InstallationInfo.txt
+InfoAfterFile=.\CompletionInfo.txt
 ; Uncomment the following line to run in non administrative install mode (install for current user only.)
-;PrivilegesRequired=lowest
-OutputDir=C:\Program Files\GTOR DAATA
+PrivilegesRequired=admin
+OutputDir=.\
 OutputBaseFilename=DAATAInstaller
 SetupIconFile=C:\Users\benbo\Repositories\GTOR\GTORDaata\InstallerFiles\icon_GTORLogo.ico
 Compression=lzma
@@ -37,10 +38,10 @@ Name: "japanese"; MessagesFile: "compiler:Languages\Japanese.isl"
 Name: "spanish"; MessagesFile: "compiler:Languages\Spanish.isl"
 
 [Files]
-Source: "C:\Users\benbo\Repositories\GTOR\GTORDaata\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "C:\Users\benbo\Repositories\GTOR\GTORDaata\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs confirmoverwrite
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Run]
-Filename: "{app}\InstallerFiles\python-3.6.8-amd64.exe";
-Filename: "{app}\install_dependencies.bat";
-Filename: "{app}\InstallerFiles\AddShortcut.bat";
+Filename: "{app}\InstallerFiles\python-3.6.8-amd64.exe"; StatusMsg: "Installing Python..."
+Filename: "{app}\InstallerFiles\install_dependencies(installer).bat"; StatusMsg: "Installing Python dependencies..."
+Filename: "PowerShell.exe"; Parameters: "-ExecutionPolicy Bypass -File ""{app}\InstallerFiles\AddShortcut.ps1"""; Flags: runascurrentuser; WorkingDir: {app}; StatusMsg: "Creating desktop shortcut..."

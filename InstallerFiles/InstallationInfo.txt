@@ -14,7 +14,7 @@ that we use for the application so that it works correctly. Follow its prompts
 and MAKE SURE THAT "Add to Path" IS CHECKED in the Python installer prompts.
 
 The latest version of the installer can be downloaded from the GTOR website 
-(www.gtoffroad.org).
+(https://www.gtoffroad.org/data-acquisition).
 
 Please direct any problems or issues in using the installer to Benjamin Boeckman
 on the Data Acquisition subteam.
