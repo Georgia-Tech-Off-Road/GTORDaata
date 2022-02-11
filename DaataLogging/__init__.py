@@ -6,7 +6,7 @@ logging_objects = {
     "Logging": DEBUG,
     "DataAcquisition": INFO,
     "DataImport": INFO,
-    "MainWindow": DEBUG,
+    "MainWindow": INFO,
     "Plotting": INFO,
     "GTORNetwork": CRITICAL,
     "Homepage": INFO,
