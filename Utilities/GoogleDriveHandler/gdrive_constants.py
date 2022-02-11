@@ -1,11 +1,12 @@
 from pathlib import Path
+import os
 
 # do not change the \\ to / as it will require change in code in other areas
 _DEFAULT_DIRECTORY = str(Path.home()) + '\\AppData\\Local\\GTOffRoad\\'
 DEFAULT_UPLOAD_DIRECTORY = _DEFAULT_DIRECTORY + 'UploadQueue\\'
 DEFAULT_DOWNLOAD_DIRECTORY = _DEFAULT_DIRECTORY + 'Downloads\\'
 PICKLE_DIRECTORY = './Utilities/GoogleDriveHandler'
-GDRIVE_OAUTH2_SECRET = "./Utilities/GoogleDriveHandler/gdrive_sec_client.json"
+GDRIVE_OAUTH2_SECRET = f"{os.getcwd()}\\secret_oAuth_key.json"
 
 DURATION_OPTIONS = ("All", "Under 4 minutes", "4-20 minutes",
                     "Over 20 minutes")
