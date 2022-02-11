@@ -1,6 +1,6 @@
 """
 A Python script that simplifies commands for some Google Drive API commands.
-Modified from the original downloaded on 09/30/2021 from:
+Adapted from the original downloaded on 09/30/2021 from:
 https://learndataanalysis.org/google-drive-api-in-python-getting-started-lesson-1/
 """
 
