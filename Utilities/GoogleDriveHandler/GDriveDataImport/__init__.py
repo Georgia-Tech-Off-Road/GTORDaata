@@ -164,7 +164,8 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
             drive_handler = GoogleDriveHandler(sec_file)
         except GoogleDriveHandler.MissingOAuthFileError:
             self.__clear_found_files()
-            GenericPopup("Missing oAuth file")
+            GenericPopup("Missing oAuth file",
+                         f"oAuth file not detected in {sec_file}")
             return
         except GoogleDriveHandler.NoInternetError:
             self.__clear_found_files()
