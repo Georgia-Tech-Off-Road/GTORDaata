@@ -35,7 +35,7 @@ class UploadDriveFiles(QtWidgets.QDialog, uiFile):
             return
         except GoogleDriveHandler.MissingOAuthFileError:
             GenericPopup("Missing oAuth File",
-                         f"oAuth file not detected in path {sec_file} entered")
+                         f"oAuth file not detected in {sec_file}")
             self.progressBar.hide()
             return
         # except GoogleDriveHandler.NoAccessError:
