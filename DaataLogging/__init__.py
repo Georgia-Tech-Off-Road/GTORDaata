@@ -5,6 +5,7 @@ from logging import DEBUG, INFO, WARNING, ERROR, CRITICAL
 logging_objects = {
     "Logging": DEBUG,
     "DataAcquisition": INFO,
+    "DataImport": INFO,
     "MainWindow": DEBUG,
     "Plotting": INFO,
     "GTORNetwork": CRITICAL,

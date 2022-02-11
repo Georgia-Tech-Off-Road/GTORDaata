@@ -35,6 +35,7 @@ class ShockDyno(DAATAScene, uiFile):
 
         self.graph_objects = dict()
         self.current_keys = ["force_shockdyno_lbs", "lds_shockdyno_mm"]
+        self.collection_start_time: datetime = datetime.min
         self.create_graphs()
 
         from MainWindow import is_data_collecting
