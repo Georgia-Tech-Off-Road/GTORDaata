@@ -3,7 +3,8 @@ from Utilities.DataExport.dataFileExplorer import open_data_file
 from Utilities.DataExport.exportCSV import saveCSV
 from Utilities.DataExport.exportMAT import saveMAT
 from Utilities.GoogleDriveHandler import gdrive_constants, GoogleDriveHandler
-from Utilities.GoogleDriveHandler.GDriveDataExport.missing_oAuth import MissingOAuthFile
+from Utilities.GoogleDriveHandler.GDriveDataExport.missing_oAuth import \
+    MissingOAuthFile
 from Utilities.Popups.generic_popup import GenericPopup
 from datetime import datetime, timedelta, date as dt_date, time as dt_time
 import json

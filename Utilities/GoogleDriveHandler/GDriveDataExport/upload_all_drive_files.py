@@ -55,5 +55,3 @@ class UploadDriveFiles(QtWidgets.QDialog, uiFile):
             GenericPopup("All files uploaded", drive_handler.warning_msg)
             self.close()
         self.progressBar.hide()
-
-

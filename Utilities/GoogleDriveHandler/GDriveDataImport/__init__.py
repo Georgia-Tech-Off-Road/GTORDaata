@@ -1,7 +1,7 @@
 from DataAcquisition import data
 from PyQt5 import QtWidgets, uic, QtCore
-from Utilities.DataExport.dataFileExplorer import open_data_file
-from Utilities.GoogleDriveHandler import GoogleDriveHandler, DriveSearchQuery, gdrive_constants
+from Utilities.GoogleDriveHandler import GoogleDriveHandler, DriveSearchQuery, \
+    gdrive_constants
 from Utilities.GoogleDriveHandler.GDriveDataImport import add_qDialogs
 from Utilities.Popups.generic_popup import GenericPopup
 from functools import partial
@@ -283,4 +283,3 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
     @property
     def selected_filepath_and_scene(self) -> tuple:
         return self.__selected_filepath, self.__selected_file_scene
-

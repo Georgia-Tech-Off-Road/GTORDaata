@@ -49,7 +49,6 @@ class MissingOAuthFile(QtWidgets.QDialog, uiFile):
     def closeEvent(self, event):
         event.accept()
 
-
 # from PyQt5.QtWidgets import QApplication
 # import sys
 #

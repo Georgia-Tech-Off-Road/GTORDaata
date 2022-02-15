@@ -1,5 +1,4 @@
 from Utilities.GoogleDriveHandler.Google import Create_Service
-from Utilities.Popups.generic_popup import GenericPopup
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from googleapiclient.http import MediaFileUpload, MediaIoBaseDownload
@@ -11,7 +10,6 @@ import json
 import logging
 import os
 import requests
-import webbrowser
 
 logger = logging.getLogger("GoogleDriveHandler")
 
@@ -89,7 +87,8 @@ class GoogleDriveHandler:
                 CLIENT_SECRET_FILE, API_NAME, API_VERSION, SCOPES)
         except google.auth.exceptions.RefreshError:
             # the file must exist
-            os.remove(f"{gdrive_constants.PICKLE_DIRECTORY}/token_drive_v3.pickle")
+            os.remove(
+                f"{gdrive_constants.PICKLE_DIRECTORY}/token_drive_v3.pickle")
             return Create_Service(
                 CLIENT_SECRET_FILE, API_NAME, API_VERSION, SCOPES)
 
@@ -724,4 +723,3 @@ class GoogleDriveHandler:
     @property
     def warning_msg(self):
         return self.__warning_msg
-
