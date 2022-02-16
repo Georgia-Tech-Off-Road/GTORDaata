@@ -46,6 +46,7 @@ class DataImport:
         self.ack_code = 0 # Two bit variable, 0 1 2 or 3. Three is stable
         self.packet_index = 0
         self.expected_size = 0
+        self.packet_count = 0
 
         # Variables that set the ack for sending packets
         self.is_receiving_data = False
@@ -137,10 +138,15 @@ class DataImport:
                 end_code_match = False
                 if self.current_packet[(packet_length - 8):(packet_length)] == self.end_code:
                     end_code_match = True
-                if end_code_match:                    
+                if end_code_match:     
+                    self.packet_count += 1
+                    logger.debug("Packet count: {}".format(self.packet_count))
+
                     self.current_packet = self.current_packet[0:(packet_length - 8)]                    
                     self.unpacketize()
                     self.current_packet.clear()
+
+                    
     
     def open_bin_file(self, dir):
         """
