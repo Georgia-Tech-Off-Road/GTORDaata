@@ -272,15 +272,18 @@ class GoogleDriveHandler:
             logger.error("Metadata JSON file missing.")
             return None
 
-        test_date = file_metadata["collection_start_time"]
+        test_local_date_iso = datetime.strptime(
+            file_metadata["collection_start_time"],
+            gdrive_constants.ISO_TIME_FORMAT)
+        test_local_date = str(self.utc_to_local(test_local_date_iso).date())
 
         # if using previously searched folder, reuse it. Else, find it
-        if test_date == self.current_drive_folder["name"]:
+        if test_local_date == self.current_drive_folder["name"]:
             day_folder_id = self.current_drive_folder["id"]
         else:
-            day_folder_id = self.__get_Day_folder_id(test_date)
+            day_folder_id = self.__get_Day_folder_id(test_local_date)
             self.current_drive_folder["id"] = day_folder_id
-            self.current_drive_folder["name"] = test_date
+            self.current_drive_folder["name"] = test_local_date
         if day_folder_id is None:
             logger.error("Error in acquiring Day folder ID")
             return None
@@ -492,7 +495,6 @@ class GoogleDriveHandler:
                 else:
                     while response is None:
                         status, response = request.next_chunk()
-                logger.info("Files successfully saved to Google Drive")
                 return response.get('id')
             except httplib2.error.ServerNotFoundError:
                 self.__no_internet()
