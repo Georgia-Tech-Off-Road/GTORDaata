@@ -103,14 +103,18 @@ class Homepage(DAATAScene, uiFile):
         """
 
         if data_import.teensy_found:
+            # Connected to teensy
+            self.connection_Label.setText("Connected")
             if data_import.ack_code == 3:
-                self.connection_Label.setStyleSheet("background-color: #0df200; border: 1px solid black; color: white")
+                # Connected and stable
+                self.connection_Label.setStyleSheet("background-color: #0df200; border: 1px solid black; color: white")                
             else:
+                # Connected but not stable
                 self.connection_Label.setStyleSheet("background-color: #e3c62f; border: 1px solid black; color: white")
         else:
-           self.connection_Label.setStyleSheet("background-color: #d60000; border: 1px solid black; color: black")
-           #self.connection_Label.setStyleSheet("background-color: #f2f20a; border: 1px solid black; color: white")
-           #self.connection_Label.setStyleSheet("background-color: #0df200; border: 1px solid black; color: white")
+            # We are not connected to teensy
+            self.connection_Label.setText("Disconnected")
+            self.connection_Label.setStyleSheet("background-color: #d60000; border: 1px solid black; color: white")
            
         # Check if GTOR network drive is connected
         network_drive = self.GTORNetwork.get_GTORNetworkDrive()

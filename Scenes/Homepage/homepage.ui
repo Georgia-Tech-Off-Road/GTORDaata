@@ -224,7 +224,7 @@
 }</string>
         </property>
         <property name="text">
-         <string>Not Connected</string>
+         <string>Disconnected</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>
