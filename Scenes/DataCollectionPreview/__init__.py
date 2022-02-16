@@ -1,6 +1,5 @@
 from DataAcquisition import data
 from PyQt5 import QtWidgets, uic
-# from PyQt5.QtCore import QSettings
 from Scenes import DAATAScene
 from Utilities.CustomWidgets.Plotting import CustomPlotWidget, GridPlotLayout
 from Utilities.Popups.generic_popup import GenericPopup
@@ -24,20 +23,16 @@ logger = logging.getLogger("DataCollectionPreview")
 class DataCollectionPreview(DAATAScene, uiFile):
     def __init__(self, initial_data_filepath: str = None):
         super().__init__()
-        self.aborted = False
 
-        # initial_data_filepath = "C:\\Users\\afari\\AppData\\Local\\GTOffRoad\\Downloads\\a.csv"
         if not initial_data_filepath \
-                or not os.path.exists(initial_data_filepath):
+                or not os.path.isfile(initial_data_filepath):
             GenericPopup("Data CSV file does not exist",
                          "Unable to initialize graphs due to missing file.")
-            self.aborted = True
             self.close()
             return
         if initial_data_filepath[-4:] != ".csv":
             GenericPopup("Data file not of CSV type",
                          "Only .csv files supported")
-            self.aborted = True
             self.close()
             return
         self.setupUi(self)
@@ -81,18 +76,17 @@ class DataCollectionPreview(DAATAScene, uiFile):
 
     def __initialize_graphs(self, initial_data_filepath: str):
         csv_data = pandas.read_csv(initial_data_filepath)
+        time_array = csv_data.time_internal_seconds.values
 
         for sensor in csv_data.columns.values[1:]:
             self.checkbox_objects[sensor].setChecked(True)
             csv_data = pandas.read_csv(initial_data_filepath)
-            time_array = csv_data.time_internal_seconds.values
             sensor_array = getattr(csv_data, sensor).values
             self.graph_objects[sensor].initialize_values(
                 time_array, sensor_array)
         self.__create_grid_plot_layout()
 
-        test_duration = csv_data.time_internal_seconds.values[
-            csv_data.time_internal_seconds.size - 1]
+        test_duration = csv_data.time_internal_seconds.values[-1]
         if test_duration > 86400:
             self.label_timeElapsed.setText("> 1 day")
         else:

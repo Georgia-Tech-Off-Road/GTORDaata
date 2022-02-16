@@ -114,6 +114,7 @@ class DataCollection(DAATAScene, uiFile):
                     self.graph_objects[key].hide()
                 except Exception:
                     print(key + " is " + self.graph_objects[key].isVisible())
+                    logger.debug(logger.findCaller(True))
 
         for key in self.checkbox_objects.keys():
             if self.checkbox_objects[key].isChecked():
@@ -225,7 +226,7 @@ class DataCollection(DAATAScene, uiFile):
             str_time = format_time.format(hours=hours_elapsed, minutes=minutes_elapsed, seconds=seconds_elapsed)
             self.label_timeElapsed.setText(str_time)
         except TypeError:
-            pass
+            logger.debug(logger.findCaller(True))
 
     def update_sensor_checkboxes(self):
         """
@@ -243,7 +244,7 @@ class DataCollection(DAATAScene, uiFile):
                 try:
                     self.checkbox_objects[key].hide()
                 except Exception:
-                    pass
+                    logger.debug(logger.findCaller(True))
         self.currentKeys = connected_sensors
 
     def update_active(self):
@@ -343,7 +344,7 @@ class DataCollection(DAATAScene, uiFile):
                     '(' + str(active_sensor_count) + '/' + str(len(self.graph_objects)) + ')')
         except TypeError or KeyError:
             logger.error("Possibly invalid key in config. May need to clear config file using self.configFile.clear()")
-            pass
+            logger.debug(logger.findCaller(True))
 
         self.comboBox_graphDimension.setCurrentText(self.configFile.value('graph_dimension'))        
         self.create_grid_plot_layout()
