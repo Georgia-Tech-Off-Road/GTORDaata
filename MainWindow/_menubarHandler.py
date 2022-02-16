@@ -7,6 +7,8 @@ def populate_menu(self):
     create_addLayoutMenu(self)
     create_fileMenu(self)
     create_comMenu(self)
+    create_google_drive_menu(self)
+
 
 def create_addLayoutMenu(self):
     ## Make an action to create a tab for each imported widget
@@ -15,6 +17,8 @@ def create_addLayoutMenu(self):
         self.dict_scenes[key]['menu_action'].setCheckable(False)
         self.dict_scenes[key]['menu_action'].setToolTip('Open a new tab for ' + key)
         self.dict_scenes[key]['menu_action'].setText(key)
+        if self.dict_scenes[key].get('disabled'):
+            self.dict_scenes[key]['menu_action'].setVisible(False)
         self.menuAdd_Layout.addAction(self.dict_scenes[key]['menu_action'])
 
 
@@ -26,6 +30,7 @@ def create_fileMenu(self):
     self.action_Preferences.setText("Preferences")
     self.menuFile.addAction(self.action_Preferences)
 
+
 def create_comMenu(self):
     ## Create an action for COM port
     for key in self.dict_ports.keys():
@@ -34,6 +39,30 @@ def create_comMenu(self):
         self.dict_ports[key].setText(key)
         self.menuCOM_Port.addAction(self.dict_ports[key])
 
+
+def create_google_drive_menu(self):
+    # Add import from Google Drive button
+    self.import_from_gDrive_widget = QtWidgets.QAction(self)
+    self.import_from_gDrive_widget.setCheckable(False)
+    self.import_from_gDrive_widget.setToolTip("Import from Google Drive")
+    self.import_from_gDrive_widget.setText("Import from Google Drive")
+    self.google_drive_menu.addAction(self.import_from_gDrive_widget)
+
+    # Add upload all to Google Drive button
+    self.upload_remaining_gDrive_widget = QtWidgets.QAction(self)
+    self.upload_remaining_gDrive_widget.setCheckable(False)
+    self.upload_remaining_gDrive_widget.setToolTip(
+        "Upload remaining files to Google Drive")
+    self.upload_remaining_gDrive_widget.setText("Upload all remaining files")
+    self.google_drive_menu.addAction(self.upload_remaining_gDrive_widget)
+
+    # Add upload manual to Google Drive button
+    self.manual_upload_gDrive_widget = QtWidgets.QAction(self)
+    self.manual_upload_gDrive_widget.setCheckable(False)
+    self.manual_upload_gDrive_widget.setToolTip(
+        "Upload one file manually to Google Drive")
+    self.manual_upload_gDrive_widget.setText("Upload a file manually")
+    self.google_drive_menu.addAction(self.manual_upload_gDrive_widget)
 
 
 # class MenuAction:

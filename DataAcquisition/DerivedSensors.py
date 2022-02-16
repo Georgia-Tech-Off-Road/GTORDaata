@@ -64,19 +64,19 @@ Current classes:
 derived_sensors = {
     'dyno_torque_ftlbs': {
         'object': 'Torque',
-        'sensors': ['force_dyno_lbs'],
+        'sensors': ['force_enginedyno_lbs'],
         'display_name': "Dyno Torque",
         'transfer_function': 8/12  # Since the lever arm is 8" away
     },
     'power_engine_horsepower': {
         'object': 'MechanicalPower',
         'sensors': ['dyno_torque_ftlbs', 'dyno_engine_speed'],
-        'display_name': "Engine Output Power"
+        'display_name': "Engine Output Power"  # transfer function is 1/5252
     },
     'ratio_dyno_cvt': {
         'object': 'Ratio',
         'sensors': ['dyno_engine_speed', 'dyno_secondary_speed'],
-        'display_name': "Dyno CVT Ratio"
+        'display_name': "Dyno CVT Ratio"  # dyno_engine_speed / dyno_secondary_speed
     }
 }
 
@@ -180,6 +180,8 @@ class MechanicalPower(DerivedSensor):
 
 
 class Ratio(DerivedSensor):
+    DEFAULT_INF_VALUE = 10e6
+
     def __init__(self, input_speed_rpm, output_speed_rpm, **kwargs):
         super().__init__(**kwargs)
         self.display_name = kwargs.get('display_name', "Ratio")
@@ -191,7 +193,7 @@ class Ratio(DerivedSensor):
 
     def get_value(self, index):
         if self.output_speed_rpm.get_value(index) == 0:
-            return 10e6
+            return self.DEFAULT_INF_VALUE
         return self.input_speed_rpm.get_value(index) / self.output_speed_rpm.get_value(index) * self.transfer_function
 
     def get_values(self, index, num_values):

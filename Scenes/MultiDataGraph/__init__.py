@@ -231,9 +231,11 @@ class MultiDataGraph(DAATAScene, uiFile):
     Adds one more independent multi data graph to the scene
     """
     def addMDG(self):
+        # increasing the MDG count text on GUI
         newMDGNumber = int(self.mdgNumber.text()) + 1
         self.mdgNumber.setText(str(newMDGNumber))
 
+        # creating new MDG
         current_MDG_count = len(self.graph_objects)
         self.create_graph(current_MDG_count)
 
@@ -241,15 +243,16 @@ class MultiDataGraph(DAATAScene, uiFile):
     Removes the most recently added multi data graph from the scene
     """
     def removeMDG(self):
-        pass
-        # newMDGNumber = int(self.mdgNumber.text()) - 1
-        # if newMDGNumber < 0:
-        #     newMDGNumber = 0
-        # self.mdgNumber.setText(str(newMDGNumber))
-        #
-        # current_MDG_count = len(self.graph_objects)
-        # del self.graph_objects[current_MDG_count - 1]
-        # self.create_grid_plot_layout()
+        # decreasing the MDG count text on GUI
+        newMDGNumber = int(self.mdgNumber.text()) - 1
+        if newMDGNumber <= 0:
+            return
+        self.mdgNumber.setText(str(newMDGNumber))
+
+        # deleting most recently added MDG
+        current_MDG_count = len(self.graph_objects)
+        del self.graph_objects[current_MDG_count - 1]
+        self.create_grid_plot_layout()
 
     def connect_slots_and_signals(self):
         self.button_display.clicked.connect(

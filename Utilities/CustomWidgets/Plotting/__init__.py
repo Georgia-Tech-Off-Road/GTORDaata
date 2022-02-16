@@ -1,8 +1,8 @@
 import logging
 import sys, os
 import time
+from matplotlib.pyplot import text
 from enum import Enum
-
 import pyqtgraph as pg
 from functools import partial
 from PyQt5 import QtCore, QtWidgets, uic, QtGui
@@ -27,6 +27,8 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
         super().__init__()
         self.setupUi(self)
         self.sensor_name = sensor_name
+
+        pg.setConfigOption('foreground', 'w')
 
         self.line_graph = "line_graph"
         self.scatter_plot = "scatter_plot"
@@ -60,14 +62,24 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
         # adds a legend describing what each line represents based on the 'name'
         self.plotWidget.addLegend()
 
-        # if self.enable_multi_plot:
-        #     # set title and axes, if multi-plot, set labels at
-        #     # create_multi_graphs
-        #     self.plotWidget.setLabels(bottom='Time (s)',
-        #                               title="Multi Sensor 1 Graph")
-
+        if self.enable_multi_plot:
+            # set title and axes
+            self.plotWidget.setLabels(bottom='Time (s)',
+                                      title="Multi Sensor 1 Graph")
+        else:
+            # set title and axes
+            self.plotWidget.setLabels(
+                left=str(data.get_display_name(sensor_name))
+                     + " ("
+                     + str(data.get_unit_short(sensor_name))
+                     + ")",
+                bottom='Time (s)',
+                title=str(data.get_display_name(sensor_name))
+                      + ' Graph')
+        
         self.plotWidget.showGrid(x=True, y=True, alpha=.2)
-        self.plotWidget.setBackground(None)
+        self.plotWidget.setBackground("#343538")
+
         # Number of value to show on the x_axis
         self.samplingFreq = 200
         self.graph_width = kwargs.get("graph_width_seconds", 10) \
@@ -92,7 +104,7 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
         else:
             self.plot = self.plotWidget.plot(valueArray,
                                              name=self.sensor_name,
-                                             pen='b',
+                                             pen=pg.mkPen(color="#ff0d9e"),                                             
                                              width=1)
 
         self.initialCounter = 0
@@ -105,27 +117,33 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
     def loadStylesheet(self):
         self.stylesheetDefault = """
         CustomPlotWidget {
-        background-color: white;
+        background-color: #343538;
+        color: white;
         }
         CustomPlotWidget * { 
         background-color: transparent;
+        color: white;
         }
         """
 
         self.stylesheetHighlight = """
         CustomPlotWidget {
-        background-color: white;
+        background-color: #343538;
         border: 3px solid #196dff;
+        color: white;
         }
         CustomPlotWidget * { 
         background-color: transparent;
+        color: white;
         }
         """"""
         CustomPlotWidget {
-        background-color: white;
+        background-color: #343538;
+        color: white;
         }
         CustomPlotWidget * { 
         background-color: transparent;
+        color: white;
         }
         """
         self.setStyleSheet(self.stylesheetDefault)
@@ -133,7 +151,7 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
     def set_graphWidth(self, seconds):
         try:
             self.graph_width = int(seconds) * self.samplingFreq
-        except:
+        except Exception:
             self.graph_width = 10 * self.samplingFreq
 
     def set_yMinMax(self, yMin, yMax):
@@ -158,6 +176,11 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
     def set_height(self, height):
         self.setMinimumSize(QtCore.QSize(200, height))
         self.setMaximumSize(QtCore.QSize(16777215, height))
+
+    def initialize_values(self, timeArray: list, valueArray: list):
+        self.timeArray = timeArray
+        self.valueArray = valueArray
+        self.plot.setData(timeArray, valueArray)
 
     def update_graph(self):
         if self.enable_multi_plot:
@@ -687,7 +710,7 @@ class GridPlotLayout(QGridLayout):
             self.addWidget(widg, newRow, newCol)
             self.addWidget(displacedWidg, oldRow, oldCol)
         except AttributeError:
-            pass
+            logger.debug(logger.findCaller(True))
 
     def widgetAtPosition(self, row, col):
         return self.itemAtPosition(row, col).widget()

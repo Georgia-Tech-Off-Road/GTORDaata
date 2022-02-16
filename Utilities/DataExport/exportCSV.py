@@ -1,21 +1,21 @@
+from DataAcquisition import data
 import csv
+import logging
 import os
-from DataAcquisition import data 
 
+logger = logging.getLogger("DataExport")
 
-
-def saveCSV(self, filename, directory):
+def saveCSV(filename, directory):
+    logger.info("Constructing CSV file...")
     # with open(filename, 'w', newline='') as csvfile:
 
     #TODO add smarter functionality to automatically make it a csv file
     if filename == "":
         return
 
-
     csvfile = open(os.path.join(directory, filename + ".csv"), 'w')
     writer = csv.writer(csvfile, dialect='excel', lineterminator='\n')
 
-    
     # connected_sensors = data.get_sensors(is_connected=True)
     sensorsList = data.get_sensors(is_connected=True, is_derived=False)
 
@@ -48,6 +48,8 @@ def saveCSV(self, filename, directory):
     #     index += 1
 
     csvfile.close()
+    logger.info("CSV file constructed successfully")
+
 
 if __name__ == "__main__":
     pass
