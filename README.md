@@ -32,3 +32,4 @@ _Designed by the [Georgia Tech Off-Road]([GitHub Repo](https://github.com/Georgi
 8. Vishnav Deenadayalan
 9. Akash Harapanahalli
 10. Vincent Fang
+11. 
