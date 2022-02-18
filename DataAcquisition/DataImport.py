@@ -37,8 +37,6 @@ class DataImport:
         self.teensy_found = False
         self.teensy_ser = None
 
-        #self.connect_serial() #being called too soon.
-
         # Variables that are used for reading/parsing incoming packets
         self.end_code = [b'\xff', b'\xff', b'\xff', b'\xff', b'\xff', b'\xff', b'\xff', b'\xf0']
         self.current_sensors = []
@@ -103,6 +101,8 @@ class DataImport:
                                             write_timeout=1)
             logger.info("Teensy found on port {}".format(self.teensy_ser.port))
             self.teensy_found = True
+            self.teensy_ser.flushInput
+            self.teensy_ser.flushOutput
         except Exception as e:
             self.teensy_found = False            
             logger.error(e)
@@ -120,8 +120,21 @@ class DataImport:
         """
 
         while self.teensy_ser != None or self.data_file != None:  # if there are bytes waiting in input buffer
-            if self.teensy_found and self.teensy_ser.in_waiting != 0:
-                self.current_packet.append(self.teensy_ser.read(1))  # read in a single byte from COM
+            if self.teensy_found:
+                try:
+                    assert self.teensy_ser.in_waiting != 0
+                    self.current_packet.append(self.teensy_ser.read(1))  # read in a single byte from COM
+                except AssertionError:
+                    logger.info("Input buffer is empty")
+                    try:
+                        assert self.teensy_ser.is_open
+                    except AssertionError:
+                        logger.info("The teensy port has been closed, trying to open")
+                        self.teensy_ser.close()
+                        self.connect_serial()
+                except Exception as e:
+                    logger.error(e)
+                    logger.debug(logger.findCaller(True))
             elif self.data_file != None and self.data_file.readable():                
                 byte = self.data_file.read(1)
                 if not byte:
@@ -202,14 +215,24 @@ class DataImport:
         :return: None
         """
 
-        try:
-            packet = self.packetize()
-            if packet is not None:
+        #try:
+        packet = self.packetize()
+        if packet is not None:
+            try:
+                assert self.teensy_ser.writable
                 self.teensy_ser.write(packet)
+            except:
+                logger.info("Teensy has been disconnected, closing and attempting reopen")
+                self.teensy_ser.close
+                self.connect_serial
+            """except Exception as e:
+                logger.error(e)
+                logger.debug(logger.findCaller(True))
+                logger.error("Error in sending packet")
         except Exception as e:
             logger.error(e)
             logger.debug(logger.findCaller(True))
-            logger.error("Error in sending packet")
+            logger.error("Error in sending packet")"""
 
     def packetize(self):
         """
