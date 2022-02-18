@@ -94,7 +94,6 @@ class DataImport:
 
         :return: None
         """
-
         try:
             self.teensy_port = self.input_mode
             self.teensy_ser = serial.Serial(baudrate=115200, port=self.teensy_port, timeout=2,
@@ -108,8 +107,6 @@ class DataImport:
             logger.error(e)
             logger.debug(logger.findCaller(True))
             logger.error("Error in connect_serial")
-
-        
 
     def read_packet(self):
         """
@@ -126,12 +123,11 @@ class DataImport:
                     self.current_packet.append(self.teensy_ser.read(1))  # read in a single byte from COM
                 except AssertionError:
                     logger.info("Input buffer is empty")
-                    try:
-                        assert self.teensy_ser.is_open
-                    except AssertionError:
-                        logger.info("The teensy port has been closed, trying to open")
-                        self.teensy_ser.close()
-                        self.connect_serial()
+                    time.sleep(1)
+                except TypeError as e:
+                    logger.info("USB has been disconnected, attempting reopen")
+                    self.teensy_ser.close()
+                    self.connect_serial()
                 except Exception as e:
                     logger.error(e)
                     logger.debug(logger.findCaller(True))
