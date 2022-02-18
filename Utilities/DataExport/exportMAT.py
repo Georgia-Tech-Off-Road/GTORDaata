@@ -5,6 +5,7 @@ import scipy.io as sio
 
 logger = logging.getLogger("DataExport")
 
+
 def saveMAT(filename, directory):
     logger.info("Constructing MAT file...")
     if filename == "":
@@ -20,11 +21,16 @@ def saveMAT(filename, directory):
     lastIndex = data.get_most_recent_index()
 
     for sensor in sensorsList:
-        dataDict['collected_data'][sensor] = data.get_values(sensor, lastIndex, lastIndex+1)
+        dataDict['collected_data'][sensor] = data.get_values(sensor, lastIndex,
+                                                             lastIndex + 1)
 
-    sio.savemat(os.path.join(directory, filename), dataDict, appendmat=True, oned_as="column")
+    sio.savemat(os.path.join(directory, filename), dataDict, appendmat=True,
+                oned_as="column")
 
-    logger.info("MAT file constructed successfully")
+    size = os.path.getsize(f"{directory}/{filename}")
+    logger.info(
+        f"MAT file of size {round(size / 1048576, 2)} MB constructed "
+        f"successfully")
 
 
 if __name__ == "__main__":

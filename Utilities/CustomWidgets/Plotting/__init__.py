@@ -1,17 +1,16 @@
+from DataAcquisition import data
+from PyQt5 import QtCore, QtWidgets, uic, QtGui
+from PyQt5.QtWidgets import QGridLayout
+from enum import Enum
+from functools import partial
+from matplotlib.pyplot import text
 import logging
+import numpy
+import pyqtgraph as pg
 import sys, os
 import time
-from matplotlib.pyplot import text
-from enum import Enum
-import pyqtgraph as pg
-from functools import partial
-from PyQt5 import QtCore, QtWidgets, uic, QtGui
-import numpy
-from PyQt5.QtWidgets import QGridLayout
-from DataAcquisition import data
 
 logger = logging.getLogger("Plotting")
-
 
 # loads the .ui file from QT Designer
 uiPlotWidget, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__),
@@ -69,14 +68,11 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
         else:
             # set title and axes
             self.plotWidget.setLabels(
-                left=str(data.get_display_name(sensor_name))
-                     + " ("
-                     + str(data.get_unit_short(sensor_name))
-                     + ")",
+                left=f"{str(data.get_display_name(sensor_name))} "
+                     f"({str(data.get_unit_short(sensor_name))})",
                 bottom='Time (s)',
-                title=str(data.get_display_name(sensor_name))
-                      + ' Graph')
-        
+                title=f"{str(data.get_display_name(sensor_name))} Graph")
+
         self.plotWidget.showGrid(x=True, y=True, alpha=.2)
         self.plotWidget.setBackground("#343538")
 
@@ -104,7 +100,7 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
         else:
             self.plot = self.plotWidget.plot(valueArray,
                                              name=self.sensor_name,
-                                             pen=pg.mkPen(color="#ff0d9e"),                                             
+                                             pen=pg.mkPen(color="#ff0d9e"),
                                              width=1)
 
         self.initialCounter = 0
@@ -157,18 +153,18 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
     def set_yMinMax(self, yMin, yMax):
         self.plotWidget.setYRange(0, 100)
         self.enable_autoRange(True)
-        self.plotWidget.setLimits(yMin = None, yMax = None)
+        self.plotWidget.setLimits(yMin=None, yMax=None)
         if yMax != 'auto' and yMin == 'auto':
-            self.plotWidget.setLimits(yMax = int(yMax))
+            self.plotWidget.setLimits(yMax=int(yMax))
         if yMin != 'auto' and yMax == 'auto':
-            self.plotWidget.setLimits(yMin = int(yMin))
+            self.plotWidget.setLimits(yMin=int(yMin))
         if (yMin != 'auto') and (yMax != 'auto'):
             # self.plotWidget.setLimits(yMin = int(yMin), yMax = int(yMax))
             # Set strict visible range
             self.plotWidget.setYRange(int(yMin), int(yMax), padding=0)
         if (yMin == 'auto') and (yMax == 'auto'):
             self.enable_autoRange(True)
-            self.plotWidget.setLimits(yMin = None, yMax = None)
+            self.plotWidget.setLimits(yMin=None, yMax=None)
 
     def enable_autoRange(self, enable=True):
         self.plotWidget.enableAutoRange(enable)
@@ -187,29 +183,40 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
             self.update_multi_graphs()
         else:
             index_time = data.get_most_recent_index()
-            index_sensor = data.get_most_recent_index(sensor_name=self.sensor_name)
-            valueArray = data.get_values(self.sensor_name, index_sensor, self.graph_width)
-            timeArray = data.get_values("time_internal_seconds", index_time, self.graph_width)
+            index_sensor = data.get_most_recent_index(
+                sensor_name=self.sensor_name)
+            valueArray = data.get_values(self.sensor_name, index_sensor,
+                                         self.graph_width)
+            timeArray = data.get_values("time_internal_seconds", index_time,
+                                        self.graph_width)
             self.plot.setData(timeArray, valueArray)
 
-    """
-        Returns a pyqtgraph 'pg' pen or brush object of a color depending on the
-        color_choice input integer. Colors should be colorblind-friendly
-        :param color_choice: an integer to choose which color, value will be 
-        reduce modulated (%) to the number of possible colors
-        :param create_pen: True if you want to return a pen object, False if want a 
-        brush 
-        :return: A brush or a pen depending on create_pen
-    """
     def create_pen_brush(self, color_choice=0, create_pen=True):
+        """
+        Returns a pyqtgraph 'pg' pen or brush object of a color depending on
+        the color_choice input integer. Colors should be colorblind-friendly
+        :param color_choice: an integer to choose which color, value will be
+        reduced modulated (%) to the number of possible colors
+        :param create_pen: True if you want to return a pen object, False if
+        want a brush
+        :return: A brush or a pen depending on create_pen.
+        """
         # 10 colors = green, red, blue, orange, purple,
         # black, pink, brown, gray, blue-green
-        colors = ["#9ACD32", "#FFA500", "#0000FF", "#FF0000", "#DA70D6",
-                  "#000000", "#FFC0CB", "#964B00", "#797979", "#0d98ba"]
+        COLORS = ["#9ACD32",  # Atlantis or light green
+                  "#FFA500",  # Web orange
+                  "#0000FF",  # Blue
+                  "#FF0000",  # Red
+                  "#DA70D6",  # Orchid
+                  "#FFFFFF",  # White
+                  "#FFC0CB",  # Pink
+                  "#964B00",  # Brown
+                  "#797979",  # Boulder
+                  "#0d98ba"]  # Pacific blue
         if create_pen:
-            return pg.mkPen(color=colors[color_choice % len(colors)])
+            return pg.mkPen(color=COLORS[color_choice % len(COLORS)])
         else:
-            return pg.mkBrush(color=colors[color_choice % len(colors)])
+            return pg.mkBrush(color=COLORS[color_choice % len(COLORS)])
 
     def create_multi_graphs(self):
         # clears all of the plots listed made after x-y sensor selection changes
@@ -248,16 +255,19 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
                 self.plotWidget.addItem(scatter)
                 self.multi_plots.append(scatter)
 
-    # updates all line plots contained in list self.multi_plots according to
-    # which x-y sensors are selected
-    def update_multi_graphs(self):
+    def update_multi_graphs(self) -> None:
+        """
+        Updates all line plots contained in list self.multi_plots according to
+        which x-y sensors are selected
+        :return: None
+        """
         if self.plot_type == self.line_graph:
             for sensor_i in range(len(self.y_sensors)):
                 sensor = self.y_sensors[sensor_i]
                 index_time = data.get_most_recent_index()
                 index_sensor = data.get_most_recent_index(sensor_name=sensor)
                 valueArrayY = data.get_values(sensor, index_sensor,
-                                                  self.graph_width)
+                                              self.graph_width)
                 if self.x_sensor == self.time_option:
                     timeArray = data.get_values("time_internal_seconds",
                                                 index_time, self.graph_width)
@@ -343,7 +353,8 @@ class PlotSettingsDialog(QtWidgets.QDialog, uiSettingsDialog):
         self.parent = parent
         self.embedLayout = embedLayout
         self.sensor_name = sensor_name
-        self.window().setWindowTitle(data.get_display_name(sensor_name) + " Plot Settings")
+        self.window().setWindowTitle(
+            data.get_display_name(sensor_name) + " Plot Settings")
         self.connectSlotsSignals()
         self.reposition()
 
@@ -353,19 +364,22 @@ class PlotSettingsDialog(QtWidgets.QDialog, uiSettingsDialog):
         returnValue = self.exec()
 
     def loadSettings(self):
-        self.lineEdit_graph_width_seconds.setText(str(self.parent.graph_width/self.parent.samplingFreq))
+        self.lineEdit_graph_width_seconds.setText(
+            str(self.parent.graph_width / self.parent.samplingFreq))
         self.lineEdit_yMin.setText(self.configFile.value("yMin"))
         self.lineEdit_yMax.setText(self.configFile.value("yMax"))
 
     def applySettings(self):
         self.saveSettings()
-        self.parent.set_yMinMax(self.configFile.value("yMin"),self.configFile.value("yMax"))
+        self.parent.set_yMinMax(self.configFile.value("yMin"),
+                                self.configFile.value("yMax"))
         self.parent.set_graphWidth(self.configFile.value("graph_width"))
         self.lineEdit_yMin.setText(self.configFile.value("yMin"))
         self.lineEdit_yMax.setText(self.configFile.value("yMax"))
 
     def saveSettings(self):
-        self.configFile.setValue("graph_width", self.lineEdit_graph_width_seconds.text())
+        self.configFile.setValue("graph_width",
+                                 self.lineEdit_graph_width_seconds.text())
         self.configFile.setValue("yMin", self.lineEdit_yMin.text())
         self.configFile.setValue("yMax", self.lineEdit_yMax.text())
 
@@ -378,24 +392,27 @@ class PlotSettingsDialog(QtWidgets.QDialog, uiSettingsDialog):
         yOverride = kwargs.get("yOverride", 0)
 
         if xOverride == 0:
-            x = self.embedLayout.parent().mapToGlobal(QtCore.QPoint(0, 0)).x() + self.embedLayout.parent().width() + 20
+            x = self.embedLayout.parent().mapToGlobal(QtCore.QPoint(0,
+                                                                    0)).x() + self.embedLayout.parent().width() + 20
             # x = self.parent.mapToGlobal(QtCore.QPoint(0, 0)).x() + self.embedLayout.width()
 
         else:
             x = xOverride
 
         if yOverride == 0:
-            y = self.embedLayout.parent().mapToGlobal(QtCore.QPoint(0, 0)).y() + self.embedLayout.parent().height()/3
+            y = self.embedLayout.parent().mapToGlobal(QtCore.QPoint(0,
+                                                                    0)).y() + self.embedLayout.parent().height() / 3
         else:
             y = yOverride
 
-        self.move(x,y)
+        self.move(x, y)
 
     def resetYMax(self):
         self.parent.enable_autoRange(True)
         self.lineEdit_yMax.setText("auto")
         self.configFile.setValue("yMax", self.lineEdit_yMax.text())
-        self.parent.set_yMinMax(self.configFile.value("yMin"),self.configFile.value("yMax"))
+        self.parent.set_yMinMax(self.configFile.value("yMin"),
+                                self.configFile.value("yMax"))
 
         # self.lineEdit_yMin.setText(self.configFile.value("yMin"))
 
@@ -403,15 +420,19 @@ class PlotSettingsDialog(QtWidgets.QDialog, uiSettingsDialog):
         self.parent.enable_autoRange(True)
         self.lineEdit_yMin.setText("auto")
         self.configFile.setValue("yMin", self.lineEdit_yMin.text())
-        self.parent.set_yMinMax(self.configFile.value("yMin"),self.configFile.value("yMax"))
+        self.parent.set_yMinMax(self.configFile.value("yMin"),
+                                self.configFile.value("yMax"))
 
         # self.lineEdit_yMax.setText(self.configFile.value("yMax"))
 
     def connectSlotsSignals(self):
         self.pushButton_apply.clicked.connect(self.applySettings)
-        self.button_moveDown.clicked.connect(partial(self.sendMoveSignal, 'down'))
-        self.button_moveLeft.clicked.connect(partial(self.sendMoveSignal, 'left'))
-        self.button_moveRight.clicked.connect(partial(self.sendMoveSignal, 'right'))
+        self.button_moveDown.clicked.connect(
+            partial(self.sendMoveSignal, 'down'))
+        self.button_moveLeft.clicked.connect(
+            partial(self.sendMoveSignal, 'left'))
+        self.button_moveRight.clicked.connect(
+            partial(self.sendMoveSignal, 'right'))
         self.button_moveUp.clicked.connect(partial(self.sendMoveSignal, 'up'))
 
         self.button_resetYMax.clicked.connect(self.resetYMax)
@@ -424,11 +445,11 @@ class PlotSettingsDialog(QtWidgets.QDialog, uiSettingsDialog):
 
 # loads the .ui file from QT Designer in case plotting a multi data graph
 uiSettingsDialogMDG, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__),
-                                             'plotSettingsMultiDataGraph.ui'))
+                                                     'plotSettingsMultiDataGraph.ui'))
 
 
 class PlotSettingsDialogMDG(QtWidgets.QDialog, uiSettingsDialogMDG):
-    def __init__(self, parent, embedLayout, x_sensor, y_sensors, **kwargs):
+    def __init__(self, parent, embedLayout, x_sensor, y_sensors):
         super().__init__()
         self.setupUi(self)
         self.parent = parent
@@ -446,7 +467,7 @@ class PlotSettingsDialogMDG(QtWidgets.QDialog, uiSettingsDialogMDG):
             self.scatterOrLineBtn.setText(self.line_graph_name)
 
         self.connected_sensors = data.get_sensors(is_plottable=True,
-                                                is_connected=True)
+                                                  is_connected=True)
 
         # Adds the sensor options for the x and y axis.
         # x and y dict() is in form sensor_1:<RadioButton object>.
@@ -468,14 +489,17 @@ class PlotSettingsDialogMDG(QtWidgets.QDialog, uiSettingsDialogMDG):
         self.loadSettings()
         self.parent.setStyleSheet(self.parent.stylesheetHighlight)
 
-        self.lineEdit_yMin.setText("auto")  # TODO REMOVE
-        self.lineEdit_yMax.setText("auto")  # TODO REMOVE
+        self.lineEdit_yMin.setText("auto")  # TODO Faris REMOVE
+        self.lineEdit_yMax.setText("auto")  # TODO Faris REMOVE
 
         returnValue = self.exec()
 
-    # adds all sensor checkboxes for x axis representing all connected
-    # sensors; the currently plotted x sensors are selected.
     def addXSensorCheckboxes(self):
+        """
+        Adds all sensor checkboxes for x-axis representing all connected
+        sensors; the currently plotted x sensors are selected.
+        :return: None
+        """
         # adds the time option radio button as one option for x axis
         self.x_radio_objects[self.time_option] = QtWidgets.QRadioButton(
             self.time_option, self.xSensorContents,
@@ -496,9 +520,12 @@ class PlotSettingsDialogMDG(QtWidgets.QDialog, uiSettingsDialogMDG):
 
         self.x_radio_objects[self.checked_x_key].setChecked(True)
 
-    # adds all sensor checkboxes for y axis representing Time and all connected
-    # sensors; Time is selected by default.
     def addYSensorCheckboxes(self):
+        """
+        Adds all sensor checkboxes for y-axis representing Time and all
+        connected sensors; Time is selected by default.
+        :return:
+        """
         # creates a checkbox button for each sensor in dictionary in
         # self.ySensorsContents; multiple sensors can be plotted in the y axis
         # NB: ySensorsContents has 's' after ySensor, but not xSensorContents
@@ -537,8 +564,11 @@ class PlotSettingsDialogMDG(QtWidgets.QDialog, uiSettingsDialogMDG):
                 self.y_checkbox_objects[key].setChecked(False)
         # self.update_xy_sensors()
 
-    # updates the current stored selection of x and y sensors
     def update_xy_sensors(self):
+        """
+        Updates the current stored selection of x and y sensors
+        :return: None
+        """
         # if time_option is selected, then the checked_x_key will be the
         # time_option and we won't check the rest of x sensor options.
         # This is important because time_option is not part of connected_sensors
@@ -570,13 +600,14 @@ class PlotSettingsDialogMDG(QtWidgets.QDialog, uiSettingsDialogMDG):
 
     def loadSettings(self):
         self.lineEdit_graph_width_seconds.setText(str(
-            self.parent.graph_width/self.parent.samplingFreq))
+            self.parent.graph_width / self.parent.samplingFreq))
         self.lineEdit_yMin.setText(self.configFile.value("yMin"))
         self.lineEdit_yMax.setText(self.configFile.value("yMax"))
 
     def applySettings(self):
         self.saveSettings()
-        self.parent.set_yMinMax(self.configFile.value("yMin"),self.configFile.value("yMax"))
+        self.parent.set_yMinMax(self.configFile.value("yMin"),
+                                self.configFile.value("yMax"))
         self.parent.set_graphWidth(self.configFile.value("graph_width"))
         self.lineEdit_yMin.setText(self.configFile.value("yMin"))
         self.lineEdit_yMax.setText(self.configFile.value("yMax"))
@@ -584,21 +615,25 @@ class PlotSettingsDialogMDG(QtWidgets.QDialog, uiSettingsDialogMDG):
         # updates the plot graph based on selections of x and y sensors
         self.update_this_MDG()
 
-    # clears and updates this multi data graph with the newly selected
-    # x-y sensors and plot type option
     def update_this_MDG(self):
+        """
+        Clears and updates this multi data graph with the newly selected
+        x-y sensors and plot type option
+        :return:
+        """
         self.update_xy_sensors()
         self.parent.plotWidget.clear()
 
         self.parent.update_xy_sensors(self.checked_x_key, self.checked_y_keys)
 
     def saveSettings(self):
-        self.configFile.setValue("graph_width", self.lineEdit_graph_width_seconds.text())
+        self.configFile.setValue("graph_width",
+                                 self.lineEdit_graph_width_seconds.text())
         self.configFile.setValue("yMin", self.lineEdit_yMin.text())
         self.configFile.setValue("yMax", self.lineEdit_yMax.text())
 
-    # direction can be 'up','left','right','down'
     def sendMoveSignal(self, direction):
+        # direction can be 'up','left','right','down'
         self.embedLayout.moveWidget(self.parent, direction)
 
     def reposition(self, **kwargs):
@@ -606,24 +641,27 @@ class PlotSettingsDialogMDG(QtWidgets.QDialog, uiSettingsDialogMDG):
         yOverride = kwargs.get("yOverride", 0)
 
         if xOverride == 0:
-            x = self.embedLayout.parent().mapToGlobal(QtCore.QPoint(0, 0)).x() + self.embedLayout.parent().width() + 20
+            x = self.embedLayout.parent().mapToGlobal(QtCore.QPoint(0,
+                                                                    0)).x() + self.embedLayout.parent().width() + 20
             # x = self.parent.mapToGlobal(QtCore.QPoint(0, 0)).x() + self.embedLayout.width()
 
         else:
             x = xOverride
 
         if yOverride == 0:
-            y = self.embedLayout.parent().mapToGlobal(QtCore.QPoint(0, 0)).y() + self.embedLayout.parent().height()/3
+            y = self.embedLayout.parent().mapToGlobal(QtCore.QPoint(0,
+                                                                    0)).y() + self.embedLayout.parent().height() / 3
         else:
             y = yOverride
 
-        self.move(x,y)
+        self.move(x, y)
 
     def resetYMax(self):
         self.parent.enable_autoRange(True)
         self.lineEdit_yMax.setText("auto")
         self.configFile.setValue("yMax", self.lineEdit_yMax.text())
-        self.parent.set_yMinMax(self.configFile.value("yMin"),self.configFile.value("yMax"))
+        self.parent.set_yMinMax(self.configFile.value("yMin"),
+                                self.configFile.value("yMax"))
 
         # self.lineEdit_yMin.setText(self.configFile.value("yMin"))
 
@@ -631,13 +669,17 @@ class PlotSettingsDialogMDG(QtWidgets.QDialog, uiSettingsDialogMDG):
         self.parent.enable_autoRange(True)
         self.lineEdit_yMin.setText("auto")
         self.configFile.setValue("yMin", self.lineEdit_yMin.text())
-        self.parent.set_yMinMax(self.configFile.value("yMin"),self.configFile.value("yMax"))
+        self.parent.set_yMinMax(self.configFile.value("yMin"),
+                                self.configFile.value("yMax"))
 
         # self.lineEdit_yMax.setText(self.configFile.value("yMax"))
 
-    # changes the plot type from scatter plot to line graph or vice versa and
-    # updates the MDG
     def changePlotType(self):
+        """
+        Changes the plot type from scatter plot to line graph or vice versa and
+        updates the MDG
+        :return:
+        """
         if self.scatterOrLineBtn.text() == self.scatter_plot_name:
             # change plot type to scatter plot
             self.scatterOrLineBtn.setText(self.line_graph_name)
@@ -651,9 +693,12 @@ class PlotSettingsDialogMDG(QtWidgets.QDialog, uiSettingsDialogMDG):
     def connectSlotsSignals(self):
         self.pushButton_apply.clicked.connect(self.applySettings)
         self.pushButton_ok.clicked.connect(self.closeSavePlotSettings)
-        self.button_moveDown.clicked.connect(partial(self.sendMoveSignal, 'down'))
-        self.button_moveLeft.clicked.connect(partial(self.sendMoveSignal, 'left'))
-        self.button_moveRight.clicked.connect(partial(self.sendMoveSignal, 'right'))
+        self.button_moveDown.clicked.connect(
+            partial(self.sendMoveSignal, 'down'))
+        self.button_moveLeft.clicked.connect(
+            partial(self.sendMoveSignal, 'left'))
+        self.button_moveRight.clicked.connect(
+            partial(self.sendMoveSignal, 'right'))
         self.button_moveUp.clicked.connect(partial(self.sendMoveSignal, 'up'))
         self.scatterOrLineBtn.clicked.connect(self.changePlotType)
 
@@ -674,12 +719,11 @@ class PlotSettingsDialogMDG(QtWidgets.QDialog, uiSettingsDialogMDG):
 
 
 class GridPlotLayout(QGridLayout):
-    def __init__(self, parent = None):
+    def __init__(self, parent=None):
         super(GridPlotLayout, self).__init__(parent)
         spacing = 6
-        self.setContentsMargins(spacing,spacing,spacing,spacing)
+        self.setContentsMargins(spacing, spacing, spacing, spacing)
         self.setSpacing(spacing)
-
 
     def moveWidget(self, widg, direction):
         oldRow = self.rowOf(widg)
@@ -693,16 +737,17 @@ class GridPlotLayout(QGridLayout):
             newCol = oldCol - 1
         elif 'right' == direction:
             newRow = oldRow
-            newCol = oldCol+1
+            newCol = oldCol + 1
         elif 'down' == direction:
             newRow = oldRow + 1
             newCol = oldCol
         else:
-            raise ValueError('moveWidget(self, widg, direction): argument 2 has invalid \'str\' value (up, left, right, down)')
-
+            raise ValueError(
+                'moveWidget(self, widg, direction): argument 2 has invalid '
+                '\'str\' value (up, left, right, down)')
 
         try:
-            displacedWidg = self.widgetAtPosition(newRow,newCol)
+            displacedWidg = self.widgetAtPosition(newRow, newCol)
             if displacedWidg == None:
                 return AttributeError
             self.removeWidget(widg)

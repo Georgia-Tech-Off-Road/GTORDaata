@@ -15,6 +15,7 @@ logging_objects = {
     "Homepage": INFO,
     "Logging": DEBUG,
     "MainWindow": DEBUG,
+    "MultiDataGraph": INFO,
     "Plotting": INFO,
 }
 

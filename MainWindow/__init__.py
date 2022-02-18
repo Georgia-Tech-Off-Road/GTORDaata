@@ -260,7 +260,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             },
             
             'Multi Data Graph': {
-                'create_scene': MultiDataGraph
+                'create_scene': MultiDataGraph,
+                'formal_name': "MultiDataGraph"
             }
         }
         return self.dict_scenes
