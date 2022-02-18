@@ -206,6 +206,7 @@
     <addaction name="actionFake_Data"/>
     <addaction name="actionBIN_File"/>
     <addaction name="actionCSV_File"/>
+    <addaction name="openCSV_File"/>
     <addaction name="menuCOM_Port"/>
     <addaction name="google_drive_menu"/>
    </widget>
@@ -241,6 +242,11 @@
   <action name="actionCSV_File">
    <property name="text">
     <string>CSV File</string>
+   </property>
+  </action>
+  <action name="openCSV_File">
+   <property name="text">
+    <string>Open CSV File</string>
    </property>
   </action>
   <widget class="QMenu" name="menuCOM_Port">
