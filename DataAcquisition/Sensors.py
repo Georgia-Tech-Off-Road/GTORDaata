@@ -1,16 +1,21 @@
 from abc import ABCMeta, abstractmethod
 import logging
 import math
+import numpy as np
 from datetime import datetime
 
 logger = logging.getLogger("DataAcquisition")
+
+# By default initialize array to store five hours of data (at 50 Hz)
+# The application will probably crash if we try to collect more than 5 hours of data
+NUM_STARTING_DATA = 900000
 
 
 class Sensor(metaclass=ABCMeta):
     def __init__(self, **kwargs):
         from DataAcquisition import is_data_collecting
         self.is_data_collecting = is_data_collecting
-        self.values = list()
+        self.values = np.zeros(NUM_STARTING_DATA)
         self.name = kwargs.get('name')
         self.object = kwargs.get('object')
         self.most_recent_index = 0
@@ -32,8 +37,8 @@ class Sensor(metaclass=ABCMeta):
                 value = self.current_value
             self.current_value = value
             if self.is_data_collecting.is_set():
-                self.values.append(value)
-                self.most_recent_index = len(self.values) - 1
+                self.values[self.most_recent_index] = value
+                self.most_recent_index += 1
         except Exception as e:
             logger.error(e)
             logger.debug(logger.findCaller(True))
@@ -42,27 +47,29 @@ class Sensor(metaclass=ABCMeta):
         try:
             if index is None:
                 return self.current_value
+            assert index <= self.most_recent_index
             return self.values[index]
-        except IndexError:
+        except (IndexError, AssertionError):
             logger.error("Index: {} out of range, use get_most_recent_index to ensure that the index exists".format(index))
             return None
 
     def get_values(self, index, num_values):
         try:
+            assert index <= self.most_recent_index
             try:
                 assert index - num_values >= 0
                 return self.values[index - num_values:index]
             except AssertionError:
                 logger.debug("Tried to get more values than are contained, returning all values")
                 return self.values[0:index]
-        except IndexError:
+        except (IndexError, AssertionError):
             logger.error("Index: {} out of range, use get_most_recent_index to ensure that the index exists".format(index))
             return None
 
     def reset(self):
         try:
             logger.debug("Resetting the sensor {}".format(self.display_name))
-            self.values = list()
+            self.values = np.zeros(NUM_STARTING_DATA)
             self.most_recent_index = 0
         except Exception as e:
             logger.error(e)
