@@ -159,11 +159,12 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
         self.plot.setData(timeArray, valueArray)
 
     def update_graph(self):
-        index_time = data.get_most_recent_index()
-        index_sensor = data.get_most_recent_index(sensor_name=self.sensor_name)
-        self.valueArray = data.get_values(self.sensor_name, index_sensor, self.graph_width)
-        self.timeArray = data.get_values("time_internal_seconds", index_time, self.graph_width)
-        self.plot.setData(self.timeArray, self.valueArray)
+        if data.get_is_connected(sensor_name=self.sensor_name):
+            index_time = data.get_most_recent_index()
+            index_sensor = data.get_most_recent_index(sensor_name=self.sensor_name)
+            self.valueArray = data.get_values(self.sensor_name, index_sensor, self.graph_width)
+            self.timeArray = data.get_values("time_internal_seconds", index_time, self.graph_width)
+            self.plot.setData(self.timeArray, self.valueArray)
 
     def create_multi_graphs(self):
         # Maximum of 6 line graphs in one graph.
