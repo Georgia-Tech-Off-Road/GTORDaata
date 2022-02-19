@@ -1,7 +1,7 @@
 from DataAcquisition import data
 from PyQt5 import QtWidgets, uic, QtCore
-from Utilities.DataExport.dataFileExplorer import open_data_file
-from Utilities.GoogleDriveHandler import GoogleDriveHandler, DriveSearchQuery, gdrive_constants
+from Utilities.GoogleDriveHandler import GoogleDriveHandler, DriveSearchQuery, \
+    gdrive_constants
 from Utilities.GoogleDriveHandler.GDriveDataImport import add_qDialogs
 from Utilities.Popups.generic_popup import GenericPopup
 from functools import partial
@@ -40,8 +40,6 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
         self.__connectSlotsSignals()
 
     def __populate_fields(self):
-        self.sec_file.setPlainText(self.configFile.value("sec_file"))
-
         self.scene_input.addItem("All")
         for scene in self.dict_scenes_copy.keys():
             scene_hidden = self.dict_scenes_copy[scene].get("disabled")
@@ -73,12 +71,6 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
         self.adv_options_button.clicked.connect(self.__hide_show_adv_options)
         self.add_field_button.clicked.connect(self.__addCustomPropsField)
         self.clearButton.clicked.connect(self.__clear_all)
-        self.selectFile.clicked.connect(self.__find_oAuth_file)
-
-    def __find_oAuth_file(self):
-        filepath = open_data_file(".json")
-        if filepath:
-            self.sec_file.setPlainText(filepath)
 
     def __hide_show_adv_options(self):
         if self.adv_options_widget.isVisible():
@@ -106,8 +98,7 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
 
     def __display_data(self):
         self.gridLayout_2.addWidget(QtWidgets.QLabel("Loading..."))
-        sec_file = self.sec_file.toPlainText()
-        self.configFile.setValue("sec_file", sec_file)
+        sec_file = gdrive_constants.GDRIVE_OAUTH2_SECRET
 
         # generate search queries
         file_name_query = self.file_name_input.toPlainText()
@@ -173,12 +164,20 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
             drive_handler = GoogleDriveHandler(sec_file)
         except GoogleDriveHandler.MissingOAuthFileError:
             self.__clear_found_files()
-            GenericPopup("Missing oAuth file")
+            GenericPopup("Missing oAuth file",
+                         f"oAuth file not detected in {sec_file}. <br /> "
+                         f"<a href='https://drive.google.com/file/d/117yhiyV2BAZNxityj4la6J50FECaEPJB/view?usp=sharing'>"
+                         f"Download here</a>.")
             return
         except GoogleDriveHandler.NoInternetError:
             self.__clear_found_files()
             GenericPopup("No Internet")
             return
+        # except GoogleDriveHandler.NoAccessError:
+        #     self.__clear_found_files()
+        #     GenericPopup("No Access", "You need to request access to the GTOR "
+        #                               "shared Google Drive")
+        #     return
         except ValueError:
             self.__clear_found_files()
             logger.error("Error in creating Google Drive Handler")
@@ -217,6 +216,7 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
                      "Proceed to download anyways?"
             self.__download_unsupported_file(drive_handler, found_file, reason,
                                              self.progressBar)
+            self.progressBar.hide()
             return
 
         try:
@@ -226,6 +226,7 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
                      "Proceed to download anyways?"
             self.__download_unsupported_file(drive_handler, found_file, reason,
                                              self.progressBar)
+            self.progressBar.hide()
             return
 
         if file_scene not in self.DISPLAYABLE_SCENES:
@@ -233,6 +234,7 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
                      "supported). Proceed to download anyways?"
             self.__download_unsupported_file(drive_handler, found_file, reason,
                                              self.progressBar)
+            self.progressBar.hide()
             return
         else:
             self.__selected_file_scene = file_scene
@@ -265,7 +267,7 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
     @staticmethod
     def __download_unsupported_file(drive_handler: GoogleDriveHandler,
                                     found_file: dict, reason: str,
-                                    progressBar=None):
+                                    progressBar=None) -> bool:
         save_offline = \
             add_qDialogs.ConfirmDownloadNonSupported(reason).save_offline
         if save_offline:
@@ -273,8 +275,11 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
                                               progressBar=progressBar)
             if filepath:
                 GenericPopup("File downloaded", filepath)
+                return True
+            else:
+                return False
+        return True
 
     @property
     def selected_filepath_and_scene(self) -> tuple:
         return self.__selected_filepath, self.__selected_file_scene
-

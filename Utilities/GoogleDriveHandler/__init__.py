@@ -1,5 +1,4 @@
 from Utilities.GoogleDriveHandler.Google import Create_Service
-from Utilities.Popups.generic_popup import GenericPopup
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from googleapiclient.http import MediaFileUpload, MediaIoBaseDownload
@@ -11,7 +10,6 @@ import json
 import logging
 import os
 import requests
-import webbrowser
 
 logger = logging.getLogger("GoogleDriveHandler")
 
@@ -41,6 +39,10 @@ class GoogleDriveHandler:
     class MissingOAuthFileError(AttributeError):
         """Missing oAuth file"""
         pass
+
+    # class NoAccessError(PermissionError):
+    #     """User does not have access to the GTOR Google Drive"""
+    #     pass
 
     # ROOT_FOLDER is "GTORDaata Graph Files"
     _ROOT_FOLDER_ID = "1OaMbG-wAqC6_Ad8u5FiNS9L8z2W7eB2i"
@@ -78,13 +80,15 @@ class GoogleDriveHandler:
         CLIENT_SECRET_FILE = secret_client_file
         API_NAME = 'drive'
         API_VERSION = 'v3'
-        SCOPES = ['https://www.googleapis.com/auth/drive']
+        SCOPES = ['https://www.googleapis.com/auth/drive.file']
 
         try:
             return Create_Service(
                 CLIENT_SECRET_FILE, API_NAME, API_VERSION, SCOPES)
         except google.auth.exceptions.RefreshError:
-            os.remove("token_drive_v3.pickle")  # the file must exist
+            # the file must exist
+            os.remove(
+                f"{gdrive_constants.PICKLE_DIRECTORY}/token_drive_v3.pickle")
             return Create_Service(
                 CLIENT_SECRET_FILE, API_NAME, API_VERSION, SCOPES)
 
@@ -163,6 +167,9 @@ class GoogleDriveHandler:
                 page_token = response.get('nextPageToken', None)
             except httplib2.error.ServerNotFoundError:
                 raise self.NoInternetError
+            # except googleapiclient.errors.HttpError as e:
+            #     logger.error(str(e))
+            #     raise self.NoAccessError
             if page_token is None:
                 break
 
@@ -265,15 +272,18 @@ class GoogleDriveHandler:
             logger.error("Metadata JSON file missing.")
             return None
 
-        test_date = file_metadata["collection_start_time"]
+        test_local_date_iso = datetime.strptime(
+            file_metadata["collection_start_time"],
+            gdrive_constants.ISO_TIME_FORMAT)
+        test_local_date = str(self.utc_to_local(test_local_date_iso).date())
 
         # if using previously searched folder, reuse it. Else, find it
-        if test_date == self.current_drive_folder["name"]:
+        if test_local_date == self.current_drive_folder["name"]:
             day_folder_id = self.current_drive_folder["id"]
         else:
-            day_folder_id = self.__get_Day_folder_id(test_date)
+            day_folder_id = self.__get_Day_folder_id(test_local_date)
             self.current_drive_folder["id"] = day_folder_id
-            self.current_drive_folder["name"] = test_date
+            self.current_drive_folder["name"] = test_local_date
         if day_folder_id is None:
             logger.error("Error in acquiring Day folder ID")
             return None
@@ -407,6 +417,9 @@ class GoogleDriveHandler:
             except httplib2.error.ServerNotFoundError:
                 self.__no_internet()
                 return ""
+            # except googleapiclient.errors.HttpError as e:
+            #     logger.error(str(e))
+            #     raise self.NoAccessError
         else:
             # check if file exists
             if not os.path.isfile(filepath):
@@ -482,11 +495,13 @@ class GoogleDriveHandler:
                 else:
                     while response is None:
                         status, response = request.next_chunk()
-                logger.info("Files successfully saved to Google Drive")
                 return response.get('id')
             except httplib2.error.ServerNotFoundError:
                 self.__no_internet()
                 return ""
+            # except googleapiclient.errors.HttpError as e:
+            #     logger.error(str(e))
+            #     raise self.NoAccessError
 
     def download(self, file: dict, progressBar=None, file_i: int = 0,
                  total_files: int = 1) -> str:
@@ -507,6 +522,9 @@ class GoogleDriveHandler:
         except httplib2.error.ServerNotFoundError:
             self.__no_internet()
             return ""
+        # except googleapiclient.errors.HttpError as e:
+        #     logger.error(str(e))
+        #     raise self.NoAccessError
         fh = io.BytesIO()
         downloader = MediaIoBaseDownload(fh, request)
 
@@ -554,8 +572,10 @@ class GoogleDriveHandler:
         :return: The full filepath of the downloaded file; "" if an error
         occurred
         """
-        import_window.close()
-        return self.download(file=file, progressBar=progressBar)
+        downloaded_filepath = self.download(file=file, progressBar=progressBar)
+        if downloaded_filepath:
+            import_window.close()
+        return downloaded_filepath
 
     def upload_all_to_drive(self, progressBar_GD=None) -> bool:
         """
@@ -599,25 +619,6 @@ class GoogleDriveHandler:
         logger.error("Failed to find Google Drive server. "
                      "Possibly due to internet problems.")
         raise self.NoInternetError
-
-    @staticmethod
-    def openSecGDInfo() -> bool:
-        """
-        Opens the information file "How to: Google Drive Secret Client File"
-        on the Google Drive. The file instructs the user how to download
-        their own personal Google Drive secret client file needed to upload
-        things to Google Drive.
-        """
-        try:
-            webbrowser.open("https://docs.google.com/presentation/d/"
-                            "1YInB3CuCPPKrWF0j-Wo1OCaAVuUZlWiRNbc8Bd_sezY/"
-                            "edit?usp=sharing")
-            return True
-        except httplib2.error.ServerNotFoundError:
-            logger.error("Failed to find Google Drive server. "
-                         "Possibly due to internet problems.")
-            GenericPopup("No Internet")
-            return False
 
     @staticmethod
     def __get_test_begin_end_time(file: dict) -> list:
@@ -724,4 +725,3 @@ class GoogleDriveHandler:
     @property
     def warning_msg(self):
         return self.__warning_msg
-

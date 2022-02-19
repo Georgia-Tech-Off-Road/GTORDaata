@@ -1,15 +1,15 @@
 """
 A Python script that simplifies commands for some Google Drive API commands.
-Copied directly on 09/30/2021 from:
+Adapted from the original downloaded on 09/30/2021 from:
 https://learndataanalysis.org/google-drive-api-in-python-getting-started-lesson-1/
 """
 
-import pickle
-import os
-from google_auth_oauthlib.flow import Flow, InstalledAppFlow
-from googleapiclient.discovery import build
-from googleapiclient.http import MediaFileUpload, MediaIoBaseDownload
+from Utilities.GoogleDriveHandler import gdrive_constants
 from google.auth.transport.requests import Request
+from google_auth_oauthlib.flow import InstalledAppFlow
+from googleapiclient.discovery import build
+import os
+import pickle
 
 
 def Create_Service(client_secret_file, api_name, api_version, *scopes):
@@ -23,10 +23,13 @@ def Create_Service(client_secret_file, api_name, api_version, *scopes):
     cred = None
 
     pickle_file = f'token_{API_SERVICE_NAME}_{API_VERSION}.pickle'
+    pickle_file_path = f"{gdrive_constants.PICKLE_DIRECTORY}/{pickle_file}"
+    if not os.path.isdir(gdrive_constants.PICKLE_DIRECTORY):
+        os.makedirs(gdrive_constants.PICKLE_DIRECTORY)
     # print(pickle_file)
 
-    if os.path.exists(pickle_file):
-        with open(pickle_file, 'rb') as token:
+    if os.path.exists(pickle_file_path):
+        with open(pickle_file_path, 'rb') as token:
             cred = pickle.load(token)
 
     if not cred or not cred.valid:
@@ -36,7 +39,7 @@ def Create_Service(client_secret_file, api_name, api_version, *scopes):
             flow = InstalledAppFlow.from_client_secrets_file(CLIENT_SECRET_FILE, SCOPES)
             cred = flow.run_local_server()
 
-        with open(pickle_file, 'wb') as token:
+        with open(pickle_file_path, 'wb') as token:
             pickle.dump(cred, token)
 
     try:

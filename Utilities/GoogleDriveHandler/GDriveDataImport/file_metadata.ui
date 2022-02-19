@@ -29,6 +29,12 @@
        <property name="alignment">
         <set>Qt::AlignCenter</set>
        </property>
+       <property name="wordWrap">
+        <bool>true</bool>
+       </property>
+       <property name="textInteractionFlags">
+        <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+       </property>
       </widget>
      </item>
      <item>
@@ -47,7 +53,13 @@
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_3">
          <item>
-          <widget class="QTextBrowser" name="metadata_textarea"/>
+          <widget class="QTextBrowser" name="metadata_textarea">
+           <property name="font">
+            <font>
+             <pointsize>11</pointsize>
+            </font>
+           </property>
+          </widget>
          </item>
         </layout>
        </widget>
