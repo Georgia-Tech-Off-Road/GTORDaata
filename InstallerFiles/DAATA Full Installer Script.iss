@@ -43,5 +43,5 @@ Source: "C:\Users\benbo\Repositories\GTOR\GTORDaata\*"; DestDir: "{app}"; Flags:
 
 [Run]
 Filename: "{app}\InstallerFiles\python-3.6.8-amd64.exe"; StatusMsg: "Installing Python..."
-Filename: "{app}\InstallerFiles\install_dependencies(installer).bat"; StatusMsg: "Installing Python dependencies..."
-Filename: "PowerShell.exe"; Parameters: "-ExecutionPolicy Bypass -File ""{app}\InstallerFiles\AddShortcut.ps1"""; Flags: runascurrentuser; WorkingDir: {app}; StatusMsg: "Creating desktop shortcut..."
+Filename: "{app}\InstallerFiles\install_dependencies(installer).bat"; StatusMsg: "Installing Python dependencies... This will take a while!"
+Filename: "PowerShell.exe"; Parameters: "-ExecutionPolicy Bypass -File ""{app}\InstallerFiles\AddShortcut.ps1"""; Flags: runhidden runascurrentuser; WorkingDir: {app}; StatusMsg: "Creating desktop shortcut..."
