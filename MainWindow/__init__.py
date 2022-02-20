@@ -22,7 +22,7 @@ from Utilities.Popups.popups import popup_ParentChildrenTree
 import DataAcquisition
 
 from DataAcquisition import is_data_collecting, data_import, stop_thread
-from MainWindow.OpenCSVFile import OpenCSVFile
+from Utilities.OpenCSVFile import OpenCSVFile
 from Utilities.DataExport.dataFileExplorer import open_data_file
 from Utilities.GoogleDriveHandler.GDriveDataExport import CreateUploadJSON
 from Utilities.GoogleDriveHandler.GDriveDataExport.upload_all_drive_files import \
@@ -33,7 +33,7 @@ from Utilities import general_constants
 
 # import breeze_resources
 
-import re, itertools
+import itertools
 import winreg as winreg
 
 logger = logging.getLogger("MainWindow")
