@@ -273,7 +273,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             'Multi Data Graph Preview': {
                 'create_scene': MultiDataGraphPreview,
                 'formal_name': "MultiDataGraphPreview",
-                'disabled': True
+                'disabled': False
             }
         }
         return self.dict_scenes

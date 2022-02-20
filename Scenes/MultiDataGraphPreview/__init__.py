@@ -1,11 +1,10 @@
-from DataAcquisition import data
 from PyQt5 import QtWidgets, uic
 from PyQt5.QtCore import QSettings
 from Scenes import DAATAScene
 from Utilities.CustomWidgets.Plotting import CustomPlotWidget, GridPlotLayout
 from datetime import datetime
 from functools import partial
-import DataAcquisition
+from numpy import genfromtxt
 import logging
 import os
 import pyqtgraph as pg
@@ -27,7 +26,8 @@ logger = logging.getLogger("MultiDataGraph")
 
 
 class MultiDataGraphPreview(DAATAScene, uiFile):
-    def __init__(self):
+    def __init__(self,
+                 data_filepath: str = r"C:\Users\afari\Dropbox (GaTech)\My PC (DESKTOP-22CBLLG)\Downloads\2022-02-20_16-27-02 MultiDataGraph.csv"):
         super().__init__()
         self.setupUi(self)
         self.hide()
@@ -36,8 +36,6 @@ class MultiDataGraphPreview(DAATAScene, uiFile):
         self.update_period = 3
 
         self.graph_objects = dict()
-        self.connected_sensors = []
-        self.update_connected_sensors()
         self.y_sensors = []
 
         self.line_graph = "line_graph"
@@ -48,17 +46,22 @@ class MultiDataGraphPreview(DAATAScene, uiFile):
         self.scrollAreaWidgetContents.setLayout(self.gridPlotLayout)
         self.collection_start_time: datetime = datetime.min
 
-        self.create_graph_dimension_combo_box()
-        self.addMDG()
+        self.__create_graph_dimension_combo_box()
+        self.__addMDG()
 
-        from MainWindow import is_data_collecting
-
-        self.connect_slots_and_signals()
-        self.configFile = QSettings('DAATA', 'MultiDataGraph')
+        self.__connect_slots_and_signals()
+        self.configFile = QSettings('DAATA', 'MultiDataGraphPreview')
         self.configFile.clear()
-        self.load_settings()
+        self.__load_settings()
+        self.__initialize_graphs(data_filepath)
 
-    def create_graph_dimension_combo_box(self):
+    def __initialize_graphs(self, data_filepath: str) -> bool:
+        csv_data = genfromtxt(data_filepath, delimiter=',')
+        print(1)
+        return False
+        # raise NotImplementedError
+
+    def __create_graph_dimension_combo_box(self):
         """
         This function creates the drop down box that allows changing the
         number of graphs on the screen.
@@ -71,7 +74,7 @@ class MultiDataGraphPreview(DAATAScene, uiFile):
             for col in range(1, max_cols + 1):
                 self.comboBox_graphDimension.addItem("{0}x{1}".format(row, col))
 
-    def create_grid_plot_layout(self):
+    def __create_grid_plot_layout(self):
         # self.gridPlotLayout = GridPlotLayout(self.scrollAreaWidgetContents)
         # self.gridPlotLayout.setObjectName("gridPlotLayout")
         # self.scrollAreaWidgetContents.setLayout(self.gridPlotLayout)
@@ -119,7 +122,7 @@ class MultiDataGraphPreview(DAATAScene, uiFile):
                                   QtWidgets.QSizePolicy.Expanding)
         self.gridPlotLayout.addItem(self.spacerItem_gridPlotLayout)
 
-    def create_graph(self, key):
+    def __create_graph(self, key):
         self.graph_objects.pop(key, None)
         self.graph_objects[key] = CustomPlotWidget(key,
                                                    parent=self.scrollAreaWidgetContents,
@@ -133,56 +136,7 @@ class MultiDataGraphPreview(DAATAScene, uiFile):
             partial(self.graph_objects[key].open_SettingsWindow))
 
         self.graph_objects[key].show()
-        self.create_grid_plot_layout()
-
-
-
-    def update_sensor_count(self):
-        self.active_sensor_count = 0
-        # for key in self.checkbox_objects.keys():
-        #     if self.checkbox_objects[key].isVisible():
-        #         if self.checkbox_objects[key].isChecked():
-        #             self.active_sensor_count = self.active_sensor_count + 1
-        self.label_active_sensor_count.setText(
-            '(' + str(self.active_sensor_count) + '/' + str(
-                len(self.graph_objects)) + ')')
-
-    def update_graphs(self):
-        for key in self.graph_objects.keys():
-            self.graph_objects[key].update_graph()
-
-    def update_time_elapsed(self):
-        """
-        This function updates the timer that is displayed in the layout that
-        indicates how long a test has been running for.
-
-        :return: None
-        """
-        try:
-            seconds_elapsed = DataAcquisition.data.get_value(
-                "time_internal_seconds",
-                DataAcquisition.data.get_most_recent_index())
-            seconds_elapsed_int = int(seconds_elapsed)
-            hours_elapsed = int(seconds_elapsed_int / 3600)
-            minutes_elapsed = int(
-                (seconds_elapsed_int - hours_elapsed * 3600) / 60)
-            seconds_elapsed = seconds_elapsed % 60
-            format_time = "{hours:02d}:{minutes:02d}:{seconds:05.2f}"
-            str_time = format_time.format(hours=hours_elapsed,
-                                          minutes=minutes_elapsed,
-                                          seconds=seconds_elapsed)
-            self.label_timeElapsed.setText(str_time)
-        except TypeError:
-            pass
-
-    def update_connected_sensors(self):
-        """
-        Will update the sensor checkboxes if new sensors are added.
-        :return: None
-        """
-        connected_sensors = data.get_sensors(is_plottable=True,
-                                             is_connected=True)
-        self.connected_sensors = connected_sensors
+        self.__create_grid_plot_layout()
 
     def update_active(self):
         pass
@@ -190,7 +144,7 @@ class MultiDataGraphPreview(DAATAScene, uiFile):
     def update_passive(self):
         pass
 
-    def addMDG(self):
+    def __addMDG(self):
         """
         Adds one more independent multi data graph to the scene
         """
@@ -200,9 +154,9 @@ class MultiDataGraphPreview(DAATAScene, uiFile):
 
         # creating new MDG
         current_MDG_count = len(self.graph_objects)
-        self.create_graph(current_MDG_count)
+        self.__create_graph(current_MDG_count)
 
-    def removeMDG(self):
+    def __removeMDG(self):
         """
         Removes the most recently added multi data graph from the scene
         """
@@ -215,22 +169,22 @@ class MultiDataGraphPreview(DAATAScene, uiFile):
         # deleting most recently added MDG
         current_MDG_count = len(self.graph_objects)
         del self.graph_objects[current_MDG_count - 1]
-        self.create_grid_plot_layout()
+        self.__create_grid_plot_layout()
 
-    def connect_slots_and_signals(self):
+    def __connect_slots_and_signals(self):
         # for key in self.currentKeys:
         #     self.checkbox_objects[key].clicked.connect(self.create_grid_plot_layout)
         #     self.checkbox_objects[key].clicked.connect(self.save_settings)
 
         self.comboBox_graphDimension.currentTextChanged.connect(
-            self.create_grid_plot_layout)
+            self.__create_grid_plot_layout)
         self.comboBox_graphDimension.currentTextChanged.connect(
-            self.save_settings)
+            self.__save_settings)
 
-        self.plusMDGButton.clicked.connect(self.addMDG)
-        self.minusMDGButton.clicked.connect(self.removeMDG)
+        self.plusMDGButton.clicked.connect(self.__addMDG)
+        self.minusMDGButton.clicked.connect(self.__removeMDG)
 
-    def save_settings(self):
+    def __save_settings(self):
         """
         This function will save the settings for a given scene to a config
         file so that they can be loaded in again the next time that the scene
@@ -246,7 +200,7 @@ class MultiDataGraphPreview(DAATAScene, uiFile):
         logger.debug("Data Collection config files saved")
         # self.debug_settings()
 
-    def load_settings(self):
+    def __load_settings(self):
         """
         This function loads in the previously saved settings.
 
@@ -273,7 +227,7 @@ class MultiDataGraphPreview(DAATAScene, uiFile):
         logger.debug("Data Collection config files loaded")
         # self.debug_settings()
 
-    def debug_settings(self):
+    def __debug_settings(self):
         """
         This method allows you to view the contents of what is currently
         stored in settings :return:
@@ -286,5 +240,5 @@ class MultiDataGraphPreview(DAATAScene, uiFile):
 
     # --- Overridden event methods --- #
     def closeEvent(self, event=None):
-        self.save_settings()
+        self.__save_settings()
         self.window().setWindowTitle('closed tab')
