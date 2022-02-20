@@ -30,8 +30,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>698</width>
-        <height>719</height>
+        <width>696</width>
+        <height>717</height>
        </rect>
       </property>
       <property name="layoutDirection">
@@ -52,51 +52,6 @@
       <enum>QFrame::Sunken</enum>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_2">
-      <item>
-       <layout class="QHBoxLayout" name="horizontalLayout">
-        <item>
-         <widget class="QLabel" name="indicator_onOrOff">
-          <property name="minimumSize">
-           <size>
-            <width>35</width>
-            <height>0</height>
-           </size>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>35</width>
-            <height>16777215</height>
-           </size>
-          </property>
-          <property name="font">
-           <font>
-            <weight>75</weight>
-            <bold>true</bold>
-           </font>
-          </property>
-          <property name="text">
-           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; color:#c70000;&quot;&gt;Off&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-          </property>
-          <property name="indent">
-           <number>5</number>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="button_display">
-          <property name="styleSheet">
-           <string notr="true"/>
-          </property>
-          <property name="text">
-           <string>Start Displaying Data</string>
-          </property>
-          <property name="checkable">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
       <item>
        <widget class="QLabel" name="label_timeElapsed">
         <property name="text">
@@ -142,7 +97,7 @@
         <x>0</x>
         <y>0</y>
         <width>298</width>
-        <height>649</height>
+        <height>674</height>
        </rect>
       </property>
       <layout class="QGridLayout" name="gridLayout_2">

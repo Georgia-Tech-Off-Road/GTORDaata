@@ -52,7 +52,6 @@ class MultiDataGraphPreview(DAATAScene, uiFile):
         self.addMDG()
 
         from MainWindow import is_data_collecting
-        self.is_data_collecting = is_data_collecting
 
         self.connect_slots_and_signals()
         self.configFile = QSettings('DAATA', 'MultiDataGraph')
@@ -136,21 +135,7 @@ class MultiDataGraphPreview(DAATAScene, uiFile):
         self.graph_objects[key].show()
         self.create_grid_plot_layout()
 
-    def slot_data_collecting_state_change(self):
-        if self.button_display.isChecked():
-            if self.collection_start_time == datetime.min:
-                self.collection_start_time = datetime.now()
-            self.indicator_onOrOff.setText("On")
-            self.indicator_onOrOff.setStyleSheet("color: green;")
-            self.button_display.setText("Stop Collecting Data")
-            self.is_data_collecting.set()
-        else:
-            self.indicator_onOrOff.setText("Off")
-            self.indicator_onOrOff.setStyleSheet("color: red;")
-            self.button_display.setText("Start Collecting Data")
-            self.is_data_collecting.clear()
-            self.popup_dataSaveLocation("MultiDataGraph",
-                                        self.collection_start_time)
+
 
     def update_sensor_count(self):
         self.active_sensor_count = 0
@@ -200,33 +185,10 @@ class MultiDataGraphPreview(DAATAScene, uiFile):
         self.connected_sensors = connected_sensors
 
     def update_active(self):
-        """
-        This function will update only if the Data Collection tab is the
-        current tab. This function will get called at whatever frequency
-        self.update_freq is set at. It is called via the update_all function
-        from the MainWindow.
-
-        :return: None
-        """
-
-        if self.is_data_collecting.is_set() and self.button_display.isChecked():
-            self.update_graphs()
-            self.update_time_elapsed()
-
-        # temporary implementation of global recording button update
-        if self.is_data_collecting.is_set():
-            self.indicator_onOrOff.setText("On")
-            self.indicator_onOrOff.setStyleSheet("color: green;")
-            self.button_display.setText("Stop Collecting Data")
-            self.button_display.setChecked(True)
-        else:
-            self.indicator_onOrOff.setText("Off")
-            self.indicator_onOrOff.setStyleSheet("color: red;")
-            self.button_display.setText("Start Collecting Data")
-            self.button_display.setChecked(False)
+        pass
 
     def update_passive(self):
-        self.update_connected_sensors()
+        pass
 
     def addMDG(self):
         """
@@ -256,9 +218,6 @@ class MultiDataGraphPreview(DAATAScene, uiFile):
         self.create_grid_plot_layout()
 
     def connect_slots_and_signals(self):
-        self.button_display.clicked.connect(
-            self.slot_data_collecting_state_change)
-
         # for key in self.currentKeys:
         #     self.checkbox_objects[key].clicked.connect(self.create_grid_plot_layout)
         #     self.checkbox_objects[key].clicked.connect(self.save_settings)

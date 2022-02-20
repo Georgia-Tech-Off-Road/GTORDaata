@@ -489,8 +489,8 @@ class PlotSettingsDialogMDG(QtWidgets.QDialog, uiSettingsDialogMDG):
         self.loadSettings()
         self.parent.setStyleSheet(self.parent.stylesheetHighlight)
 
-        self.lineEdit_yMin.setText("auto")  # TODO Faris REMOVE
-        self.lineEdit_yMax.setText("auto")  # TODO Faris REMOVE
+        self.lineEdit_yMin.setText("auto")
+        self.lineEdit_yMax.setText("auto")
 
         returnValue = self.exec()
 
@@ -500,7 +500,7 @@ class PlotSettingsDialogMDG(QtWidgets.QDialog, uiSettingsDialogMDG):
         sensors; the currently plotted x sensors are selected.
         :return: None
         """
-        # adds the time option radio button as one option for x axis
+        # adds the time option radio button as one option for x-axis
         self.x_radio_objects[self.time_option] = QtWidgets.QRadioButton(
             self.time_option, self.xSensorContents,
             objectName=self.time_option)
@@ -509,7 +509,7 @@ class PlotSettingsDialogMDG(QtWidgets.QDialog, uiSettingsDialogMDG):
         self.xGridLayout.addWidget(self.x_radio_objects[self.time_option])
 
         # creates a radio button for each connected sensors in dictionary in
-        # self.xSensorContents; only one sensor can be in the x axis
+        # self.xSensorContents; only one sensor can be in the x-axis
         for key in self.connected_sensors:
             self.x_radio_objects[key] = QtWidgets.QRadioButton(
                 data.get_display_name(key), self.xSensorContents,
@@ -570,7 +570,7 @@ class PlotSettingsDialogMDG(QtWidgets.QDialog, uiSettingsDialogMDG):
         :return: None
         """
         # if time_option is selected, then the checked_x_key will be the
-        # time_option and we won't check the rest of x sensor options.
+        # time_option, and we won't check the rest of x sensor options.
         # This is important because time_option is not part of connected_sensors
         if self.x_radio_objects[self.time_option].isChecked():
             self.checked_x_key = self.time_option
