@@ -320,7 +320,7 @@
             <item>
              <widget class="QPushButton" name="kill_motor">
               <property name="text">
-               <string>Toggle Motor</string>
+               <string>Toggle Motor On</string>
               </property>
              </widget>
             </item>

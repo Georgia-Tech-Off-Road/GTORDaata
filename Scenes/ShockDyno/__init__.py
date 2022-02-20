@@ -29,7 +29,8 @@ class ShockDyno(DAATAScene, uiFile):
         self.setupUi(self)
         self.hide()
 
-        self.motor_state = 0
+        self.motor_state = False
+        self.motor_speed = 0
 
         self.update_period = 3  # the tab updates every x*10 ms (ex. 3*10 = every 30 ms)
 
@@ -92,13 +93,16 @@ class ShockDyno(DAATAScene, uiFile):
 
     def slot_set_motor_speed(self):
         logger.info("Setting motor speed")
-        motor_speed = self.horizontalSlider.value()
-        data.set_current_value("command_motor_speed", motor_speed)
+        data.set_current_value("command_motor_speed", self.motor_speed)
 
     def slot_toggle_motor(self):
         logger.info("Toggling motor")
-        #data.set_current_value("command_motor_enable", not self.motor_state)
         self.motor_state = not self.motor_state
+        data.set_current_value("command_motor_enable", self.motor_state)
+        if self.motor_state is False:
+            self.kill_motor.setText("Toggle Motor On")
+        else:
+            self.kill_motor.setText("Toggle Motor Off")
 
     def slot_set_load_cell_scale(self):
         logger.info("Changing load cell scale")
@@ -173,6 +177,7 @@ class ShockDyno(DAATAScene, uiFile):
 
         if data.get_is_connected("command_motor_speed"):
             self.motorspeed_lcd.setEnabled(True)
+            self.motor_speed = self.horizontalSlider.value()
         else:
             self.motorspeed_lcd.setEnabled(False)
 
@@ -181,19 +186,19 @@ class ShockDyno(DAATAScene, uiFile):
             if not self.is_sensors_attached:
                 data_import.attach_output_sensor(data.get_id("command_tare_load_cell"))
                 data_import.attach_output_sensor(data.get_id("command_motor_speed"))
+                data_import.attach_output_sensor(data.get_id("command_motor_enable"))
                 self.is_sensors_attached = True
         else:
             if self.is_sensors_attached:
                 data_import.detach_output_sensor(data.get_id("command_tare_load_cell"))
                 data_import.attach_output_sensor(data.get_id("command_motor_speed"))
+                data_import.attach_output_sensor(data.get_id("command_motor_enable"))
                 self.is_sensors_attached = False
 
         if self.load_cell_taring:
             self.load_cell_taring = False
         else:
             data.set_current_value("command_tare_load_cell", 0)
-
-        data.set_current_value("command_motor_speed", self.motor_state)
 
     def connect_slots_and_signals(self):
         self.button_display.clicked.connect(self.slot_data_collecting_state_change)
