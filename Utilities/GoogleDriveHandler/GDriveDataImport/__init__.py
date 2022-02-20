@@ -1,7 +1,7 @@
 from DataAcquisition import data
 from PyQt5 import QtWidgets, uic, QtCore
-from Utilities.GoogleDriveHandler import GoogleDriveHandler, DriveSearchQuery, \
-    gdrive_constants
+from Utilities import general_constants
+from Utilities.GoogleDriveHandler import GoogleDriveHandler, DriveSearchQuery
 from Utilities.GoogleDriveHandler.GDriveDataImport import add_qDialogs
 from Utilities.Popups.generic_popup import GenericPopup
 from functools import partial
@@ -15,8 +15,8 @@ uiFile, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__),
 
 
 class GDriveDataImport(QtWidgets.QDialog, uiFile):
-    DURATION_OPTIONS = gdrive_constants.DURATION_OPTIONS
-    TEST_DATE_OPTIONS = gdrive_constants.TEST_DATE_PERIOD_OPTIONS
+    DURATION_OPTIONS = general_constants.DURATION_OPTIONS
+    TEST_DATE_OPTIONS = general_constants.TEST_DATE_PERIOD_OPTIONS
     # TODO Faris add support for MDG
     DISPLAYABLE_SCENES = {"DataCollection", "EngineDyno"}
 
@@ -99,7 +99,7 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
 
     def __display_data(self):
         self.gridLayout_2.addWidget(QtWidgets.QLabel("Loading..."))
-        sec_file = gdrive_constants.GDRIVE_OAUTH2_SECRET
+        sec_file = general_constants.GDRIVE_OAUTH2_SECRET
 
         # generate search queries
         file_name_query = self.file_name_input.toPlainText()

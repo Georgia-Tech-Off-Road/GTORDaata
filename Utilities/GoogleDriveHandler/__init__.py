@@ -2,7 +2,7 @@ from Utilities.GoogleDriveHandler.Google import Create_Service
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from googleapiclient.http import MediaFileUpload, MediaIoBaseDownload
-import Utilities.GoogleDriveHandler.gdrive_constants
+from Utilities import general_constants
 import google.auth.exceptions
 import httplib2
 import io
@@ -47,8 +47,8 @@ class GoogleDriveHandler:
     # ROOT_FOLDER is "GTORDaata Graph Files"
     _ROOT_FOLDER_ID = "1OaMbG-wAqC6_Ad8u5FiNS9L8z2W7eB2i"
     _DRIVE_ID = "0AFmSv7widPF9Uk9PVA"  # Drive ID of GTOR_DAQ_DATA shared drive
-    DEFAULT_UPLOAD_DIRECTORY = gdrive_constants.DEFAULT_UPLOAD_DIRECTORY
-    DEFAULT_DOWNLOAD_DIRECTORY = gdrive_constants.DEFAULT_DOWNLOAD_DIRECTORY
+    DEFAULT_UPLOAD_DIRECTORY = general_constants.DEFAULT_UPLOAD_DIRECTORY
+    DEFAULT_DOWNLOAD_DIRECTORY = general_constants.DEFAULT_DOWNLOAD_DIRECTORY
 
     def __init__(self, secret_client_file_path: str):
         # Mime_type for CSV and MATLAB files, see
@@ -88,7 +88,7 @@ class GoogleDriveHandler:
         except google.auth.exceptions.RefreshError:
             # the file must exist
             os.remove(
-                f"{gdrive_constants.PICKLE_DIRECTORY}/token_drive_v3.pickle")
+                f"{general_constants.PICKLE_DIRECTORY}/token_drive_v3.pickle")
             return Create_Service(
                 CLIENT_SECRET_FILE, API_NAME, API_VERSION, SCOPES)
 
@@ -274,7 +274,7 @@ class GoogleDriveHandler:
 
         test_local_date_iso = datetime.strptime(
             file_metadata["collection_start_time"],
-            gdrive_constants.ISO_TIME_FORMAT)
+            general_constants.ISO_TIME_FORMAT)
         test_local_date = str(self.utc_to_local(test_local_date_iso).date())
 
         # if using previously searched folder, reuse it. Else, find it
@@ -643,7 +643,7 @@ class GoogleDriveHandler:
                     # add microseconds parameter if it does not exist
                     retrieved_time = f"{retrieved_time}.00"
                 begin_end[i] = datetime.strptime(
-                    retrieved_time, gdrive_constants.ISO_TIME_FORMAT)
+                    retrieved_time, general_constants.ISO_TIME_FORMAT)
             except AttributeError:
                 # parameter properties or appProperties is missing
                 return []
@@ -701,16 +701,16 @@ class GoogleDriveHandler:
 
     @staticmethod
     def initialize_download_upload_directories() -> None:
-        if not os.path.exists(gdrive_constants.DEFAULT_UPLOAD_DIRECTORY):
+        if not os.path.exists(general_constants.DEFAULT_UPLOAD_DIRECTORY):
             logger.info(
-                f"Default path {gdrive_constants.DEFAULT_UPLOAD_DIRECTORY} not "
+                f"Default path {general_constants.DEFAULT_UPLOAD_DIRECTORY} not "
                 f"found. Making the directory...")
-            os.makedirs(gdrive_constants.DEFAULT_UPLOAD_DIRECTORY)
-        if not os.path.exists(gdrive_constants.DEFAULT_DOWNLOAD_DIRECTORY):
+            os.makedirs(general_constants.DEFAULT_UPLOAD_DIRECTORY)
+        if not os.path.exists(general_constants.DEFAULT_DOWNLOAD_DIRECTORY):
             logger.info(
-                f"Default path {gdrive_constants.DEFAULT_DOWNLOAD_DIRECTORY} "
+                f"Default path {general_constants.DEFAULT_DOWNLOAD_DIRECTORY} "
                 f"not found. Making the directory...")
-            os.makedirs(gdrive_constants.DEFAULT_DOWNLOAD_DIRECTORY)
+            os.makedirs(general_constants.DEFAULT_DOWNLOAD_DIRECTORY)
 
     @staticmethod
     def utc_to_local(dt_utc: datetime) -> datetime:

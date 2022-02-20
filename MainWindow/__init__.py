@@ -31,9 +31,6 @@ from Utilities.GoogleDriveHandler.GDriveDataImport import \
     GDriveDataImport as GoogleDriveDataImport
 from Utilities import general_constants
 
-from PyQt5.QtCore import QFile, QTextStream, Qt
-from PyQt5.QtGui import QPalette, QColor
-from PyQt5.QtWidgets import QApplication
 # import breeze_resources
 
 import re, itertools
@@ -434,8 +431,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def connect_signals_and_slots(self):
         """
-        This function connects all the Qt signals with the slots so that elements such as buttons or checkboxes
-        can be tied to specific functions.
+        This function connects all the Qt signals with the slots so that
+        elements such as buttons or checkboxes can be tied to specific
+        functions.
 
         :return: None
         """
