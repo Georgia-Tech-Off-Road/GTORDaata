@@ -311,7 +311,7 @@
               <item>
                <widget class="QPushButton" name="send_speed">
                 <property name="text">
-                 <string>Send</string>
+                 <string>Set</string>
                 </property>
                </widget>
               </item>
