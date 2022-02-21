@@ -3,18 +3,19 @@ from PyQt5 import QtCore, QtWidgets, uic, QtGui
 from PyQt5.QtWidgets import QGridLayout
 from enum import Enum
 from functools import partial
-from matplotlib.pyplot import text
+from typing import List
 import logging
 import numpy
+import os
 import pyqtgraph as pg
-import sys, os
-import time
 
 logger = logging.getLogger("Plotting")
 
 # loads the .ui file from QT Designer
 uiPlotWidget, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__),
                                               'graphWidget.ui'))
+
+TIME_OPTION = "Time"
 
 
 class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
@@ -37,13 +38,14 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
             self.setObjectName("MDG #" + str(sensor_name))
             self.plot_type = kwargs.get("plot_type", self.line_graph)
 
-        # a common arbitrarily key for the time option for x axis
-        self.time_option = "Time"
+        # a common arbitrarily key for the time option for x-axis
         self.DEF_BRUSH_SIZE = 10
 
         # sets the current x and y sensors plotted on the graph
-        self.y_sensors = []
-        self.x_sensor = self.time_option
+        self.x_sensor: str = kwargs.get("mdg_x_sensor") if kwargs.get(
+            "mdg_x_sensor") else TIME_OPTION
+        self.y_sensors: List[str] = kwargs.get("mdg_y_sensors") if numpy.any(
+            kwargs.get("mdg_y_sensors")) else []
 
         self.setMinimumSize(QtCore.QSize(200, 200))
         self.setMaximumSize(QtCore.QSize(16777215, 400))
@@ -63,14 +65,15 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
 
         if self.enable_multi_plot:
             # set title and axes
-            self.plotWidget.setLabels(bottom='Time (s)',
-                                      title="Multi Sensor 1 Graph")
+            self.plotWidget.setLabels(
+                bottom="Time (s)" if self.x_sensor == TIME_OPTION else "",
+                title=str(self.objectName()))
         else:
             # set title and axes
             self.plotWidget.setLabels(
                 left=f"{str(data.get_display_name(sensor_name))} "
                      f"({str(data.get_unit_short(sensor_name))})",
-                bottom='Time (s)',
+                bottom="Time (s)",
                 title=f"{str(data.get_display_name(sensor_name))} Graph")
 
         self.plotWidget.showGrid(x=True, y=True, alpha=.2)
@@ -94,7 +97,7 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
 
         valueArray = numpy.zeros(self.graph_width)
 
-        self.multi_plots = []
+        self.multi_plots: list = []
         if self.enable_multi_plot:
             self.create_multi_graphs()
         else:
@@ -174,9 +177,18 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
         self.setMaximumSize(QtCore.QSize(16777215, height))
 
     def initialize_values(self, timeArray: list, valueArray: list):
-        self.timeArray = timeArray
-        self.valueArray = valueArray
         self.plot.setData(timeArray, valueArray)
+
+    def initialize_MDG_values(self, x_sensor_array: List[float],
+                              y_sensor_arrays: List[List[float]]):
+        if self.plot_type == self.line_graph:
+            for sensor_i in range(len(self.y_sensors)):
+                self.multi_plots[sensor_i].setData(x_sensor_array,
+                                                   y_sensor_arrays[sensor_i])
+        elif self.plot_type == self.scatter_plot:
+            for sensor_i in range(len(self.y_sensors)):
+                self.multi_plots[sensor_i].addPoints(x_sensor_array,
+                                                     y_sensor_arrays[sensor_i])
 
     def update_graph(self):
         if self.enable_multi_plot:
@@ -191,7 +203,8 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
                                         self.graph_width)
             self.plot.setData(timeArray, valueArray)
 
-    def create_pen_brush(self, color_choice=0, create_pen=True):
+    @staticmethod
+    def create_pen_brush(color_choice=0, create_pen=True):
         """
         Returns a pyqtgraph 'pg' pen or brush object of a color depending on
         the color_choice input integer. Colors should be colorblind-friendly
@@ -219,18 +232,13 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
             return pg.mkBrush(color=COLORS[color_choice % len(COLORS)])
 
     def create_multi_graphs(self):
-        # clears all of the plots listed made after x-y sensor selection changes
+        # clears all plots listed made after x-y sensor selection changes
         self.multi_plots.clear()
 
         # set title and axes
-        if self.x_sensor == self.time_option:
-            self.plotWidget.setLabels(
-                bottom='Time (s)',
-                title=self.objectName())
-        else:
-            self.plotWidget.setLabels(
-                bottom='',
-                title=self.objectName())
+        self.plotWidget.setLabels(
+            bottom="Time (s)" if self.x_sensor == TIME_OPTION else "",
+            title=self.objectName())
 
         valueArray = numpy.zeros(self.graph_width)
 
@@ -268,7 +276,7 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
                 index_sensor = data.get_most_recent_index(sensor_name=sensor)
                 valueArrayY = data.get_values(sensor, index_sensor,
                                               self.graph_width)
-                if self.x_sensor == self.time_option:
+                if self.x_sensor == TIME_OPTION:
                     timeArray = data.get_values("time_internal_seconds",
                                                 index_time, self.graph_width)
                     self.multi_plots[sensor_i].setData(timeArray, valueArrayY)
@@ -285,7 +293,7 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
                 index_sensor = data.get_most_recent_index(sensor_name=sensor)
                 valueArrayY = data.get_values(sensor, index_sensor,
                                               self.graph_width)
-                if self.x_sensor == self.time_option:
+                if self.x_sensor == TIME_OPTION:
                     # get time values
                     timeArray = data.get_values("time_internal_seconds",
                                                 index_time, self.graph_width)
@@ -449,12 +457,12 @@ uiSettingsDialogMDG, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__),
 
 
 class PlotSettingsDialogMDG(QtWidgets.QDialog, uiSettingsDialogMDG):
-    def __init__(self, parent, embedLayout, x_sensor, y_sensors):
+    def __init__(self, parent: CustomPlotWidget, embedLayout, x_sensor: str,
+                 y_sensors: List[str], read_only: bool = False):
         super().__init__()
         self.setupUi(self)
-        self.parent = parent
+        self.parent: CustomPlotWidget = parent
         self.embedLayout = embedLayout
-        self.time_option = parent.time_option
 
         multi_graph_name = parent.objectName()
         self.window().setWindowTitle(multi_graph_name + " Plot Settings")
@@ -475,7 +483,7 @@ class PlotSettingsDialogMDG(QtWidgets.QDialog, uiSettingsDialogMDG):
         # self.checked_y_keys are currently selected y sensor keys; updated
         # every time the Apply button is clicked
         self.x_radio_objects = dict()
-        self.checked_x_key = x_sensor
+        self.checked_x_key: str = x_sensor
         self.addXSensorCheckboxes()
 
         self.y_checkbox_objects = dict()
@@ -501,12 +509,12 @@ class PlotSettingsDialogMDG(QtWidgets.QDialog, uiSettingsDialogMDG):
         :return: None
         """
         # adds the time option radio button as one option for x-axis
-        self.x_radio_objects[self.time_option] = QtWidgets.QRadioButton(
-            self.time_option, self.xSensorContents,
-            objectName=self.time_option)
-        self.x_radio_objects[self.time_option].setToolTip(
-            self.x_radio_objects[self.time_option].objectName())
-        self.xGridLayout.addWidget(self.x_radio_objects[self.time_option])
+        self.x_radio_objects[TIME_OPTION] = QtWidgets.QRadioButton(
+            TIME_OPTION, self.xSensorContents,
+            objectName=TIME_OPTION)
+        self.x_radio_objects[TIME_OPTION].setToolTip(
+            self.x_radio_objects[TIME_OPTION].objectName())
+        self.xGridLayout.addWidget(self.x_radio_objects[TIME_OPTION])
 
         # creates a radio button for each connected sensors in dictionary in
         # self.xSensorContents; only one sensor can be in the x-axis
@@ -569,11 +577,11 @@ class PlotSettingsDialogMDG(QtWidgets.QDialog, uiSettingsDialogMDG):
         Updates the current stored selection of x and y sensors
         :return: None
         """
-        # if time_option is selected, then the checked_x_key will be the
-        # time_option, and we won't check the rest of x sensor options.
-        # This is important because time_option is not part of connected_sensors
-        if self.x_radio_objects[self.time_option].isChecked():
-            self.checked_x_key = self.time_option
+        # if TIME_OPTION is selected, then the checked_x_key will be the
+        # TIME_OPTION, and we won't check the rest of x sensor options.
+        # This is important because TIME_OPTION is not part of connected_sensors
+        if self.x_radio_objects[TIME_OPTION].isChecked():
+            self.checked_x_key = TIME_OPTION
 
             # if selected Select All y sensors, all connected sensors will be
             # added to the self.checked_y_keys list

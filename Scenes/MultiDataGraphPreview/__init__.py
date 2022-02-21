@@ -4,9 +4,10 @@ from Scenes import DAATAScene
 from Utilities.CustomWidgets.Plotting import CustomPlotWidget, GridPlotLayout
 from datetime import datetime
 from functools import partial
-from numpy import genfromtxt
+from typing import Dict, List
 import logging
 import os
+import pandas
 import pyqtgraph as pg
 
 # Default plot configuration for pyqtgraph
@@ -27,7 +28,7 @@ logger = logging.getLogger("MultiDataGraph")
 
 class MultiDataGraphPreview(DAATAScene, uiFile):
     def __init__(self,
-                 data_filepath: str = r"C:\Users\afari\Dropbox (GaTech)\My PC (DESKTOP-22CBLLG)\Downloads\2022-02-20_16-27-02 MultiDataGraph.csv"):
+                 initial_data_filepath: str = r"C:\Users\afari\Dropbox (GaTech)\My PC (DESKTOP-22CBLLG)\Downloads\2022-02-20_16-27-02 MultiDataGraph.csv"):
         super().__init__()
         self.setupUi(self)
         self.hide()
@@ -35,8 +36,8 @@ class MultiDataGraphPreview(DAATAScene, uiFile):
         # the tab updates every x*10 ms (ex. 3*10 = every 30 ms)
         self.update_period = 3
 
-        self.graph_objects = dict()
-        self.y_sensors = []
+        self.graph_objects: Dict[int, CustomPlotWidget] = dict()
+        self.y_sensors: List[str] = []
 
         self.line_graph = "line_graph"
         self.scatter_plot = "scatter_plot"
@@ -47,19 +48,28 @@ class MultiDataGraphPreview(DAATAScene, uiFile):
         self.collection_start_time: datetime = datetime.min
 
         self.__create_graph_dimension_combo_box()
-        self.__addMDG()
+        self.__initialize_graphs(initial_data_filepath)
 
         self.__connect_slots_and_signals()
         self.configFile = QSettings('DAATA', 'MultiDataGraphPreview')
         self.configFile.clear()
         self.__load_settings()
-        self.__initialize_graphs(data_filepath)
 
-    def __initialize_graphs(self, data_filepath: str) -> bool:
-        csv_data = genfromtxt(data_filepath, delimiter=',')
-        print(1)
+    def __initialize_graphs(self, initial_data_filepath: str) -> bool:
+        csv_data = pandas.read_csv(initial_data_filepath)
+        init_x_sensor_name: str = csv_data.columns.values[0]
+        init_y_sensor_names: List[str] = csv_data.columns.values[1:]
+        self.__addMDG(init_x_sensor_name, init_y_sensor_names)
+
+        x_sensor_array: List[float] = getattr(csv_data,
+                                              init_x_sensor_name).values
+        y_sensor_arrays: List[List[float]] = [getattr(csv_data, y_sensor).values
+                                              for y_sensor in
+                                              init_y_sensor_names]
+        self.graph_objects[0].initialize_MDG_values(x_sensor_array,
+                                                    y_sensor_arrays)
+        self.__create_grid_plot_layout()
         return False
-        # raise NotImplementedError
 
     def __create_graph_dimension_combo_box(self):
         """
@@ -103,8 +113,8 @@ class MultiDataGraphPreview(DAATAScene, uiFile):
             try:
                 self.gridPlotLayout.removeWidget(self.graph_objects[key])
                 self.graph_objects[key].hide()
-            except:
-                print(key + " is " + self.graph_objects[key].isVisible())
+            except Exception:
+                print(f"{key} is {self.graph_objects[key].isVisible()}")
 
         for key in self.graph_objects.keys():
             # if self.checkbox_objects[key].isChecked():
@@ -122,14 +132,17 @@ class MultiDataGraphPreview(DAATAScene, uiFile):
                                   QtWidgets.QSizePolicy.Expanding)
         self.gridPlotLayout.addItem(self.spacerItem_gridPlotLayout)
 
-    def __create_graph(self, key):
+    def __create_graph(self, key: int, x_sensor: str = "",
+                       y_sensors: List[str] = None):
         self.graph_objects.pop(key, None)
         self.graph_objects[key] = CustomPlotWidget(key,
                                                    parent=self.scrollAreaWidgetContents,
                                                    layout=self.gridPlotLayout,
                                                    graph_width_seconds=8,
                                                    enable_multi_plot=True,
-                                                   plot_type=self.line_graph)
+                                                   plot_type=self.line_graph,
+                                                   mdg_x_sensor=x_sensor,
+                                                   mdg_y_sensors=y_sensors)
         # activate settings button
         widget = self.graph_objects[key]
         settings = widget.button_settings.clicked.connect(
@@ -144,7 +157,7 @@ class MultiDataGraphPreview(DAATAScene, uiFile):
     def update_passive(self):
         pass
 
-    def __addMDG(self):
+    def __addMDG(self, x_sensor: str = "", y_sensors: List[str] = None):
         """
         Adds one more independent multi data graph to the scene
         """
@@ -154,7 +167,7 @@ class MultiDataGraphPreview(DAATAScene, uiFile):
 
         # creating new MDG
         current_MDG_count = len(self.graph_objects)
-        self.__create_graph(current_MDG_count)
+        self.__create_graph(current_MDG_count, x_sensor, y_sensors)
 
     def __removeMDG(self):
         """
