@@ -17,8 +17,7 @@ uiFile, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__),
 class GDriveDataImport(QtWidgets.QDialog, uiFile):
     DURATION_OPTIONS = general_constants.DURATION_OPTIONS
     TEST_DATE_OPTIONS = general_constants.TEST_DATE_PERIOD_OPTIONS
-    # TODO Faris add support for MDG
-    DISPLAYABLE_SCENES = {"DataCollection", "EngineDyno"}
+    DISPLAYABLE_SCENES = general_constants.DISPLAYABLE_IMPORTED_SCENES
 
     def __init__(self, dict_scenes: dict):
         super().__init__()

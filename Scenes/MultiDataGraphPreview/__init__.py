@@ -5,11 +5,11 @@ from Scenes.MultiDataGraph.MDG_init_props import MDGInitProps
 from Utilities.CustomWidgets.Plotting import CustomPlotWidget, GridPlotLayout
 from datetime import datetime
 from functools import partial
+from numpy import ndarray
 from typing import Dict, List
 import logging
 import os
 import pandas
-from numpy import ndarray
 import pyqtgraph as pg
 
 # Default plot configuration for pyqtgraph
@@ -29,8 +29,7 @@ logger = logging.getLogger("MultiDataGraph")
 
 
 class MultiDataGraphPreview(DAATAScene, uiFile):
-    def __init__(self,
-                 initial_data_filepath: str = r"C:\Users\afari\Dropbox (GaTech)\My PC (DESKTOP-22CBLLG)\Downloads\2022-02-20_16-27-02 MultiDataGraph.csv"):
+    def __init__(self, initial_data_filepath: str):
         # TODO Faris remove default initial filepath
         super().__init__()
         self.setupUi(self)

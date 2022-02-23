@@ -273,7 +273,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             'Multi Data Graph Preview': {
                 'create_scene': MultiDataGraphPreview,
                 'formal_name': "MultiDataGraphPreview",
-                'disabled': False
+                'disabled': True
             }
         }
         return self.dict_scenes
@@ -421,6 +421,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                                   initial_data_filepath=filepath)
         elif formal_file_scene == "EngineDyno":
             self.create_scene_tab("Engine Dyno Preview",
+                                  initial_data_filepath=filepath)
+        elif formal_file_scene == "MultiDataGraph":
+            self.create_scene_tab("Multi Data Graph Preview",
                                   initial_data_filepath=filepath)
 
     def __open_csv_file(self):

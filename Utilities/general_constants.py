@@ -35,7 +35,7 @@ FILENAME_REGEX = "^[\w\-.][\w\-. ]*$"
 """
 Miscellaneous
 """
-DISPLAYABLE_IMPORTED_SCENES = {"DataCollection", "EngineDyno"}
+DISPLAYABLE_IMPORTED_SCENES = {"DataCollection", "EngineDyno", "MultiDataGraph"}
 
 """
 Multi data graph (preview) scenes
