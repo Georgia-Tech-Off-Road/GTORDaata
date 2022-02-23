@@ -1,6 +1,7 @@
 from PyQt5 import QtWidgets, uic
 from PyQt5.QtCore import QSettings
 from Scenes import DAATAScene
+from Scenes.MultiDataGraph.MDG_init_props import MDGInitProps
 from Utilities.CustomWidgets.Plotting import CustomPlotWidget, GridPlotLayout
 from datetime import datetime
 from functools import partial
@@ -8,6 +9,7 @@ from typing import Dict, List
 import logging
 import os
 import pandas
+from numpy import ndarray
 import pyqtgraph as pg
 
 # Default plot configuration for pyqtgraph
@@ -29,6 +31,7 @@ logger = logging.getLogger("MultiDataGraph")
 class MultiDataGraphPreview(DAATAScene, uiFile):
     def __init__(self,
                  initial_data_filepath: str = r"C:\Users\afari\Dropbox (GaTech)\My PC (DESKTOP-22CBLLG)\Downloads\2022-02-20_16-27-02 MultiDataGraph.csv"):
+        # TODO Faris remove default initial filepath
         super().__init__()
         self.setupUi(self)
         self.hide()
@@ -37,10 +40,7 @@ class MultiDataGraphPreview(DAATAScene, uiFile):
         self.update_period = 3
 
         self.graph_objects: Dict[int, CustomPlotWidget] = dict()
-        self.y_sensors: List[str] = []
-
-        self.line_graph = "line_graph"
-        self.scatter_plot = "scatter_plot"
+        self.READ_ONLY_INIT_VALUES: Dict[str, ndarray] = dict()
 
         self.gridPlotLayout = GridPlotLayout(self.scrollAreaWidgetContents)
         self.gridPlotLayout.setObjectName("gridPlotLayout")
@@ -56,18 +56,19 @@ class MultiDataGraphPreview(DAATAScene, uiFile):
         self.__load_settings()
 
     def __initialize_graphs(self, initial_data_filepath: str) -> bool:
-        csv_data = pandas.read_csv(initial_data_filepath)
+        csv_data: pandas.DataFrame = pandas.read_csv(initial_data_filepath)
         init_x_sensor_name: str = csv_data.columns.values[0]
-        init_y_sensor_names: List[str] = csv_data.columns.values[1:]
+        init_y_sensor_names: List[str] = list(csv_data.columns.values[1:])
+        self.READ_ONLY_INIT_VALUES = {
+            sensor: getattr(csv_data, sensor).values for sensor in
+            csv_data.columns.values
+        }
+
         self.__addMDG(init_x_sensor_name, init_y_sensor_names)
 
-        x_sensor_array: List[float] = getattr(csv_data,
-                                              init_x_sensor_name).values
-        y_sensor_arrays: List[List[float]] = [getattr(csv_data, y_sensor).values
-                                              for y_sensor in
-                                              init_y_sensor_names]
-        self.graph_objects[0].initialize_MDG_values(x_sensor_array,
-                                                    y_sensor_arrays)
+        self.graph_objects[0].import_read_only_MDG_values(
+            self.READ_ONLY_INIT_VALUES)
+        self.graph_objects[0].initialize_MDG_values()
         self.__create_grid_plot_layout()
         return False
 
@@ -135,14 +136,14 @@ class MultiDataGraphPreview(DAATAScene, uiFile):
     def __create_graph(self, key: int, x_sensor: str = "",
                        y_sensors: List[str] = None):
         self.graph_objects.pop(key, None)
+        MDG_init_props = MDGInitProps(x_sensor=x_sensor,
+                                      y_sensors=y_sensors,
+                                      read_only=True)
         self.graph_objects[key] = CustomPlotWidget(key,
                                                    parent=self.scrollAreaWidgetContents,
                                                    layout=self.gridPlotLayout,
                                                    graph_width_seconds=8,
-                                                   enable_multi_plot=True,
-                                                   plot_type=self.line_graph,
-                                                   mdg_x_sensor=x_sensor,
-                                                   mdg_y_sensors=y_sensors)
+                                                   MDG_init_props=MDG_init_props)
         # activate settings button
         widget = self.graph_objects[key]
         settings = widget.button_settings.clicked.connect(
@@ -227,8 +228,7 @@ class MultiDataGraphPreview(DAATAScene, uiFile):
                 self.graph_objects[key].show()
                 active_sensor_count = active_sensor_count + 1
                 self.label_active_sensor_count.setText(
-                    '(' + str(active_sensor_count) + '/' + str(
-                        len(self.graph_objects)) + ')')
+                    f'({active_sensor_count}/{len(self.graph_objects)})')
         except TypeError or KeyError:
             logger.error(
                 "Possibly invalid key in config. May need to clear config "

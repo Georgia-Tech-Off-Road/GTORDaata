@@ -2,6 +2,7 @@ from DataAcquisition import data
 from PyQt5 import QtWidgets, uic
 from PyQt5.QtCore import QSettings
 from Scenes import DAATAScene
+from Scenes.MultiDataGraph.MDG_init_props import MDGInitProps
 from Utilities.CustomWidgets.Plotting import CustomPlotWidget, GridPlotLayout
 from datetime import datetime
 from functools import partial
@@ -126,8 +127,7 @@ class MultiDataGraph(DAATAScene, uiFile):
                                                    parent=self.scrollAreaWidgetContents,
                                                    layout=self.gridPlotLayout,
                                                    graph_width_seconds=8,
-                                                   enable_multi_plot=True,
-                                                   plot_type=self.line_graph)
+                                                   MDG_init_props=MDGInitProps())
         # activate settings button
         widget = self.graph_objects[key]
         settings = widget.button_settings.clicked.connect(

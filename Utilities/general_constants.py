@@ -36,3 +36,9 @@ FILENAME_REGEX = "^[\w\-.][\w\-. ]*$"
 Miscellaneous
 """
 DISPLAYABLE_IMPORTED_SCENES = {"DataCollection", "EngineDyno"}
+
+"""
+Multi data graph (preview) scenes
+"""
+# from SensorId.py sensor # 101
+TIME_OPTION = "time_internal_seconds"

@@ -1,9 +1,10 @@
 from DataAcquisition import data
 from PyQt5 import QtCore, QtWidgets, uic, QtGui
 from PyQt5.QtWidgets import QGridLayout
-from enum import Enum
+from Scenes.MultiDataGraph.MDG_init_props import MDGInitProps
+from Utilities.general_constants import TIME_OPTION
 from functools import partial
-from typing import List
+from typing import List, Dict
 import logging
 import numpy
 import os
@@ -15,37 +16,27 @@ logger = logging.getLogger("Plotting")
 uiPlotWidget, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__),
                                               'graphWidget.ui'))
 
-TIME_OPTION = "Time"
-
 
 class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
-    class PlotTypes(Enum):
-        Line_Graph = 1
-        Scatter_plot = 2
-
-    def __init__(self, sensor_name, parent=None, **kwargs):
+    def __init__(self, sensor_name, parent=None,
+                 MDG_init_props: MDGInitProps = None, **kwargs):
         super().__init__()
         self.setupUi(self)
         self.sensor_name = sensor_name
 
         pg.setConfigOption('foreground', 'w')
 
-        self.line_graph = "line_graph"
-        self.scatter_plot = "scatter_plot"
-
-        self.enable_multi_plot = kwargs.get("enable_multi_plot", False)
+        self.enable_multi_plot = (MDG_init_props is not None)
         if self.enable_multi_plot:
+            self.MDG_init_props: MDGInitProps = MDG_init_props
             self.setObjectName("MDG #" + str(sensor_name))
-            self.plot_type = kwargs.get("plot_type", self.line_graph)
-
-        # a common arbitrarily key for the time option for x-axis
-        self.DEF_BRUSH_SIZE = 10
-
-        # sets the current x and y sensors plotted on the graph
-        self.x_sensor: str = kwargs.get("mdg_x_sensor") if kwargs.get(
-            "mdg_x_sensor") else TIME_OPTION
-        self.y_sensors: List[str] = kwargs.get("mdg_y_sensors") if numpy.any(
-            kwargs.get("mdg_y_sensors")) else []
+            self.mdg_is_line_graph = MDG_init_props.is_line_graph
+            # sets the current x and y sensors plotted on the graph
+            self.mdg_x_sensor: str = MDG_init_props.x_sensor
+            self.mdg_y_sensors: List[str] = \
+                MDG_init_props.y_sensors if MDG_init_props.y_sensors else []
+            if MDG_init_props.read_only:
+                self.INIT_SENSOR_VALUES: Dict[str, numpy.ndarray] = dict()
 
         self.setMinimumSize(QtCore.QSize(200, 200))
         self.setMaximumSize(QtCore.QSize(16777215, 400))
@@ -66,7 +57,7 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
         if self.enable_multi_plot:
             # set title and axes
             self.plotWidget.setLabels(
-                bottom="Time (s)" if self.x_sensor == TIME_OPTION else "",
+                bottom="Time (s)" if self.mdg_x_sensor == TIME_OPTION else "",
                 title=str(self.objectName()))
         else:
             # set title and axes
@@ -97,9 +88,9 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
 
         valueArray = numpy.zeros(self.graph_width)
 
-        self.multi_plots: list = []
+        self.multi_plots: dict = dict()
         if self.enable_multi_plot:
-            self.create_multi_graphs()
+            self.__create_multi_graphs()
         else:
             self.plot = self.plotWidget.plot(valueArray,
                                              name=self.sensor_name,
@@ -179,16 +170,23 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
     def initialize_values(self, timeArray: list, valueArray: list):
         self.plot.setData(timeArray, valueArray)
 
-    def initialize_MDG_values(self, x_sensor_array: List[float],
-                              y_sensor_arrays: List[List[float]]):
-        if self.plot_type == self.line_graph:
-            for sensor_i in range(len(self.y_sensors)):
-                self.multi_plots[sensor_i].setData(x_sensor_array,
-                                                   y_sensor_arrays[sensor_i])
-        elif self.plot_type == self.scatter_plot:
-            for sensor_i in range(len(self.y_sensors)):
-                self.multi_plots[sensor_i].addPoints(x_sensor_array,
-                                                     y_sensor_arrays[sensor_i])
+    def import_read_only_MDG_values(self,
+                                    init_values: Dict[str, numpy.ndarray]):
+        self.INIT_SENSOR_VALUES = init_values
+
+    def initialize_MDG_values(self):
+        if not self.INIT_SENSOR_VALUES:
+            raise ValueError("Read only sensor data is missing")
+        if self.mdg_is_line_graph:
+            for sensor in self.mdg_y_sensors:
+                self.multi_plots[sensor].setData(
+                    self.INIT_SENSOR_VALUES[self.mdg_x_sensor],
+                    self.INIT_SENSOR_VALUES[sensor])
+        else:
+            for sensor in self.mdg_y_sensors:
+                self.multi_plots[sensor].addPoints(
+                    self.INIT_SENSOR_VALUES[self.mdg_x_sensor],
+                    self.INIT_SENSOR_VALUES[sensor])
 
     def update_graph(self):
         if self.enable_multi_plot:
@@ -204,7 +202,7 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
             self.plot.setData(timeArray, valueArray)
 
     @staticmethod
-    def create_pen_brush(color_choice=0, create_pen=True):
+    def __create_pen_brush(color_choice=0, create_pen=True):
         """
         Returns a pyqtgraph 'pg' pen or brush object of a color depending on
         the color_choice input integer. Colors should be colorblind-friendly
@@ -231,37 +229,36 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
         else:
             return pg.mkBrush(color=COLORS[color_choice % len(COLORS)])
 
-    def create_multi_graphs(self):
+    def __create_multi_graphs(self):
         # clears all plots listed made after x-y sensor selection changes
         self.multi_plots.clear()
 
         # set title and axes
         self.plotWidget.setLabels(
-            bottom="Time (s)" if self.x_sensor == TIME_OPTION else "",
+            bottom="Time (s)" if self.mdg_x_sensor == TIME_OPTION else "",
             title=self.objectName())
 
         valueArray = numpy.zeros(self.graph_width)
 
-        if self.plot_type == self.line_graph:
+        if self.mdg_is_line_graph:
             # creates the individual line plots on the graph and adds them to a
             # list
-            for sensor_i in range(len(self.y_sensors)):
-                sensor = self.y_sensors[sensor_i]
-                pen = self.create_pen_brush(sensor_i, True)
+            for sensor_i, sensor in enumerate(self.mdg_y_sensors):
+                pen = self.__create_pen_brush(sensor_i, True)
                 plot = self.plotWidget.plot(valueArray,
                                             name=sensor,
                                             pen=pen,
                                             width=1)
-                self.multi_plots.append(plot)
-        elif self.plot_type == self.scatter_plot:
+                self.multi_plots[sensor] = plot
+        else:
             # creates the individual line plots on the graph and adds them to a
             # list
-            for sensor_i in range(len(self.y_sensors)):
-                brush = self.create_pen_brush(sensor_i, False)
-                scatter = pg.ScatterPlotItem(size=self.DEF_BRUSH_SIZE,
+            for sensor_i, sensor in enumerate(self.mdg_y_sensors):
+                brush = self.__create_pen_brush(sensor_i, False)
+                scatter = pg.ScatterPlotItem(size=10,
                                              brush=brush)
                 self.plotWidget.addItem(scatter)
-                self.multi_plots.append(scatter)
+                self.multi_plots[sensor] = scatter
 
     def update_multi_graphs(self) -> None:
         """
@@ -269,54 +266,57 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
         which x-y sensors are selected
         :return: None
         """
-        if self.plot_type == self.line_graph:
-            for sensor_i in range(len(self.y_sensors)):
-                sensor = self.y_sensors[sensor_i]
+        if self.mdg_is_line_graph:
+            for sensor_i, sensor in enumerate(self.mdg_y_sensors):
                 index_time = data.get_most_recent_index()
                 index_sensor = data.get_most_recent_index(sensor_name=sensor)
                 valueArrayY = data.get_values(sensor, index_sensor,
                                               self.graph_width)
-                if self.x_sensor == TIME_OPTION:
+                if self.mdg_x_sensor == TIME_OPTION:
                     timeArray = data.get_values("time_internal_seconds",
                                                 index_time, self.graph_width)
-                    self.multi_plots[sensor_i].setData(timeArray, valueArrayY)
+                    self.multi_plots[sensor].setData(timeArray, valueArrayY)
                 else:
                     index_sensorX = data.get_most_recent_index(
-                        sensor_name=self.x_sensor)
-                    valueArrayX = data.get_values(self.x_sensor, index_sensorX,
+                        sensor_name=self.mdg_x_sensor)
+                    valueArrayX = data.get_values(self.mdg_x_sensor,
+                                                  index_sensorX,
                                                   self.graph_width)
-                    self.multi_plots[sensor_i].setData(valueArrayX, valueArrayY)
-        elif self.plot_type == self.scatter_plot:
-            for sensor_i in range(len(self.y_sensors)):
-                sensor = self.y_sensors[sensor_i]
+                    self.multi_plots[sensor].setData(valueArrayX, valueArrayY)
+        else:
+            for sensor_i, sensor in enumerate(self.mdg_y_sensors):
                 index_time = data.get_most_recent_index()
                 index_sensor = data.get_most_recent_index(sensor_name=sensor)
                 valueArrayY = data.get_values(sensor, index_sensor,
                                               self.graph_width)
-                if self.x_sensor == TIME_OPTION:
+                if self.mdg_x_sensor == TIME_OPTION:
                     # get time values
                     timeArray = data.get_values("time_internal_seconds",
                                                 index_time, self.graph_width)
                     # add points
-                    self.multi_plots[sensor_i].addPoints(timeArray,
-                                                         valueArrayY)
+                    self.multi_plots[sensor].addPoints(timeArray,
+                                                       valueArrayY)
                 else:
                     index_sensorX = data.get_most_recent_index(
-                        sensor_name=self.x_sensor)
-                    valueArrayX = data.get_values(self.x_sensor, index_sensorX,
+                        sensor_name=self.mdg_x_sensor)
+                    valueArrayX = data.get_values(self.mdg_x_sensor,
+                                                  index_sensorX,
                                                   self.graph_width)
-                    self.multi_plots[sensor_i].addPoints(valueArrayX,
-                                                         valueArrayY)
+                    self.multi_plots[sensor].addPoints(valueArrayX,
+                                                       valueArrayY)
 
     def update_xy_sensors(self, x_sensor, y_sensors):
-        self.x_sensor = x_sensor
-        self.y_sensors = y_sensors
-        self.create_multi_graphs()
+        self.mdg_x_sensor = x_sensor
+        self.mdg_y_sensors = y_sensors
+        self.__create_multi_graphs()
+        if self.MDG_init_props.read_only:
+            self.initialize_MDG_values()
 
     def open_SettingsWindow(self):
         if self.enable_multi_plot:
             PlotSettingsDialogMDG(self, self.embedLayout,
-                                  self.x_sensor, self.y_sensors)
+                                  self.mdg_x_sensor, self.mdg_y_sensors,
+                                  self.MDG_init_props)
         else:
             PlotSettingsDialog(self, self.embedLayout, self.sensor_name)
 
@@ -458,7 +458,7 @@ uiSettingsDialogMDG, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__),
 
 class PlotSettingsDialogMDG(QtWidgets.QDialog, uiSettingsDialogMDG):
     def __init__(self, parent: CustomPlotWidget, embedLayout, x_sensor: str,
-                 y_sensors: List[str], read_only: bool = False):
+                 y_sensors: List[str], MDG_init_props: MDGInitProps):
         super().__init__()
         self.setupUi(self)
         self.parent: CustomPlotWidget = parent
@@ -467,17 +467,17 @@ class PlotSettingsDialogMDG(QtWidgets.QDialog, uiSettingsDialogMDG):
         multi_graph_name = parent.objectName()
         self.window().setWindowTitle(multi_graph_name + " Plot Settings")
 
-        self.line_graph_name = "Line Graph"
-        self.scatter_plot_name = "Scatter Plot"
-        if self.parent.plot_type == "line_graph":
-            self.scatterOrLineBtn.setText(self.scatter_plot_name)
-        elif self.parent.plot_type == "scatter_plot":
-            self.scatterOrLineBtn.setText(self.line_graph_name)
+        if not MDG_init_props.read_only:
+            if self.parent.mdg_is_line_graph:
+                self.scatterOrLineBtn.setText(self.scatter_plot_name)
+            else:
+                self.scatterOrLineBtn.setText(self.line_graph_name)
+            self.available_sensors = data.get_sensors(is_plottable=True,
+                                                      is_connected=True)
+        else:
+            self.available_sensors = data.get_sensors(is_plottable=True)
 
-        self.connected_sensors = data.get_sensors(is_plottable=True,
-                                                  is_connected=True)
-
-        # Adds the sensor options for the x and y axis.
+        # Adds the sensor options for the x- and y-axis.
         # x and y dict() is in form sensor_1:<RadioButton object>.
         # self.checked_x_key  is currently selected x sensor key and
         # self.checked_y_keys are currently selected y sensor keys; updated
@@ -518,7 +518,7 @@ class PlotSettingsDialogMDG(QtWidgets.QDialog, uiSettingsDialogMDG):
 
         # creates a radio button for each connected sensors in dictionary in
         # self.xSensorContents; only one sensor can be in the x-axis
-        for key in self.connected_sensors:
+        for key in self.available_sensors:
             self.x_radio_objects[key] = QtWidgets.QRadioButton(
                 data.get_display_name(key), self.xSensorContents,
                 objectName=key)
@@ -535,10 +535,10 @@ class PlotSettingsDialogMDG(QtWidgets.QDialog, uiSettingsDialogMDG):
         :return:
         """
         # creates a checkbox button for each sensor in dictionary in
-        # self.ySensorsContents; multiple sensors can be plotted in the y axis
+        # self.ySensorsContents; multiple sensors can be plotted in the y-axis
         # NB: ySensorsContents has 's' after ySensor, but not xSensorContents
 
-        # Create the checkbox for selecting all of the sensors
+        # Create the checkbox for selecting all sensors
         self.select_all_y_checkbox = QtWidgets.QCheckBox(
             "Select All",
             self.ySensorsContents,
@@ -547,7 +547,7 @@ class PlotSettingsDialogMDG(QtWidgets.QDialog, uiSettingsDialogMDG):
             self.select_all_y_checkbox.objectName())
         self.yGridLayout.addWidget(self.select_all_y_checkbox)
 
-        for key in self.connected_sensors:
+        for key in self.available_sensors:
             self.y_checkbox_objects[key] = QtWidgets.QCheckBox(
                 data.get_display_name(key), self.ySensorsContents,
                 objectName=key)
@@ -556,7 +556,7 @@ class PlotSettingsDialogMDG(QtWidgets.QDialog, uiSettingsDialogMDG):
             self.yGridLayout.addWidget(self.y_checkbox_objects[key])
 
         # checks all the currently plotted y sensors on this graph
-        if len(self.checked_y_keys) == len(self.connected_sensors):
+        if len(self.checked_y_keys) == len(self.available_sensors):
             # if all connected sensors are checked, set select all checkbox to
             # checked
             self.select_all_y_checkbox.setChecked(True)
@@ -565,10 +565,10 @@ class PlotSettingsDialogMDG(QtWidgets.QDialog, uiSettingsDialogMDG):
 
     def select_all_btn_change(self):
         if self.select_all_y_checkbox.isChecked():
-            for key in self.connected_sensors:
+            for key in self.available_sensors:
                 self.y_checkbox_objects[key].setChecked(True)
         else:
-            for key in self.connected_sensors:
+            for key in self.available_sensors:
                 self.y_checkbox_objects[key].setChecked(False)
         # self.update_xy_sensors()
 
@@ -587,16 +587,16 @@ class PlotSettingsDialogMDG(QtWidgets.QDialog, uiSettingsDialogMDG):
             # added to the self.checked_y_keys list
             self.checked_y_keys.clear()
             if self.select_all_y_checkbox.isChecked():
-                self.checked_y_keys.extend(self.connected_sensors)
+                self.checked_y_keys.extend(self.available_sensors)
             else:
                 # adds selected y sensors to the checked_y_keys list, removes
                 # unselected sensors
-                for key in self.connected_sensors:
+                for key in self.available_sensors:
                     if self.y_checkbox_objects[key].isChecked():
                         self.checked_y_keys.append(key)
         else:
             self.checked_y_keys.clear()
-            for key in self.connected_sensors:
+            for key in self.available_sensors:
                 # adds selected y sensors to the checked_y_keys list, removes
                 # unselected sensors
                 if self.y_checkbox_objects[key].isChecked():
@@ -631,7 +631,6 @@ class PlotSettingsDialogMDG(QtWidgets.QDialog, uiSettingsDialogMDG):
         """
         self.update_xy_sensors()
         self.parent.plotWidget.clear()
-
         self.parent.update_xy_sensors(self.checked_x_key, self.checked_y_keys)
 
     def saveSettings(self):
@@ -691,11 +690,11 @@ class PlotSettingsDialogMDG(QtWidgets.QDialog, uiSettingsDialogMDG):
         if self.scatterOrLineBtn.text() == self.scatter_plot_name:
             # change plot type to scatter plot
             self.scatterOrLineBtn.setText(self.line_graph_name)
-            self.parent.plot_type = "scatter_plot"
+            self.parent.mdg_is_line_graph = False
         elif self.scatterOrLineBtn.text() == self.line_graph_name:
             # change plot type to line graph
             self.scatterOrLineBtn.setText(self.scatter_plot_name)
-            self.parent.plot_type = "line_graph"
+            self.parent.mdg_is_line_graph = True
         # self.update_this_MDG()
 
     def connectSlotsSignals(self):
@@ -756,7 +755,7 @@ class GridPlotLayout(QGridLayout):
 
         try:
             displacedWidg = self.widgetAtPosition(newRow, newCol)
-            if displacedWidg == None:
+            if displacedWidg is None:
                 return AttributeError
             self.removeWidget(widg)
             self.removeWidget(displacedWidg)
