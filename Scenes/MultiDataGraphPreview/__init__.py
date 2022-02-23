@@ -41,6 +41,8 @@ class MultiDataGraphPreview(DAATAScene, uiFile):
 
         self.graph_objects: Dict[int, CustomPlotWidget] = dict()
         self.READ_ONLY_INIT_VALUES: Dict[str, ndarray] = dict()
+        self.init_x_sensor_name: str = ""
+        self.init_y_sensor_names: List[str] = []
 
         self.gridPlotLayout = GridPlotLayout(self.scrollAreaWidgetContents)
         self.gridPlotLayout.setObjectName("gridPlotLayout")
@@ -57,16 +59,16 @@ class MultiDataGraphPreview(DAATAScene, uiFile):
 
     def __initialize_graphs(self, initial_data_filepath: str) -> bool:
         csv_data: pandas.DataFrame = pandas.read_csv(initial_data_filepath)
-        init_x_sensor_name: str = csv_data.columns.values[0]
-        init_y_sensor_names: List[str] = list(csv_data.columns.values[1:])
+        self.init_x_sensor_name: str = csv_data.columns.values[0]
+        self.init_y_sensor_names: List[str] = list(csv_data.columns.values[1:])
         self.READ_ONLY_INIT_VALUES = {
             sensor: getattr(csv_data, sensor).values for sensor in
             csv_data.columns.values
         }
 
-        self.__addMDG(init_x_sensor_name, init_y_sensor_names)
+        self.__addMDG(False)
 
-        self.graph_objects[0].initialize_MDG_values(self.READ_ONLY_INIT_VALUES)
+        self.graph_objects[0].initialize_MDG_values()
         self.__create_grid_plot_layout()
         return False
 
@@ -131,12 +133,12 @@ class MultiDataGraphPreview(DAATAScene, uiFile):
                                   QtWidgets.QSizePolicy.Expanding)
         self.gridPlotLayout.addItem(self.spacerItem_gridPlotLayout)
 
-    def __create_graph(self, key: int, x_sensor: str = "",
-                       y_sensors: List[str] = None):
+    def __create_graph(self, key: int, x_sensor: str, y_sensors: List[str]):
         self.graph_objects.pop(key, None)
         MDG_init_props = MDGInitProps(x_sensor=x_sensor,
                                       y_sensors=y_sensors,
-                                      read_only=True)
+                                      read_only=True,
+                                      initial_data_values=self.READ_ONLY_INIT_VALUES)
         self.graph_objects[key] = CustomPlotWidget(key,
                                                    parent=self.scrollAreaWidgetContents,
                                                    layout=self.gridPlotLayout,
@@ -156,7 +158,7 @@ class MultiDataGraphPreview(DAATAScene, uiFile):
     def update_passive(self):
         pass
 
-    def __addMDG(self, x_sensor: str = "", y_sensors: List[str] = None):
+    def __addMDG(self, empty: bool = True):
         """
         Adds one more independent multi data graph to the scene
         """
@@ -166,7 +168,8 @@ class MultiDataGraphPreview(DAATAScene, uiFile):
 
         # creating new MDG
         current_MDG_count = len(self.graph_objects)
-        self.__create_graph(current_MDG_count, x_sensor, y_sensors)
+        self.__create_graph(current_MDG_count, self.init_x_sensor_name,
+                            self.init_y_sensor_names if not empty else [])
 
     def __removeMDG(self):
         """
@@ -193,7 +196,8 @@ class MultiDataGraphPreview(DAATAScene, uiFile):
         self.comboBox_graphDimension.currentTextChanged.connect(
             self.__save_settings)
 
-        self.plusMDGButton.clicked.connect(self.__addMDG)
+        # leave the lambda; remove it and it will break
+        self.plusMDGButton.clicked.connect(lambda: self.__addMDG())
         self.minusMDGButton.clicked.connect(self.__removeMDG)
 
     def __save_settings(self):

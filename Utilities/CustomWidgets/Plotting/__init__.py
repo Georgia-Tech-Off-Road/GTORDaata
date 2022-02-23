@@ -36,7 +36,8 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
             self.mdg_y_sensors: List[str] = \
                 MDG_init_props.y_sensors if MDG_init_props.y_sensors else []
             if MDG_init_props.read_only:
-                self.INIT_SENSOR_VALUES: Dict[str, numpy.ndarray] = dict()
+                self.INIT_SENSOR_VALUES: Dict[str, numpy.ndarray] = \
+                    MDG_init_props.initial_data_values
                 # by default limits the max number of sensors plotted
                 self.mdg_y_sensors = self.mdg_y_sensors[:5]
 
@@ -172,11 +173,7 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
     def initialize_values(self, timeArray: list, valueArray: list):
         self.plot.setData(timeArray, valueArray)
 
-    def initialize_MDG_values(self, init_values: Dict[str, numpy.ndarray]):
-        self.INIT_SENSOR_VALUES = init_values
-        self.__reinitialize_MDG_values()
-
-    def __reinitialize_MDG_values(self):
+    def initialize_MDG_values(self):
         if self.mdg_is_line_graph:
             for sensor in self.mdg_y_sensors:
                 self.multi_plots[sensor].setData(
@@ -310,7 +307,7 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
         self.mdg_y_sensors = y_sensors
         self.__create_multi_graphs()
         if self.MDG_init_props.read_only:
-            self.__reinitialize_MDG_values()
+            self.initialize_MDG_values()
 
     def open_SettingsWindow(self):
         if self.enable_multi_plot:
@@ -466,23 +463,27 @@ class PlotSettingsDialogMDG(QtWidgets.QDialog, uiSettingsDialogMDG):
 
         multi_graph_name = parent.objectName()
         self.window().setWindowTitle(multi_graph_name + " Plot Settings")
+        self.read_only = MDG_init_props.read_only
 
-        if not MDG_init_props.read_only:
+        if self.read_only:
+            self.available_sensors: List[str] = \
+                list(MDG_init_props.initial_data_values.keys())
+            if TIME_OPTION in self.available_sensors:
+                self.available_sensors.remove(TIME_OPTION)
+        else:
             if self.parent.mdg_is_line_graph:
                 self.scatterOrLineBtn.setText(self.scatter_plot_name)
             else:
                 self.scatterOrLineBtn.setText(self.line_graph_name)
-            self.available_sensors = data.get_sensors(is_plottable=True,
-                                                      is_connected=True)
-        else:
-            self.available_sensors = MDG_init_props.y_sensors
+            self.available_sensors: List[str] = data.get_sensors(
+                is_plottable=True, is_connected=True)
 
         # Adds the sensor options for the x- and y-axis.
         # x and y dict() is in form sensor_1:<RadioButton object>.
         # self.checked_x_key  is currently selected x sensor key and
         # self.checked_y_keys are currently selected y sensor keys; updated
         # every time the Apply button is clicked
-        self.x_radio_objects = dict()
+        self.x_radio_objects: Dict[str, QtWidgets.QRadioButton] = dict()
         self.checked_x_key: str = x_sensor
         self.addXSensorCheckboxes()
 
@@ -509,6 +510,7 @@ class PlotSettingsDialogMDG(QtWidgets.QDialog, uiSettingsDialogMDG):
         :return: None
         """
         # adds the time option radio button as one option for x-axis
+
         self.x_radio_objects[TIME_OPTION] = QtWidgets.QRadioButton(
             TIME_OPTION, self.xSensorContents,
             objectName=TIME_OPTION)
