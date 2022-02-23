@@ -251,8 +251,10 @@ class MultiDataGraph(DAATAScene, uiFile):
         self.mdgNumber.setText(str(newMDGNumber))
 
         # deleting most recently added MDG
-        current_MDG_count = len(self.graph_objects)
-        del self.graph_objects[current_MDG_count - 1]
+        latest_mdg_key = len(self.graph_objects) - 1
+        self.gridPlotLayout.removeWidget(self.graph_objects[latest_mdg_key])
+        self.graph_objects[latest_mdg_key].hide()
+        del self.graph_objects[latest_mdg_key]
         self.create_grid_plot_layout()
 
     def connect_slots_and_signals(self):
@@ -328,4 +330,3 @@ class MultiDataGraph(DAATAScene, uiFile):
     # --- Overridden event methods --- #
     def closeEvent(self, event=None):
         self.save_settings()
-        self.window().setWindowTitle('closed tab')

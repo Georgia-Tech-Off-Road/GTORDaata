@@ -3,7 +3,7 @@ from PyQt5.QtCore import QSettings
 from Scenes import DAATAScene
 from Scenes.MultiDataGraph.MDG_init_props import MDGInitProps
 from Utilities.CustomWidgets.Plotting import CustomPlotWidget, GridPlotLayout
-from datetime import datetime
+from datetime import datetime, time as datetime_time
 from functools import partial
 from numpy import ndarray
 from typing import Dict, List
@@ -49,14 +49,14 @@ class MultiDataGraphPreview(DAATAScene, uiFile):
         self.collection_start_time: datetime = datetime.min
 
         self.__create_graph_dimension_combo_box()
-        self.__initialize_graphs(initial_data_filepath)
+        self.__initialize_scene(initial_data_filepath)
 
         self.__connect_slots_and_signals()
         self.configFile = QSettings('DAATA', 'MultiDataGraphPreview')
         self.configFile.clear()
         self.__load_settings()
 
-    def __initialize_graphs(self, initial_data_filepath: str) -> bool:
+    def __initialize_scene(self, initial_data_filepath: str) -> bool:
         csv_data: pandas.DataFrame = pandas.read_csv(initial_data_filepath)
         self.init_x_sensor_name: str = csv_data.columns.values[0]
         self.init_y_sensor_names: List[str] = list(csv_data.columns.values[1:])
@@ -65,8 +65,22 @@ class MultiDataGraphPreview(DAATAScene, uiFile):
             csv_data.columns.values
         }
 
-        self.__addMDG(False)
+        if "time_internal_seconds" in csv_data:
+            test_duration = csv_data.time_internal_seconds.values[-1]
+            if test_duration > 86400:
+                self.label_timeElapsed.setText("> 1 day")
+            else:
+                test_duration = datetime_time(
+                    hour=int(test_duration % 86400 // 3600),
+                    minute=int(test_duration % 3600 // 60),
+                    second=int(test_duration % 60 // 1),
+                    microsecond=int(test_duration % 1 * 1e6))
+                self.label_timeElapsed.setText(
+                    test_duration.strftime("%H:%M:%S.%f"))
+        else:
+            self.label_timeElapsed.setText("No duration detected")
 
+        self.__addMDG(False)
         self.graph_objects[0].initialize_MDG_values()
         self.__create_grid_plot_layout()
         return False
@@ -109,15 +123,6 @@ class MultiDataGraphPreview(DAATAScene, uiFile):
                        - vSpace * (max_rows - 1)) / max_rows
 
         for key in self.graph_objects.keys():
-            # if self.graph_objects[key].isVisible():
-            try:
-                self.gridPlotLayout.removeWidget(self.graph_objects[key])
-                self.graph_objects[key].hide()
-            except Exception:
-                print(f"{key} is {self.graph_objects[key].isVisible()}")
-
-        for key in self.graph_objects.keys():
-            # if self.checkbox_objects[key].isChecked():
             if col == max_cols:
                 col = 0
                 row += 1
@@ -181,8 +186,10 @@ class MultiDataGraphPreview(DAATAScene, uiFile):
         self.mdgNumber.setText(str(newMDGNumber))
 
         # deleting most recently added MDG
-        current_MDG_count = len(self.graph_objects)
-        del self.graph_objects[current_MDG_count - 1]
+        latest_mdg_key = len(self.graph_objects) - 1
+        self.gridPlotLayout.removeWidget(self.graph_objects[latest_mdg_key])
+        self.graph_objects[latest_mdg_key].hide()
+        del self.graph_objects[latest_mdg_key]
         self.__create_grid_plot_layout()
 
     def __connect_slots_and_signals(self):
@@ -249,10 +256,6 @@ class MultiDataGraphPreview(DAATAScene, uiFile):
         for key in self.configFile.allKeys():
             print(key + ":\t\t" + str(self.configFile.value(key)))
 
-    # --- imported methods --- #
-    from Utilities.DataExport.dataSaveLocation import popup_dataSaveLocation
-
     # --- Overridden event methods --- #
     def closeEvent(self, event=None):
         self.__save_settings()
-        self.window().setWindowTitle('closed tab')

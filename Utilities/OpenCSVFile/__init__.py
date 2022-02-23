@@ -2,6 +2,7 @@ from PyQt5 import QtWidgets, uic
 from Utilities import general_constants
 from Utilities.DataExport.dataFileExplorer import open_data_file
 from Utilities.Popups.generic_popup import GenericPopup
+from typing import Dict
 import os
 
 # loads the .ui file from QT Designer
@@ -10,15 +11,18 @@ uiFile, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__),
 
 
 class OpenCSVFile(QtWidgets.QDialog, uiFile):
-    def __init__(self, all_scenes: dict):
+    def __init__(self, all_scenes: Dict[str, Dict]):
         super().__init__()
         self.setupUi(self)
-        self.__all_scenes = all_scenes
+        self.__all_scenes: Dict[str, Dict] = all_scenes
         self.__selected_filepath: str = ""
         self.__selected_scene: str = ""
+        self.__setup()
+        self.exec()
+
+    def __setup(self):
         self.__populate_scenes()
         self.__connectSlotsSignals()
-        self.exec()
 
     def __populate_scenes(self):
         self.scene_selection.addItems([""])
@@ -34,6 +38,10 @@ class OpenCSVFile(QtWidgets.QDialog, uiFile):
     def __find_csv_file(self):
         self.__selected_filepath = open_data_file(".csv")
         self.filepath.setPlainText(self.__selected_filepath)
+        # automatically picks the scene based on file name, if possible
+        for scene, scene_info in self.__all_scenes.items():
+            if scene_info["formal_name"] in self.__selected_filepath:
+                self.scene_selection.setCurrentText(scene)
 
     def __close_and_display(self) -> bool:
         scene_selection = self.scene_selection.currentText()
