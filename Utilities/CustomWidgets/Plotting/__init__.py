@@ -37,6 +37,8 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
                 MDG_init_props.y_sensors if MDG_init_props.y_sensors else []
             if MDG_init_props.read_only:
                 self.INIT_SENSOR_VALUES: Dict[str, numpy.ndarray] = dict()
+                # by default limits the max number of sensors plotted
+                self.mdg_y_sensors = self.mdg_y_sensors[:5]
 
         self.setMinimumSize(QtCore.QSize(200, 200))
         self.setMaximumSize(QtCore.QSize(16777215, 400))
@@ -170,13 +172,11 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
     def initialize_values(self, timeArray: list, valueArray: list):
         self.plot.setData(timeArray, valueArray)
 
-    def import_read_only_MDG_values(self,
-                                    init_values: Dict[str, numpy.ndarray]):
+    def initialize_MDG_values(self, init_values: Dict[str, numpy.ndarray]):
         self.INIT_SENSOR_VALUES = init_values
+        self.__reinitialize_MDG_values()
 
-    def initialize_MDG_values(self):
-        if not self.INIT_SENSOR_VALUES:
-            raise ValueError("Read only sensor data is missing")
+    def __reinitialize_MDG_values(self):
         if self.mdg_is_line_graph:
             for sensor in self.mdg_y_sensors:
                 self.multi_plots[sensor].setData(
@@ -310,7 +310,7 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
         self.mdg_y_sensors = y_sensors
         self.__create_multi_graphs()
         if self.MDG_init_props.read_only:
-            self.initialize_MDG_values()
+            self.__reinitialize_MDG_values()
 
     def open_SettingsWindow(self):
         if self.enable_multi_plot:
@@ -475,7 +475,7 @@ class PlotSettingsDialogMDG(QtWidgets.QDialog, uiSettingsDialogMDG):
             self.available_sensors = data.get_sensors(is_plottable=True,
                                                       is_connected=True)
         else:
-            self.available_sensors = data.get_sensors(is_plottable=True)
+            self.available_sensors = MDG_init_props.y_sensors
 
         # Adds the sensor options for the x- and y-axis.
         # x and y dict() is in form sensor_1:<RadioButton object>.

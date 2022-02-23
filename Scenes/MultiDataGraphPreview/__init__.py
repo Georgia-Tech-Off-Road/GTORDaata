@@ -66,9 +66,7 @@ class MultiDataGraphPreview(DAATAScene, uiFile):
 
         self.__addMDG(init_x_sensor_name, init_y_sensor_names)
 
-        self.graph_objects[0].import_read_only_MDG_values(
-            self.READ_ONLY_INIT_VALUES)
-        self.graph_objects[0].initialize_MDG_values()
+        self.graph_objects[0].initialize_MDG_values(self.READ_ONLY_INIT_VALUES)
         self.__create_grid_plot_layout()
         return False
 
