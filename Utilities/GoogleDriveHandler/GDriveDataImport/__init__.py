@@ -102,19 +102,15 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
         sec_file = general_constants.GDRIVE_OAUTH2_SECRET
 
         # generate search queries
-        file_name_query = self.file_name_input.toPlainText()
-        file_name_query = file_name_query if file_name_query is not "" else None
+        file_name_query: str = self.file_name_input.toPlainText()
 
-        year_query = self.year_input.toPlainText() \
-            if self.year_input.toPlainText() != "" else None
-        month_query = self.month_input.toPlainText() \
-            if self.month_input.toPlainText() != "" else None
-        day_query = self.day_input.toPlainText() \
-            if self.day_input.toPlainText() != "" else None
+        year_query: str = self.year_input.toPlainText()
+        month_query: str = self.month_input.toPlainText()
+        day_query: str = self.day_input.toPlainText()
 
-        if (year_query is None or year_query.isdigit()) \
-                and (month_query is None or month_query.isdigit()) \
-                and (day_query is None or day_query.isdigit()):
+        if (year_query == "" or year_query.isdigit()) \
+                and (month_query == "" or month_query.isdigit()) \
+                and (day_query == "" or day_query.isdigit()):
             # integer input validation passed
             pass
         else:
@@ -154,9 +150,9 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
             page_limit=page_limit,
             filename=file_name_query,
             only_csv_mat=True,
-            year=year_query,
-            month=month_query,
-            day=day_query,
+            year=int(year_query) if year_query.isdigit() else 0,
+            month=int(month_query) if year_query.isdigit() else 0,
+            day=int(day_query) if year_query.isdigit() else 0,
             custom_properties=custom_prop_query,
             test_date_period=test_date_query,
             duration=duration_query)

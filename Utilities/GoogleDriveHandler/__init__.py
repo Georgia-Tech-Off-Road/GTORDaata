@@ -23,9 +23,9 @@ class DriveSearchQuery:
     only_csv_mat: bool = False
     parent_id: str = None
     custom_properties: dict = None
-    year: int = None
-    month: int = None
-    day: int = None
+    year: int = 0
+    month: int = 0
+    day: int = 0
     # derived search queries
     test_date_period: str = "All"  # All, Last hour, Today, This Week, ...
     duration: str = "All"  # All, Under 4 minutes, 4-20 minutes, ...
@@ -189,15 +189,13 @@ class GoogleDriveHandler:
             return found_files
 
         def valid_year(begin_time: datetime) -> bool:
-            return search_q.year is None or \
-                   begin_time.year == int(search_q.year)
+            return not search_q.year or begin_time.year == int(search_q.year)
 
         def valid_month(begin_time: datetime) -> bool:
-            return search_q.month is None or \
-                   begin_time.month == int(search_q.month)
+            return not search_q.month or begin_time.month == int(search_q.month)
 
         def valid_day(begin_time: datetime) -> bool:
-            return search_q.day is None or \
+            return not search_q.day or \
                    self.utc_to_local(begin_time).day == int(search_q.day)
 
         def valid_test_date_period(begin_time: datetime) -> bool:
