@@ -472,9 +472,9 @@ class PlotSettingsDialogMDG(QtWidgets.QDialog, uiSettingsDialogMDG):
                 self.available_sensors.remove(TIME_OPTION)
         else:
             if self.parent.mdg_is_line_graph:
-                self.scatterOrLineBtn.setText(self.scatter_plot_name)
+                self.scatterOrLineBtn.setText("Scatter Plot")
             else:
-                self.scatterOrLineBtn.setText(self.line_graph_name)
+                self.scatterOrLineBtn.setText("Line Plot")
             self.available_sensors: List[str] = data.get_sensors(
                 is_plottable=True, is_connected=True)
 
