@@ -2,7 +2,6 @@ from PyQt5 import QtWidgets, uic
 from Utilities import general_constants
 from Utilities.DataExport.dataFileExplorer import open_data_file
 from Utilities.Popups.generic_popup import GenericPopup
-from typing import Dict
 import os
 
 # loads the .ui file from QT Designer
@@ -11,10 +10,10 @@ uiFile, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__),
 
 
 class OpenCSVFile(QtWidgets.QDialog, uiFile):
-    def __init__(self, all_scenes: Dict[str, Dict]):
+    def __init__(self, all_scenes):
         super().__init__()
         self.setupUi(self)
-        self.__all_scenes: Dict[str, Dict] = all_scenes
+        self.__all_scenes = all_scenes
         self.__selected_filepath: str = ""
         self.__selected_scene: str = ""
         self.__setup()
@@ -28,7 +27,7 @@ class OpenCSVFile(QtWidgets.QDialog, uiFile):
         self.scene_selection.addItems([""])
         self.scene_selection.addItems(
             [s for s in self.__all_scenes if
-             not self.__all_scenes[s].get("disabled")])
+             not self.__all_scenes[s].is_preview_scene])
 
     def __connectSlotsSignals(self):
         self.display_button.clicked.connect(self.__close_and_display)
@@ -40,7 +39,7 @@ class OpenCSVFile(QtWidgets.QDialog, uiFile):
         self.filepath.setPlainText(self.__selected_filepath)
         # automatically picks the scene based on file name, if possible
         for scene, scene_info in self.__all_scenes.items():
-            if scene_info["formal_name"] in self.__selected_filepath:
+            if scene_info.formal_name in self.__selected_filepath:
                 self.scene_selection.setCurrentText(scene)
 
     def __close_and_display(self) -> bool:
@@ -51,8 +50,8 @@ class OpenCSVFile(QtWidgets.QDialog, uiFile):
         elif not self.filepath.toPlainText():
             GenericPopup("Please select a file")
             return False
-        formal_selected_scene_name = self.__all_scenes[scene_selection].get(
-            "formal_name")
+        formal_selected_scene_name = \
+            self.__all_scenes[scene_selection].formal_name
 
         if formal_selected_scene_name \
                 not in general_constants.DISPLAYABLE_IMPORTED_SCENES:

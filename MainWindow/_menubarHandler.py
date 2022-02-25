@@ -13,14 +13,14 @@ def populate_menu(self):
 def create_addLayoutMenu(self):
     ## Make an action to create a tab for each imported widget
     for key in self.dict_scenes.keys():
-        self.dict_scenes[key]['menu_action'] = QtWidgets.QAction(self)
-        self.dict_scenes[key]['menu_action'].setCheckable(False)
-        self.dict_scenes[key]['menu_action'].setToolTip(
+        self.dict_scenes[key].menu_action = QtWidgets.QAction(self)
+        self.dict_scenes[key].menu_action.setCheckable(False)
+        self.dict_scenes[key].menu_action.setToolTip(
             'Open a new tab for ' + key)
-        self.dict_scenes[key]['menu_action'].setText(key)
-        if self.dict_scenes[key].get('disabled'):
-            self.dict_scenes[key]['menu_action'].setVisible(False)
-        self.menuAdd_Layout.addAction(self.dict_scenes[key]['menu_action'])
+        self.dict_scenes[key].menu_action.setText(key)
+        if self.dict_scenes[key].is_preview_scene:
+            self.dict_scenes[key].menu_action.setVisible(False)
+        self.menuAdd_Layout.addAction(self.dict_scenes[key].menu_action)
 
 
 def create_fileMenu(self):

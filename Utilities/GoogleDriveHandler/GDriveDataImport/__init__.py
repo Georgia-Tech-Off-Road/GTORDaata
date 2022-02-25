@@ -43,7 +43,7 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
     def __populate_fields(self):
         self.scene_input.addItem("All")
         for scene in self.dict_scenes_copy.keys():
-            scene_hidden = self.dict_scenes_copy[scene].get("disabled")
+            scene_hidden = self.dict_scenes_copy[scene].is_preview_scene
             if not scene_hidden:
                 self.scene_input.addItem(scene)
 
@@ -137,7 +137,7 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
         if scene_query != "All":
             try:
                 custom_prop_query["scene"] = \
-                    self.dict_scenes_copy[scene_query]["formal_name"]
+                    self.dict_scenes_copy[scene_query].formal_name
             except KeyError:
                 custom_prop_query["scene"] = scene_query
 

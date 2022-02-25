@@ -1,6 +1,8 @@
 from PyQt5 import uic, QtWidgets, QtGui, QtCore
 
+from dataclasses import dataclass
 from functools import partial
+from typing import Dict
 import logging
 import os
 import sys
@@ -60,7 +62,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.setupUi(self)
 
         # instantiates dictionary that holds objects for widgets
-        self.dict_scenes = {}
+        self.dict_scenes: Dict[str, _Scene] = {}
 
         self.import_scenes()
         self.dict_ports = {}
@@ -233,52 +235,30 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         """
 
         self.dict_scenes = {
-            'Data Collection': {
-                'create_scene': DataCollection,
-                'formal_name': "DataCollection"
-            },
+            'Data Collection': _Scene(DataCollection, "DataCollection"),
 
-            'Data Collection Preview': {
-                'create_scene': DataCollectionPreview,
-                'formal_name': "DataCollectionPreview",
-                'disabled': True,
-            },
+            'Data Collection Preview':
+                _Scene(DataCollectionPreview, "DataCollectionPreview", True),
 
-            'Layout Test': {
-                'create_scene': Widget_Test,
-                'formal_name': "Layout_Test"
-            },
+            'Layout Test': _Scene(Widget_Test, "Layout_Test"),
 
-            'Engine Dyno': {
-                'create_scene': EngineDyno,
-                'formal_name': "EngineDyno"
-            },
+            'Engine Dyno': _Scene(EngineDyno, "EngineDyno"),
 
-            'Engine Dyno Preview': {
-                'create_scene': EngineDynoPreview,
-                'formal_name': "EngineDynoPreview",
-                'disabled': True,
-            },
+            'Engine Dyno Preview':
+                _Scene(EngineDynoPreview, "EngineDynoPreview", True),
 
-            'Blink LED Test': {
-                'create_scene': BlinkLEDTest,
-                'formal_name': "BlinkLEDTest"
-            },
+            'Blink LED Test': _Scene(BlinkLEDTest, "BlinkLEDTest"),
 
-            'Multi Data Graph': {
-                'create_scene': MultiDataGraph,
-                'formal_name': "MultiDataGraph"
-            },
+            'Multi Data Graph': _Scene(MultiDataGraph, "MultiDataGraph"),
 
-            'Multi Data Graph Preview': {
-                'create_scene': MultiDataGraphPreview,
-                'formal_name': "MultiDataGraphPreview",
-                'disabled': True
-            }
+            'Multi Data Graph Preview':
+                _Scene(MultiDataGraphPreview, "MultiDataGraphPreview", True),
         }
+
         return self.dict_scenes
 
-    def enumerate_serial_ports(self):
+    @staticmethod
+    def enumerate_serial_ports():
         """ 
         Uses the Win32 registry to return an iterator of serial (COM) ports
         existing on this computer.
@@ -456,7 +436,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         """
 
         for key in self.dict_scenes.keys():
-            self.dict_scenes[key]['menu_action'].triggered.connect(
+            self.dict_scenes[key].menu_action.triggered.connect(
                 partial(self.create_scene_tab, key))
 
         ## Handles event of a COM port being selected
@@ -522,3 +502,12 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         p = QtGui.QPainter(self)
         s = self.style()
         s.drawPrimitive(QtGui.QStyle.PE_Widget, opt, p, self)
+
+
+@dataclass
+class _Scene:
+    create_scene: type
+    formal_name: str
+    is_preview_scene: bool = False
+    preview_scene: type = None
+    menu_action: QtWidgets.QAction = None

@@ -29,12 +29,12 @@ def create_scene_tab(self, key, preview_only: bool = False,
 
     if preview_only:
         if initial_data_filepath:
-            tab = self.dict_scenes[key]['create_scene'](initial_data_filepath,
-                                                        file_metadata)
+            tab = self.dict_scenes[key].create_scene(initial_data_filepath,
+                                                     file_metadata)
         else:
             return
     else:
-        tab = self.dict_scenes[key]['create_scene']()
+        tab = self.dict_scenes[key].create_scene()
     tab.setObjectName(key + " (instance " + str(
         tabInstances) + ")")  # set object names for each tab's widget (allows duplicate widgets to have a functional parent/child relationship)
     self.tabWidget.addTab(tab, key)
