@@ -2,11 +2,8 @@ import time
 import threading
 import logging
 import sys
-from datetime import datetime
-from tkinter.filedialog import Directory
 from DataAcquisition.Data import Data
 from DataAcquisition.DataImport import DataImport
-from Utilities.DataExport.dataFileExplorer import open_data_file
 
 logger = logging.getLogger("DataAcquisition")
 
@@ -28,10 +25,10 @@ def read_data():
 
     :return: None
     """
-    
+
     logger.info("Running read_data")
-    data_was_collecting = False    
-    
+    data_was_collecting = False
+
     while True:
         if is_data_collecting.is_set() and not data_was_collecting:
             logger.info("Starting data collection")
@@ -50,21 +47,22 @@ def read_data():
             data_import.check_connected_fake()
             data_import.read_data_fake()
             time.sleep(0.02)
-        elif data_import.input_mode == "BIN" and data_import.data_file != None:
-            try:                
-                data_import.read_packet()                                   
+        elif data_import.input_mode == "BIN" and data_import.data_file is not None:
+            try:
+                data_import.read_packet()
             except Exception as e:
-                logger.error(e)                        
-                logger.debug(logger.findCaller(True))                
-        elif "COM" in data_import.input_mode and data_import.teensy_found:            
+                logger.error(e)
+                logger.debug(logger.findCaller(True))
+        elif "COM" in data_import.input_mode and data_import.teensy_found:
             try:
                 try:
                     data_import.teensy_ser.flushInput()
                     assert data_import.teensy_found
                     assert data_import.check_connected()
                 except AttributeError:
-                    logger.warning("Unable to flush Serial Buffer. No Serial object connected")                    
-                try:                    
+                    logger.warning(
+                        "Unable to flush Serial Buffer. No Serial object connected")
+                try:
                     data_import.read_packet()
                 except AssertionError:
                     logger.info("Serial port is not open, opening now")
@@ -72,14 +70,13 @@ def read_data():
                         data_import.teensy_ser.open()
                     except Exception as e:
                         logger.error(e)
-                        logger.debug(logger.findCaller(True))                        
+                        logger.debug(logger.findCaller(True))
             except AssertionError:
                 time.sleep(0)
-        else:   
-            data_import.input_mode = ""                     
+        else:
+            data_import.input_mode = ""
             pass
 
-        
 
 def send_data():
     """
@@ -89,7 +86,6 @@ def send_data():
     :return: None
     """
 
-    
     if "COM" not in data_import.input_mode:
         pass
     else:

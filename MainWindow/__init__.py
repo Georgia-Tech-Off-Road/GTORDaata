@@ -441,6 +441,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         if selected_filepath and scene:
             self.__create_preview_scene_tab(selected_filepath, None, scene)
 
+    def __toggle_fake_input_option(self):
+        if self.actionFake_Data.isChecked():
+            self.set_input_mode("FAKE")
+            self.actionFake_Data.setDisabled(True)
+
     def connect_signals_and_slots(self):
         """
         This function connects all the Qt signals with the slots so that
@@ -460,8 +465,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 lambda: self.com_input_mode())
 
         ## Functionality for the following menu items
-        self.actionFake_Data.triggered.connect(
-            lambda: self.set_input_mode("FAKE"))
+        self.actionFake_Data.triggered.connect(self.__toggle_fake_input_option)
         self.actionBIN_File.triggered.connect(
             lambda: self.set_input_mode("BIN"))
         self.actionCSV_File.triggered.connect(

@@ -233,6 +233,9 @@
    <property name="text">
     <string>Fake Data</string>
    </property>
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
   </action>
   <action name="actionBIN_File">
    <property name="text">
