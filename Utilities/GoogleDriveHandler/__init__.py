@@ -93,8 +93,6 @@ class GoogleDriveHandler:
                 CLIENT_SECRET_FILE, API_NAME, API_VERSION, SCOPES)
 
     def __develop_drive_search_q(self, search_q: DriveSearchQuery) -> str:
-        # FUTURE TODO improve performance by filtering by date here instead of
-        #  in __filter_by_derived_queries
         query = "trashed=false"
         if search_q.filename is not None:
             if query != "":
