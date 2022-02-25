@@ -11,8 +11,11 @@ import logging
 import os
 import pandas
 import pyqtgraph as pg
+from Utilities.GoogleDriveHandler import GoogleDriveHandler
 
 # Default plot configuration for pyqtgraph
+from Utilities.Popups.generic_popup import GenericPopup
+
 pg.setConfigOption('background', 'w')  # white
 pg.setConfigOption('foreground', 'k')  # black
 
@@ -29,9 +32,21 @@ logger = logging.getLogger("MultiDataGraph")
 
 
 class MultiDataGraphPreview(DAATAScene, uiFile):
-    def __init__(self, initial_data_filepath: str):
-        # TODO Faris remove default initial filepath
+    def __init__(self, initial_data_filepath: str, file_metadata: dict = None):
         super().__init__()
+
+        if not initial_data_filepath \
+                or not os.path.isfile(initial_data_filepath):
+            GenericPopup("Data CSV file does not exist",
+                         "Unable to initialize graphs due to missing file.")
+            self.close()
+            return
+        if initial_data_filepath[-4:] != ".csv":
+            GenericPopup("Data file not of CSV type",
+                         "Only .csv files supported")
+            self.close()
+            return
+
         self.setupUi(self)
         self.hide()
 
@@ -49,14 +64,15 @@ class MultiDataGraphPreview(DAATAScene, uiFile):
         self.collection_start_time: datetime = datetime.min
 
         self.__create_graph_dimension_combo_box()
-        self.__initialize_scene(initial_data_filepath)
+        self.__initialize_scene(initial_data_filepath, file_metadata)
 
         self.__connect_slots_and_signals()
         self.configFile = QSettings('DAATA', 'MultiDataGraphPreview')
         self.configFile.clear()
         self.__load_settings()
 
-    def __initialize_scene(self, initial_data_filepath: str) -> bool:
+    def __initialize_scene(self, initial_data_filepath: str,
+                           file_metadata: dict = None) -> bool:
         csv_data: pandas.DataFrame = pandas.read_csv(initial_data_filepath)
         self.init_x_sensor_name: str = csv_data.columns.values[0]
         self.init_y_sensor_names: List[str] = list(csv_data.columns.values[1:])
@@ -65,10 +81,13 @@ class MultiDataGraphPreview(DAATAScene, uiFile):
             csv_data.columns.values
         }
 
-        if "time_internal_seconds" in csv_data:
+        date_str = GoogleDriveHandler.get_start_date_str(file_metadata)
+        if not date_str:
+            date_str = "<i>No date available</i>"
+        if "time_internal_seconds" in csv_data.columns.values:
             test_duration = csv_data.time_internal_seconds.values[-1]
             if test_duration > 86400:
-                self.label_timeElapsed.setText("> 1 day")
+                self.label_timeElapsed.setText(f"{date_str}<br>> 1 day")
             else:
                 test_duration = datetime_time(
                     hour=int(test_duration % 86400 // 3600),
@@ -76,7 +95,7 @@ class MultiDataGraphPreview(DAATAScene, uiFile):
                     second=int(test_duration % 60 // 1),
                     microsecond=int(test_duration % 1 * 1e6))
                 self.label_timeElapsed.setText(
-                    test_duration.strftime("%H:%M:%S.%f"))
+                    test_duration.strftime(f"{date_str}<br>%H h %M m %S.%f s"))
         else:
             self.label_timeElapsed.setText("No duration detected")
 

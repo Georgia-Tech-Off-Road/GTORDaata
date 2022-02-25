@@ -722,6 +722,23 @@ class GoogleDriveHandler:
         utc_offset = datetime.utcnow() - datetime.now()  # +5:00
         return dt_local + utc_offset
 
+    @staticmethod
+    def parse_utc_to_local(dt_utc: str) -> datetime:
+        return datetime.strptime(dt_utc, general_constants.ISO_TIME_FORMAT)
+
+    @staticmethod
+    def get_start_date_str(file_metadata: dict) -> str:
+        if file_metadata and file_metadata.get(
+                "properties") and file_metadata.get("properties").get(
+                "collection_start_time"):
+            start_dt = file_metadata.get("properties").get(
+                "collection_start_time")
+            datetime_str = GoogleDriveHandler.parse_utc_to_local(start_dt)
+            local_dt_str = GoogleDriveHandler.utc_to_local(datetime_str)
+            return local_dt_str.strftime("%Y-%m-%d")
+        else:
+            return ""
+
     @property
     def warning_msg(self):
         return self.__warning_msg

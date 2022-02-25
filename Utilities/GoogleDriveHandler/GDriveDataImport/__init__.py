@@ -7,6 +7,7 @@ from Utilities.Popups.generic_popup import GenericPopup
 from functools import partial
 import logging
 import os
+from typing import Tuple
 
 logger = logging.getLogger("ImportGoogleDrive")
 # loads the .ui file from QT Designer
@@ -26,7 +27,7 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
         self.checkbox_sensors = dict()
         self.custom_properties = dict()
         self.__selected_filepath: str = ""
-        self.__selected_file_scene: str = ""
+        self.__file_metadata: dict = dict()
         self.configFile = QtCore.QSettings('DAATA', 'GDriveDataImport')
 
         self.__setup()
@@ -206,25 +207,26 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
             self.gridLayout_2.addWidget(found_file_metadata_btn, i, 1)
 
     def __download_and_display(self, drive_handler: GoogleDriveHandler,
-                               found_file: dict):
+                               file_metadata: dict):
         self.__selected_filepath = ""
-        self.__selected_file_scene = ""
+        self.__file_metadata = dict()
         self.progressBar.show()
 
-        if found_file.get("name")[-4:] != ".csv":
+        if file_metadata.get("name")[-4:] != ".csv":
             reason = "The selected file cannot be displayed (not a .csv). " \
                      "Proceed to download anyways?"
-            self.__download_unsupported_file(drive_handler, found_file, reason,
-                                             self.progressBar)
+            self.__download_unsupported_file(drive_handler, file_metadata,
+                                             reason, self.progressBar)
             self.progressBar.hide()
             return
 
         try:
-            file_scene = found_file.get("properties").get("scene")
+            file_scene = file_metadata.get("properties").get("scene")
         except AttributeError:
             reason = "The selected file cannot be displayed (unknown scene). " \
                      "Proceed to download anyways?"
-            self.__download_unsupported_file(drive_handler, found_file, reason,
+            self.__download_unsupported_file(drive_handler, file_metadata,
+                                             reason,
                                              self.progressBar)
             self.progressBar.hide()
             return
@@ -232,15 +234,14 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
         if file_scene not in self.DISPLAYABLE_SCENES:
             reason = "The selected file cannot be displayed (scene not " \
                      "supported). Proceed to download anyways?"
-            self.__download_unsupported_file(drive_handler, found_file, reason,
-                                             self.progressBar)
+            self.__download_unsupported_file(drive_handler, file_metadata,
+                                             reason, self.progressBar)
             self.progressBar.hide()
-            return
         else:
-            self.__selected_file_scene = file_scene
+            self.__file_metadata = file_metadata
             # self.__selected_filepath used in MainWindow to plot the file data
             self.__selected_filepath = \
-                drive_handler.download_and_close(found_file, self,
+                drive_handler.download_and_close(file_metadata, self,
                                                  self.progressBar)
 
     def __clear_found_files(self):
@@ -266,20 +267,18 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
 
     @staticmethod
     def __download_unsupported_file(drive_handler: GoogleDriveHandler,
-                                    found_file: dict, reason: str,
+                                    file_metadata: dict, reason: str,
                                     progressBar=None) -> bool:
         save_offline = \
             add_qDialogs.ConfirmDownloadNonSupported(reason).save_offline
         if save_offline:
-            filepath = drive_handler.download(file=found_file,
+            filepath = drive_handler.download(file=file_metadata,
                                               progressBar=progressBar)
             if filepath:
                 GenericPopup("File downloaded", filepath)
                 return True
-            else:
-                return False
         return True
 
     @property
-    def selected_filepath_and_scene(self) -> tuple:
-        return self.__selected_filepath, self.__selected_file_scene
+    def selected_filepath_and_metadata(self) -> Tuple[str, dict]:
+        return self.__selected_filepath, self.__file_metadata

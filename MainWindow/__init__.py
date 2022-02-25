@@ -387,10 +387,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         :return: None
         """
         # filepath is "" if an error occurred
-        filepath, file_scene = GoogleDriveDataImport(self.dict_scenes) \
-            .selected_filepath_and_scene
+        filepath, file_metadata = GoogleDriveDataImport(self.dict_scenes) \
+            .selected_filepath_and_metadata
         if filepath:
-            self.__create_preview_scene_tab(filepath, file_scene)
+            self.__create_preview_scene_tab(filepath, file_metadata)
 
     @staticmethod
     def __upload_remaining_to_gdrive():
@@ -404,33 +404,42 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     # def all_scenes(self) -> dict:
     #     return self.dict_scenes
 
-    def __create_preview_scene_tab(self, filepath: str, formal_file_scene: str):
-        # Ignore the parameter 'key' unfilled error; there are no errors here
-        if formal_file_scene in general_constants.DISPLAYABLE_IMPORTED_SCENES:
+    def __create_preview_scene_tab(self, filepath: str,
+                                   file_metadata: dict = None,
+                                   selected_scene: str = ""):
+        file_formal_scene: str = ""
+        if selected_scene:
+            file_formal_scene = selected_scene
+        elif file_metadata and file_metadata.get("properties"):
+            file_formal_scene = file_metadata.get("properties").get("scene")
+        if file_formal_scene in general_constants.DISPLAYABLE_IMPORTED_SCENES:
             logger.info(
-                f"Displaying imported {formal_file_scene} scene "
+                f"Displaying imported {file_formal_scene} scene "
                 f"of {os.path.basename(filepath)}...")
         else:
             logger.warning(
-                f"Scene {formal_file_scene} of {os.path.basename(filepath)} "
+                f"Scene {file_formal_scene} of {os.path.basename(filepath)} "
                 f"not supported")
             return
 
-        if formal_file_scene == "DataCollection":
-            self.create_scene_tab("Data Collection Preview",
-                                  initial_data_filepath=filepath)
-        elif formal_file_scene == "EngineDyno":
-            self.create_scene_tab("Engine Dyno Preview",
-                                  initial_data_filepath=filepath)
-        elif formal_file_scene == "MultiDataGraph":
-            self.create_scene_tab("Multi Data Graph Preview",
-                                  initial_data_filepath=filepath)
+        if file_formal_scene == "DataCollection":
+            self.create_scene_tab("Data Collection Preview", True,
+                                  initial_data_filepath=filepath,
+                                  file_metadata=file_metadata)
+        elif file_formal_scene == "EngineDyno":
+            self.create_scene_tab("Engine Dyno Preview", True,
+                                  initial_data_filepath=filepath,
+                                  file_metadata=file_metadata)
+        elif file_formal_scene == "MultiDataGraph":
+            self.create_scene_tab("Multi Data Graph Preview", True,
+                                  initial_data_filepath=filepath,
+                                  file_metadata=file_metadata)
 
     def __open_csv_file(self):
         selected_filepath, scene = OpenCSVFile(
             self.dict_scenes).selected_filepath_scene
         if selected_filepath and scene:
-            self.__create_preview_scene_tab(selected_filepath, scene)
+            self.__create_preview_scene_tab(selected_filepath, None, scene)
 
     def connect_signals_and_slots(self):
         """
