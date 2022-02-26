@@ -4,7 +4,7 @@ from PyQt5.QtWidgets import QGridLayout
 from Scenes.MultiDataGraph.MDG_init_props import MDGInitProps
 from Utilities.general_constants import TIME_OPTION
 from functools import partial
-from typing import List, Dict
+from typing import List, Dict, Tuple
 import logging
 import numpy
 import os
@@ -19,6 +19,7 @@ uiPlotWidget, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__),
 
 class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
     def __init__(self, sensor_name, parent=None,
+                 enable_scroll: Tuple[bool, bool] = (False, False),
                  MDG_init_props: MDGInitProps = None, **kwargs):
         super().__init__()
         self.setupUi(self)
@@ -52,7 +53,7 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
         self.setSizePolicy(sizePolicy)
 
         # disable mouse-scroll zooming on the graph
-        self.plotWidget.setMouseEnabled(False, False)
+        self.plotWidget.setMouseEnabled(enable_scroll[0], enable_scroll[1])
 
         # adds a legend describing what each line represents based on the 'name'
         self.plotWidget.addLegend()
