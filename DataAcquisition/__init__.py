@@ -49,6 +49,7 @@ def read_data():
         if data_import.input_mode == "FAKE":
             data_import.check_connected_fake()
             data_import.read_data_fake()
+            time.sleep(0.02)
         elif data_import.input_mode == "BIN" and data_import.data_file != None:
             try:                
                 data_import.read_packet()                                   
@@ -57,10 +58,10 @@ def read_data():
                 logger.debug(logger.findCaller(True))                
         elif "COM" in data_import.input_mode and data_import.teensy_found:            
             try:
-                try:
-                    data_import.teensy_ser.flushInput()
+                try:                    
                     assert data_import.teensy_found
                     assert data_import.check_connected()
+                    data_import.teensy_ser.flushInput()
                 except AttributeError:
                     logger.warning("Unable to flush Serial Buffer. No Serial object connected")                    
                 try:                    
