@@ -3,7 +3,8 @@ from Utilities.DataExport.dataFileExplorer import open_data_file
 from Utilities.DataExport.exportCSV import saveCSV
 from Utilities.DataExport.exportMAT import saveMAT
 from Utilities.GoogleDriveHandler import gdrive_constants, GoogleDriveHandler
-from Utilities.GoogleDriveHandler.GDriveDataExport.missing_oAuth import MissingOAuthFile
+from Utilities.GoogleDriveHandler.GDriveDataExport.missing_oAuth import \
+    MissingOAuthFile
 from Utilities.Popups.generic_popup import GenericPopup
 from datetime import datetime, timedelta, date as dt_date, time as dt_time
 import json
@@ -15,7 +16,7 @@ import shutil
 # loads the .ui file from QT Designer
 uiFile, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__),
                                         'saveUploadTagsDialog.ui'))
-logger = logging.getLogger("TagDialogue")
+logger = logging.getLogger("GDriveDataExport")
 
 
 class CreateUploadJSON(QtWidgets.QDialog, uiFile):
@@ -66,12 +67,8 @@ class CreateUploadJSON(QtWidgets.QDialog, uiFile):
         def show_hide_oAuthFileEntry_info():
             if self.save_offline_only_option.isChecked():
                 self.__save_local_only = True
-                self.oAuthFileEntry_info.hide()
-                self.oAuth_label.hide()
             else:
                 self.__save_local_only = False
-                self.oAuthFileEntry_info.show()
-                self.oAuth_label.show()
 
         self.Add_Fields.clicked.connect(self.__addField)
         self.DefaultButton.clicked.connect(self.__default)
@@ -79,19 +76,12 @@ class CreateUploadJSON(QtWidgets.QDialog, uiFile):
         self.showTags.clicked.connect(show_hide_tags)
         self.save_offline_only_option.stateChanged.connect(
             show_hide_oAuthFileEntry_info)
-        self.openSecGDInfoBtn.clicked.connect(GoogleDriveHandler.openSecGDInfo)
         self.select_upload_file.clicked.connect(self.__find_uploading_file)
-        self.select_sec_file.clicked.connect(self.__find_sec_file)
 
     def __find_uploading_file(self):
         uploading_file_selected = open_data_file(".csv .mat")
         if uploading_file_selected:
             self.file_location.setText(uploading_file_selected)
-
-    def __find_sec_file(self):
-        sec_file_selected = open_data_file(".json")
-        if sec_file_selected:
-            self.oAuth_entry.setText(sec_file_selected)
 
     def __validate_inputs(self) -> tuple:
         def valid_windows_filename(filename: str) -> bool:
@@ -164,7 +154,7 @@ class CreateUploadJSON(QtWidgets.QDialog, uiFile):
 
         validated_inputs = self.__validate_inputs()
         if not validated_inputs:
-            logger.error("Input validation on file upload failed")
+            logger.debug("Input validation on file upload failed")
             self.progress_widget.hide()
             return False
 
@@ -186,7 +176,7 @@ class CreateUploadJSON(QtWidgets.QDialog, uiFile):
                 value_trimmed = tagData[1].text()[:value_limit]
                 custom_props[tagData[0].text()] = value_trimmed
 
-        self.__oAuth_file_input: str = self.oAuth_entry.text()
+        self.__oAuth_file_input: str = gdrive_constants.GDRIVE_OAUTH2_SECRET
 
         if self.__save_local_only:
             filepaths = self.__save_locally(custom_props)
@@ -202,8 +192,6 @@ class CreateUploadJSON(QtWidgets.QDialog, uiFile):
                     return False
                 self.__complete_save_and_exit = True
                 if self.__commence_upload():
-                    self.configFile.setValue("sec_file",
-                                             self.__oAuth_file_input)
                     self.close()
                     return True
             else:
@@ -247,10 +235,15 @@ class CreateUploadJSON(QtWidgets.QDialog, uiFile):
                              "All files have been saved offline and will be "
                              "uploaded at the next upload instance")
                 return True
+            # except GoogleDriveHandler.NoAccessError:
+            #     self.__clear_found_files()
+            #     GenericPopup("No Access to the shared GTOR Google Drive",
+            #                  "All files have been saved offline and will be "
+            #                  "uploaded at the next upload instance")
+            #     return False
             except Exception as e:
                 GenericPopup("Upload Failed", str(e))
                 return False
-
             if drive_handler.upload_all_to_drive(self.uploadProgressBar):
                 GenericPopup("All files uploaded", drive_handler.warning_msg)
                 self.close()
@@ -293,7 +286,6 @@ class CreateUploadJSON(QtWidgets.QDialog, uiFile):
     def __setup(self):
         GoogleDriveHandler.initialize_download_upload_directories()
 
-        self.oAuth_entry.setText(self.configFile.value("sec_file"))
         self.scene_input.setText(self.default_scene_name)
         self.progress_widget.hide()
 
