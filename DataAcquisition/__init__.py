@@ -55,10 +55,10 @@ def read_data():
                 logger.debug(logger.findCaller(True))
         elif "COM" in data_import.input_mode and data_import.teensy_found:
             try:
-                try:
-                    data_import.teensy_ser.flushInput()
+                try:                    
                     assert data_import.teensy_found
                     assert data_import.check_connected()
+                    data_import.teensy_ser.flushInput()
                 except AttributeError:
                     logger.warning(
                         "Unable to flush Serial Buffer. No Serial object connected")
