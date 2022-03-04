@@ -86,6 +86,7 @@ class EngineDynoPreview(DAATAScene, uiFile):
             self.graph_objects[key] = \
                 CustomPlotWidget(key, parent=self.graph_frame,
                                  layout=self.graph_layout,
+                                 enable_scroll=(True, False),
                                  graph_width_seconds=8)
             self.graph_objects[key].setObjectName(key)
             self.graph_layout.addWidget(self.graph_objects[key], row, col, 1, 1)
