@@ -97,8 +97,9 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
             self.__create_multi_graphs()
         else:
             self.plot = self.plotWidget.plot(valueArray,
-                                             name=self.sensor_name,
-                                             pen=pg.mkPen(color="#ff0d9e"),
+                                             name=data.get_display_name(
+                                                 self.sensor_name),
+                                             pen=pg.mkPen(color="#00ff00"),
                                              width=1)
 
         self.initialCounter = 0
@@ -212,10 +213,10 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
         """
         # 10 colors = green, red, blue, orange, purple,
         # black, pink, brown, gray, blue-green
-        COLORS = ["#9ACD32",  # Atlantis or light green
+        COLORS = ["#00FF00",  # Green
                   "#FFA500",  # Web orange
-                  "#0000FF",  # Blue
-                  "#FF0000",  # Red
+                  "#ADD8E6",  # Light Blue
+                  "#00FF00",  # Blue
                   "#DA70D6",  # Orchid
                   "#FFFFFF",  # White
                   "#FFC0CB",  # Pink
@@ -244,7 +245,7 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
             for sensor_i, sensor in enumerate(self.mdg_y_sensors):
                 pen = self.__create_pen_brush(sensor_i, True)
                 plot = self.plotWidget.plot(valueArray,
-                                            name=sensor,
+                                            name=data.get_display_name(sensor),
                                             pen=pen,
                                             width=1)
                 self.multi_plots[sensor] = plot
@@ -253,7 +254,8 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
             # list
             for sensor_i, sensor in enumerate(self.mdg_y_sensors):
                 brush = self.__create_pen_brush(sensor_i, False)
-                scatter = pg.ScatterPlotItem(size=10,
+                scatter = pg.ScatterPlotItem(size=4,
+                                             name=data.get_display_name(sensor),
                                              brush=brush)
                 self.plotWidget.addItem(scatter)
                 self.multi_plots[sensor] = scatter
@@ -690,15 +692,16 @@ class PlotSettingsDialogMDG(QtWidgets.QDialog, uiSettingsDialogMDG):
         updates the MDG
         :return:
         """
-        if self.scatterOrLineBtn.text() == self.scatter_plot_name:
+        LINE_GRAPH_NAME = "Line Graph"
+        SCATTER_GRAPH_NAME = "Scatter Plot"
+        if self.scatterOrLineBtn.text() == SCATTER_GRAPH_NAME:
             # change plot type to scatter plot
-            self.scatterOrLineBtn.setText(self.line_graph_name)
+            self.scatterOrLineBtn.setText(LINE_GRAPH_NAME)
             self.parent.mdg_is_line_graph = False
-        elif self.scatterOrLineBtn.text() == self.line_graph_name:
+        else:
             # change plot type to line graph
-            self.scatterOrLineBtn.setText(self.scatter_plot_name)
+            self.scatterOrLineBtn.setText(SCATTER_GRAPH_NAME)
             self.parent.mdg_is_line_graph = True
-        # self.update_this_MDG()
 
     def connectSlotsSignals(self):
         self.pushButton_apply.clicked.connect(self.applySettings)

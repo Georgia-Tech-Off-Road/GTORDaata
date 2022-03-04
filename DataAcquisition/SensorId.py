@@ -23,7 +23,6 @@ Optional parameters:
     - is_external    (defaults to True)
 """
 
-
 SensorId = {
     # 000 - DEFAULTS, FLAGS, COMMANDS, MISC
     0: {
@@ -72,36 +71,42 @@ SensorId = {
     },
     90: {
         "name": "test_sensor_0",
+        "display_name": "Test Sensor 0",
         "object": "Generic",
         "num_bytes": 4,
         "is_float": False
     },
     91: {
         "name": "test_sensor_1",
+        "display_name": "Test Sensor 1",
         "object": "Generic",
         "num_bytes": 4,
         "is_float": False
     },
     92: {
         "name": "test_sensor_2",
+        "display_name": "Test Sensor 2",
         "object": "Generic",
         "num_bytes": 4,
         "is_float": False
     },
     93: {
         "name": "test_sensor_3",
+        "display_name": "Test Sensor 3",
         "object": "Generic",
         "num_bytes": 4,
         "is_float": False
     },
     94: {
         "name": "test_sensor_4",
+        "display_name": "Test Sensor 4",
         "object": "Generic",
         "num_bytes": 4,
         "is_float": False
     },
     95: {
         "name": "test_sensor_5",
+        "display_name": "Test Sensor 5",
         "object": "Generic",
         "num_bytes": 4,
         "is_float": False
@@ -130,8 +135,6 @@ SensorId = {
         "num_bytes": 4,
         "is_float": False
     },
-
-    
 
     # 100 - TIME "SENSORS"
     100: {
@@ -206,8 +209,6 @@ SensorId = {
         "num_bytes": 4,
         "is_float": False
     },
-
-
 
     # 200 - SPEED/POSITION SENSORS
     200: {
@@ -458,7 +459,7 @@ SensorId = {
             "pulses_per_revolution": 30
         }
     },
-    
+
     # 300 - FORCE/PRESSURE SENSORS
     300: {
         "name": "pressure_generic",
@@ -598,7 +599,6 @@ SensorId = {
         }
     },
 
-
     # 400 - LDS SENSORS
     400: {
         "name": "lds_generic",
@@ -642,7 +642,6 @@ SensorId = {
         "stroke_length": 225,
         "is_float": False
     },
-
 
     # 500 - IMU SENSORS
     500: {

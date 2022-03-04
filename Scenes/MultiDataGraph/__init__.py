@@ -41,9 +41,6 @@ class MultiDataGraph(DAATAScene, uiFile):
         self.update_connected_sensors()
         self.y_sensors = []
 
-        self.line_graph = "line_graph"
-        self.scatter_plot = "scatter_plot"
-
         self.gridPlotLayout = GridPlotLayout(self.scrollAreaWidgetContents)
         self.gridPlotLayout.setObjectName("gridPlotLayout")
         self.scrollAreaWidgetContents.setLayout(self.gridPlotLayout)
@@ -62,7 +59,7 @@ class MultiDataGraph(DAATAScene, uiFile):
 
     def create_graph_dimension_combo_box(self):
         """
-        This function creates the drop down box that allows changing the
+        This function creates the drop-down box that allows changing the
         number of graphs on the screen.
 
         :return: None
@@ -123,11 +120,13 @@ class MultiDataGraph(DAATAScene, uiFile):
 
     def create_graph(self, key):
         self.graph_objects.pop(key, None)
+        MDG_init_props = MDGInitProps(y_sensors=self.connected_sensors[:3])
         self.graph_objects[key] = CustomPlotWidget(key,
                                                    parent=self.scrollAreaWidgetContents,
                                                    layout=self.gridPlotLayout,
                                                    graph_width_seconds=8,
-                                                   MDG_init_props=MDGInitProps())
+                                                   enable_scroll=(False, False),
+                                                   MDG_init_props=MDG_init_props)
         # activate settings button
         widget = self.graph_objects[key]
         settings = widget.button_settings.clicked.connect(
@@ -195,9 +194,8 @@ class MultiDataGraph(DAATAScene, uiFile):
         Will update the sensor checkboxes if new sensors are added.
         :return: None
         """
-        connected_sensors = data.get_sensors(is_plottable=True,
-                                             is_connected=True)
-        self.connected_sensors = connected_sensors
+        self.connected_sensors = data.get_sensors(is_plottable=True,
+                                                  is_connected=True)
 
     def update_active(self):
         """

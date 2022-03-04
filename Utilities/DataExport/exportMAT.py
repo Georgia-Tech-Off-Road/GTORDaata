@@ -1,5 +1,6 @@
 from DataAcquisition import data
 import logging
+import numpy
 import os
 import scipy.io as sio
 
@@ -21,8 +22,8 @@ def saveMAT(filename, directory):
     lastIndex = data.get_most_recent_index()
 
     for sensor in sensorsList:
-        dataDict['collected_data'][sensor] = data.get_values(sensor, lastIndex,
-                                                             lastIndex + 1)
+        dataDict['collected_data'][sensor] = numpy.fromiter(
+            data.get_values(sensor, lastIndex, lastIndex + 1), dtype=float)
 
     sio.savemat(os.path.join(directory, filename), dataDict, appendmat=True,
                 oned_as="column")
