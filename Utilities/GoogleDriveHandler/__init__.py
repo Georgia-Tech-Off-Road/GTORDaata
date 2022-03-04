@@ -165,9 +165,6 @@ class GoogleDriveHandler:
                 page_token = response.get('nextPageToken', None)
             except httplib2.error.ServerNotFoundError:
                 raise self.NoInternetError
-            # except googleapiclient.errors.HttpError as e:
-            #     logger.error(str(e))
-            #     raise self.NoAccessError
             if page_token is None:
                 break
 
@@ -180,7 +177,7 @@ class GoogleDriveHandler:
             # if no files are inputted, return an empty list (obviously)
             return found_files
 
-        if (search_q.year == search_q.month == search_q.day is None
+        if (search_q.year == search_q.month == search_q.day == 0
                 and search_q.test_date_period == "All"
                 and search_q.duration == "All"):
             # if none of the derived filters are set, return original input
@@ -341,7 +338,10 @@ class GoogleDriveHandler:
         elif len(search_file_results) == 1:
             return search_file_results[0].get('id')
         else:
-            return None
+            logger.error("File hierarchy error in Google Drive. Possibly two "
+                         "same folder names. Creating another folder of the "
+                         "same name.")
+            return self.create_folder_in_drive(day, month_folder_id)
 
     def __get_Month_folder_id(self, test_date: str, year_folder_id: str):
         month = test_date[:7]
@@ -355,8 +355,9 @@ class GoogleDriveHandler:
             return search_file_results[0].get('id')
         else:
             logger.error("File hierarchy error in Google Drive. Possibly two "
-                         "same folder names")
-            return None
+                         "same folder names. Creating another folder of the "
+                         "same name.")
+            return self.create_folder_in_drive(month, year_folder_id)
 
     def __get_Year_folder_id(self, test_date: str):
         year = test_date[:4]
@@ -371,8 +372,9 @@ class GoogleDriveHandler:
             return search_file_results[0].get('id')
         else:
             logger.error("File hierarchy error in Google Drive. Possibly two "
-                         "same folder names")
-            return None
+                         "same folder names. Creating another folder of the "
+                         "same name.")
+            return self.create_folder_in_drive(year, self._ROOT_FOLDER_ID)
 
     def create_folder_in_drive(self, folder_name: str,
                                parent_folder_id: str = 'root'):
@@ -726,7 +728,7 @@ class GoogleDriveHandler:
     def get_start_date_str(file_metadata: dict) -> str:
         if file_metadata and file_metadata.get(
                 "properties") and file_metadata.get("properties").get(
-                "collection_start_time"):
+            "collection_start_time"):
             start_dt = file_metadata.get("properties").get(
                 "collection_start_time")
             datetime_str = GoogleDriveHandler.parse_utc_to_local(start_dt)

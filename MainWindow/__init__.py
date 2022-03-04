@@ -335,20 +335,20 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             except Exception as e:
                 logger.error(e)
                 logger.debug(logger.findCaller(True))
-        elif data_import.input_mode == "CSV":
-            try:
-                directory = open_data_file(".csv")
-                if directory != "":
-                    is_data_collecting.set()
-                    data_import.import_csv(directory)
-                else:
-                    logger.info(
-                        "You must open a CSV file before changing to CSV input mode")
-            except Exception as e:
-                logger.error(e)
-                logger.debug(logger.findCaller(True))
-            finally:
-                data_import.input_mode = ""
+        # elif data_import.input_mode == "CSV":
+        #     try:
+        #         directory = open_data_file(".csv")
+        #         if directory != "":
+        #             is_data_collecting.set()
+        #             data_import.import_csv(directory)
+        #         else:
+        #             logger.info(
+        #                 "You must open a CSV file before changing to CSV input mode")
+        #     except Exception as e:
+        #         logger.error(e)
+        #         logger.debug(logger.findCaller(True))
+        #     finally:
+        #         data_import.input_mode = ""
         if "COM" in data_import.input_mode:
             data_import.connect_serial()
             if not self.data_sending_thread.isActive():
@@ -452,8 +452,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.actionFake_Data.triggered.connect(self.__toggle_fake_input_option)
         self.actionBIN_File.triggered.connect(
             lambda: self.set_input_mode("BIN"))
-        self.actionCSV_File.triggered.connect(
-            lambda: self.set_input_mode("CSV"))
         self.openCSV_File.triggered.connect(self.__open_csv_file)
 
         self.import_from_gDrive_widget.triggered.connect(
