@@ -1,7 +1,8 @@
-from PyQt5 import QtWidgets, uic, QtGui, QtCore
+from PyQt5 import QtWidgets, uic, QtGui
 from PyQt5.QtCore import QSettings
 from datetime import datetime
 from functools import partial
+from typing import List, Dict
 import os
 
 from DataAcquisition import data
@@ -35,9 +36,9 @@ class DataCollection(DAATAScene, uiFile):
         # Tab updates every x*10 ms (ex. 3*10 = every 30 ms)
         self.update_period = 3
 
-        self.graph_objects = dict()
-        self.checkbox_objects = dict()
-        self.currentKeys = data.get_sensors(is_plottable=True)
+        self.graph_objects: Dict[str, CustomPlotWidget] = dict()
+        self.checkbox_objects: Dict[str, QtWidgets.QCheckBox] = dict()
+        self.currentKeys: List[str] = data.get_sensors(is_plottable=True)
 
         self.gridPlotLayout = GridPlotLayout(self.scrollAreaWidgetContents)
         self.gridPlotLayout.setObjectName("gridPlotLayout")
@@ -114,8 +115,8 @@ class DataCollection(DAATAScene, uiFile):
         leftMar, topMar, rightMar, botMar = self.gridPlotLayout.getContentsMargins()
         vSpace = self.gridPlotLayout.verticalSpacing()
         graphHeight = (
-                                  self.scrollArea_graphs.height() - topMar - botMar - vSpace * (
-                                      max_rows - 1)) / max_rows
+                              self.scrollArea_graphs.height() - topMar - botMar - vSpace * (
+                              max_rows - 1)) / max_rows
 
         for key in self.graph_objects.keys():
             if self.graph_objects[key].isVisible():
@@ -167,8 +168,7 @@ class DataCollection(DAATAScene, uiFile):
         """
 
         if self.button_display.isChecked():
-            if self.collection_start_time == datetime.min:
-                self.collection_start_time = datetime.now()
+            self.collection_start_time = datetime.now()
             self.indicator_onOrOff.setText("On")
             self.indicator_onOrOff.setStyleSheet("color: green;")
             self.button_display.setText("Stop Collecting Data")
@@ -180,6 +180,12 @@ class DataCollection(DAATAScene, uiFile):
             self.is_data_collecting.clear()
             self.popup_dataSaveLocation("DataCollection",
                                         self.collection_start_time)
+            self.__reset_all()
+
+    def __reset_all(self):
+        data.reset_hard()
+        for graph in self.graph_objects.values():
+            graph.plotWidget.clear()
 
     def slot_checkbox_state_change(self):
         """
