@@ -6,6 +6,7 @@ from Scenes.MultiDataGraph.MDG_init_props import MDGInitProps
 from Utilities.CustomWidgets.Plotting import CustomPlotWidget, GridPlotLayout
 from datetime import datetime
 from functools import partial
+from typing import Dict, List
 import DataAcquisition
 import logging
 import os
@@ -36,10 +37,10 @@ class MultiDataGraph(DAATAScene, uiFile):
         # the tab updates every x*10 ms (ex. 3*10 = every 30 ms)
         self.update_period = 3
 
-        self.graph_objects = dict()
-        self.connected_sensors = []
+        self.graph_objects: Dict[str, CustomPlotWidget] = dict()
+        self.connected_sensors: List[str] = []
         self.update_connected_sensors()
-        self.y_sensors = []
+        self.y_sensors: List[str] = []
 
         self.gridPlotLayout = GridPlotLayout(self.scrollAreaWidgetContents)
         self.gridPlotLayout.setObjectName("gridPlotLayout")
@@ -137,8 +138,8 @@ class MultiDataGraph(DAATAScene, uiFile):
 
     def slot_data_collecting_state_change(self):
         if self.button_display.isChecked():
-            if self.collection_start_time == datetime.min:
-                self.collection_start_time = datetime.now()
+            self.__reset_all()
+            self.collection_start_time = datetime.now()
             self.indicator_onOrOff.setText("On")
             self.indicator_onOrOff.setStyleSheet("color: green;")
             self.button_display.setText("Stop Collecting Data")
@@ -150,6 +151,13 @@ class MultiDataGraph(DAATAScene, uiFile):
             self.is_data_collecting.clear()
             self.popup_dataSaveLocation("MultiDataGraph",
                                         self.collection_start_time)
+
+    def __reset_all(self):
+        data.reset_hard()
+        for graph in self.graph_objects.values():
+            graph.plotWidget.clear()
+            graph.update_xy_sensors()
+        self.create_grid_plot_layout()
 
     def update_sensor_count(self):
         self.active_sensor_count = 0

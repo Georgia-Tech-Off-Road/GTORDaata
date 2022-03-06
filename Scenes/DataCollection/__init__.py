@@ -47,7 +47,8 @@ class DataCollection(DAATAScene, uiFile):
         self.collection_start_time: datetime = datetime.min
         self.create_sensor_checkboxes()
         self.create_graph_dimension_combo_box()
-        self.create_graphs()
+        self.__create_graphs()
+        self.__first_run = True
         self.create_grid_plot_layout()
 
         from MainWindow import is_data_collecting
@@ -124,7 +125,9 @@ class DataCollection(DAATAScene, uiFile):
                     self.gridPlotLayout.removeWidget(self.graph_objects[key])
                     self.graph_objects[key].hide()
                 except Exception:
-                    print(key + " is " + self.graph_objects[key].isVisible())
+                    visible = "visible" if self.graph_objects[
+                        key].isVisible() else "hidden"
+                    print(f"{key} is {visible}")
                     logger.debug(logger.findCaller(True))
 
         for key in self.checkbox_objects.keys():
@@ -144,7 +147,7 @@ class DataCollection(DAATAScene, uiFile):
                                                                QtWidgets.QSizePolicy.Expanding)
         self.gridPlotLayout.addItem(self.spacerItem_gridPlotLayout)
 
-    def create_graphs(self):
+    def __create_graphs(self):
         """
         Populates graph dictionary with graphs based on active sensors.
 
@@ -152,10 +155,10 @@ class DataCollection(DAATAScene, uiFile):
         """
 
         for key in self.currentKeys:
-            self.graph_objects[key] = CustomPlotWidget(key,
-                                                       parent=self.scrollAreaWidgetContents,
-                                                       layout=self.gridPlotLayout,
-                                                       graph_width_seconds=8)
+            self.graph_objects[key] = \
+                CustomPlotWidget(key, parent=self.scrollAreaWidgetContents,
+                                 layout=self.gridPlotLayout,
+                                 graph_width_seconds=8)
             self.graph_objects[key].setObjectName(key)
             self.graph_objects[key].hide()
 
@@ -168,6 +171,7 @@ class DataCollection(DAATAScene, uiFile):
         """
 
         if self.button_display.isChecked():
+            self.__reset_all()
             self.collection_start_time = datetime.now()
             self.indicator_onOrOff.setText("On")
             self.indicator_onOrOff.setStyleSheet("color: green;")
@@ -180,12 +184,14 @@ class DataCollection(DAATAScene, uiFile):
             self.is_data_collecting.clear()
             self.popup_dataSaveLocation("DataCollection",
                                         self.collection_start_time)
-            self.__reset_all()
 
     def __reset_all(self):
-        data.reset_hard()
-        for graph in self.graph_objects.values():
-            graph.plotWidget.clear()
+        if self.__first_run:
+            self.__first_run = False
+        else:
+            data.reset_hard()
+            self.__create_graphs()
+            self.create_grid_plot_layout()
 
     def slot_checkbox_state_change(self):
         """
@@ -227,7 +233,6 @@ class DataCollection(DAATAScene, uiFile):
 
         :return: None
         """
-
         for key in self.currentKeys:
             if self.graph_objects[key].isVisible():
                 self.graph_objects[key].update_graph()
