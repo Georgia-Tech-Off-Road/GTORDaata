@@ -1,6 +1,10 @@
 from pathlib import Path
 import os
 
+"""
+Google Drive Handler constants
+"""
+
 # do not change the \\ to / as it will require change in code in other areas
 _DEFAULT_DIRECTORY = str(Path.home()) + '\\AppData\\Local\\GTOffRoad\\'
 DEFAULT_UPLOAD_DIRECTORY = _DEFAULT_DIRECTORY + 'UploadQueue\\'
@@ -27,3 +31,14 @@ ISO_TIME_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"
 # validating filename using regex by src
 # https://stackoverflow.com/a/11794507/11031425
 FILENAME_REGEX = "^[\w\-.][\w\-. ]*$"
+
+"""
+Miscellaneous
+"""
+DISPLAYABLE_IMPORTED_SCENES = {"DataCollection", "EngineDyno", "MultiDataGraph"}
+
+"""
+Multi data graph (preview) scenes
+"""
+# from SensorId.py sensor # 101
+TIME_OPTION = "time_internal_seconds"

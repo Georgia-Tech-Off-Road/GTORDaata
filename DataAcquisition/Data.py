@@ -271,7 +271,12 @@ class Data:
             for sensor in sensors:
                 self.__data[sensor].reset()
 
-    # ---------------------------- Below are functions to only be used by GDriveDataImport ----------------------------
+    def reset_hard(self):
+        with self.lock:
+            self.__data["time_internal_seconds"].reset()
+        self.reset()
+
+    # ---------------------------- Below are functions to only be used by DataImport ----------------------------
     def set_connected(self, sensor_id):
         try:
             self.__data[SensorId[sensor_id]["name"]].is_connected = True

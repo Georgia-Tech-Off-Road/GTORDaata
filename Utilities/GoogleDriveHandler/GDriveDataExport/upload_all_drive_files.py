@@ -1,7 +1,7 @@
 from PyQt5 import QtWidgets, uic, QtCore
 from Utilities.GoogleDriveHandler import GoogleDriveHandler
-from Utilities.GoogleDriveHandler import gdrive_constants
 from Utilities.Popups.generic_popup import GenericPopup
+from Utilities import general_constants
 import logging
 import os
 
@@ -25,7 +25,7 @@ class UploadDriveFiles(QtWidgets.QDialog, uiFile):
 
     def __upload_drive_files(self):
         self.progressBar.show()
-        sec_file = gdrive_constants.GDRIVE_OAUTH2_SECRET
+        sec_file = general_constants.GDRIVE_OAUTH2_SECRET
         self.configFile.setValue("sec_file", sec_file)
         try:
             drive_handler = GoogleDriveHandler(sec_file)

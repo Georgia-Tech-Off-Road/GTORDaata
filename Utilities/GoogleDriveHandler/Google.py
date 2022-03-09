@@ -4,7 +4,7 @@ Adapted from the original downloaded on 09/30/2021 from:
 https://learndataanalysis.org/google-drive-api-in-python-getting-started-lesson-1/
 """
 
-from Utilities.GoogleDriveHandler import gdrive_constants
+from Utilities import general_constants
 from google.auth.transport.requests import Request
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
@@ -23,9 +23,9 @@ def Create_Service(client_secret_file, api_name, api_version, *scopes):
     cred = None
 
     pickle_file = f'token_{API_SERVICE_NAME}_{API_VERSION}.pickle'
-    pickle_file_path = f"{gdrive_constants.PICKLE_DIRECTORY}/{pickle_file}"
-    if not os.path.isdir(gdrive_constants.PICKLE_DIRECTORY):
-        os.makedirs(gdrive_constants.PICKLE_DIRECTORY)
+    pickle_file_path = f"{general_constants.PICKLE_DIRECTORY}/{pickle_file}"
+    if not os.path.isdir(general_constants.PICKLE_DIRECTORY):
+        os.makedirs(general_constants.PICKLE_DIRECTORY)
     # print(pickle_file)
 
     if os.path.exists(pickle_file_path):

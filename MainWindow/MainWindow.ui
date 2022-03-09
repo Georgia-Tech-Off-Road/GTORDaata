@@ -205,7 +205,7 @@
     </property>
     <addaction name="actionFake_Data"/>
     <addaction name="actionBIN_File"/>
-    <addaction name="actionCSV_File"/>
+    <addaction name="openCSV_File"/>
     <addaction name="menuCOM_Port"/>
     <addaction name="google_drive_menu"/>
    </widget>
@@ -232,15 +232,18 @@
    <property name="text">
     <string>Fake Data</string>
    </property>
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
   </action>
   <action name="actionBIN_File">
    <property name="text">
     <string>BIN File</string>
    </property>
   </action>
-  <action name="actionCSV_File">
+  <action name="openCSV_File">
    <property name="text">
-    <string>CSV File</string>
+    <string>Open CSV File</string>
    </property>
   </action>
   <widget class="QMenu" name="menuCOM_Port">
