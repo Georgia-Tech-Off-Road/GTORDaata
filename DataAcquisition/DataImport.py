@@ -126,7 +126,6 @@ class DataImport:
                     self.current_packet.append(self.teensy_ser.read(1))  # read in a single byte from COM
                 except AssertionError:
                     logger.debug("Input buffer is empty")
-                    time.sleep(1)
                 except TypeError:
                     logger.info("Teensy has been disconnected, closing and attempting reopen")
                     self.teensy_ser.close()
@@ -143,6 +142,7 @@ class DataImport:
             elif not self.teensy_found:
                 self.connect_serial()
             else:
+                # We break if teensy is disconnected or if input buffer is empty
                 break
             packet_length = len(self.current_packet)
             if packet_length > 8:
