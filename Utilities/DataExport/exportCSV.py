@@ -23,7 +23,7 @@ def saveCSV(filename, directory):
     sensorData = list()
 
     for index, sensor in enumerate(sensorsList):
-        row = [sensor] + data.get_values(sensor, lastIndex, lastIndex+1)
+        row = [sensor] + data.get_values(sensor, lastIndex, lastIndex+1).tolist()
         if sensor == 'time_internal_seconds':
             sensorData.insert(0, row)
         else:
