@@ -3,16 +3,21 @@ from logging import StreamHandler, Formatter, Logger, getLogger
 from logging import DEBUG, INFO, WARNING, ERROR, CRITICAL
 
 logging_objects = {
-    "Logging": DEBUG,
-    "DataAcquisition": INFO,
-    "MainWindow": DEBUG,
-    "Plotting": INFO,
-    "GTORNetwork": CRITICAL,
-    "Homepage": INFO,
-    "DataCollection": DEBUG,
-    "DataImport": INFO,
     "BlinkLEDTest": DEBUG,
-    "EngineDyno": DEBUG
+    "DataAcquisition": INFO,
+    "DataCollection": INFO,
+    "DataImport": INFO,
+    "DataExport": DEBUG,
+    "EngineDyno": DEBUG,
+    "GDriveDataExport": DEBUG,
+    "GDriveDataImport": DEBUG,
+    "GTORNetwork": CRITICAL,
+    "GoogleDriveHandler": DEBUG,
+    "Homepage": INFO,
+    "Logging": DEBUG,
+    "MainWindow": DEBUG,
+    "MultiDataGraph": INFO,
+    "Plotting": INFO,
 }
 
 # Console output handler

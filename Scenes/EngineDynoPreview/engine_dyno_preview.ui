@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>703</width>
+    <width>788</width>
     <height>599</height>
    </rect>
   </property>
@@ -116,18 +116,6 @@
                <number>2</number>
               </property>
               <item>
-               <widget class="QPushButton" name="load_cell_tare">
-                <property name="font">
-                 <font>
-                  <pointsize>10</pointsize>
-                 </font>
-                </property>
-                <property name="text">
-                 <string>Tare</string>
-                </property>
-               </widget>
-              </item>
-              <item>
                <layout class="QHBoxLayout" name="horizontalLayout_4">
                 <item>
                  <widget class="QLabel" name="label_3">
@@ -146,6 +134,9 @@
                 </item>
                 <item>
                  <widget class="QDoubleSpinBox" name="load_cell_scale">
+                  <property name="enabled">
+                   <bool>false</bool>
+                  </property>
                   <property name="font">
                    <font>
                     <pointsize>11</pointsize>
@@ -371,57 +362,6 @@
          <enum>QFrame::Sunken</enum>
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_2">
-         <item>
-          <layout class="QHBoxLayout" name="horizontalLayout">
-           <item>
-            <widget class="QLabel" name="indicator_onOrOff">
-             <property name="minimumSize">
-              <size>
-               <width>35</width>
-               <height>0</height>
-              </size>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>35</width>
-               <height>16777215</height>
-              </size>
-             </property>
-             <property name="font">
-              <font>
-               <pointsize>10</pointsize>
-               <weight>75</weight>
-               <bold>true</bold>
-              </font>
-             </property>
-             <property name="text">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; color:#c70000;&quot;&gt;Off&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-             </property>
-             <property name="indent">
-              <number>5</number>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="button_display">
-             <property name="font">
-              <font>
-               <pointsize>10</pointsize>
-              </font>
-             </property>
-             <property name="styleSheet">
-              <string notr="true"/>
-             </property>
-             <property name="text">
-              <string>Start Displaying Data</string>
-             </property>
-             <property name="checkable">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </item>
          <item>
           <widget class="QLabel" name="label_timeElapsed">
            <property name="font">

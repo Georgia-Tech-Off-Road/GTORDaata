@@ -23,7 +23,6 @@ Optional parameters:
     - is_external    (defaults to True)
 """
 
-
 SensorId = {
     # 000 - DEFAULTS, FLAGS, COMMANDS, MISC
     0: {
@@ -59,38 +58,55 @@ SensorId = {
         "object": "Command",
         "num_bytes": 1
     },
+    6: {
+        "name": "command_motor_enable",
+        "object": "Command",
+        "num_bytes": 1
+    },
+    7: {
+        "name": "command_scale_load_cell",
+        "object": "Command",
+        "num_bytes": 4,
+        "is_float": True
+    },
     90: {
         "name": "test_sensor_0",
+        "display_name": "Test Sensor 0",
         "object": "Generic",
         "num_bytes": 4,
         "is_float": False
     },
     91: {
         "name": "test_sensor_1",
+        "display_name": "Test Sensor 1",
         "object": "Generic",
         "num_bytes": 4,
         "is_float": False
     },
     92: {
         "name": "test_sensor_2",
+        "display_name": "Test Sensor 2",
         "object": "Generic",
         "num_bytes": 4,
         "is_float": False
     },
     93: {
         "name": "test_sensor_3",
+        "display_name": "Test Sensor 3",
         "object": "Generic",
         "num_bytes": 4,
         "is_float": False
     },
     94: {
         "name": "test_sensor_4",
+        "display_name": "Test Sensor 4",
         "object": "Generic",
         "num_bytes": 4,
         "is_float": False
     },
     95: {
         "name": "test_sensor_5",
+        "display_name": "Test Sensor 5",
         "object": "Generic",
         "num_bytes": 4,
         "is_float": False
@@ -119,8 +135,6 @@ SensorId = {
         "num_bytes": 4,
         "is_float": False
     },
-
-    
 
     # 100 - TIME "SENSORS"
     100: {
@@ -195,8 +209,6 @@ SensorId = {
         "num_bytes": 4,
         "is_float": False
     },
-
-
 
     # 200 - SPEED/POSITION SENSORS
     200: {
@@ -381,7 +393,7 @@ SensorId = {
     },
     212: {
         "name": "speed_dynoengine600_rpm",
-        "num_bytes": [4, 2],
+        "num_bytes": [4, 4],
         "h_file_comment": "Speed in RPM and position in ticks (600ppr sensor)",
         0: {
             "name": "dyno_engine_position",
@@ -398,7 +410,7 @@ SensorId = {
     },
     213: {
         "name": "speed_dynosecondary30_rpm",
-        "num_bytes": [4, 2],
+        "num_bytes": [4, 4],
         "h_file_comment": "Speed in RPM and position in ticks (600ppr sensor)",
         0: {
             "name": "dyno_secondary_position",
@@ -447,7 +459,7 @@ SensorId = {
             "pulses_per_revolution": 30
         }
     },
-    
+
     # 300 - FORCE/PRESSURE SENSORS
     300: {
         "name": "pressure_generic",
@@ -587,7 +599,6 @@ SensorId = {
         }
     },
 
-
     # 400 - LDS SENSORS
     400: {
         "name": "lds_generic",
@@ -631,7 +642,6 @@ SensorId = {
         "stroke_length": 225,
         "is_float": False
     },
-
 
     # 500 - IMU SENSORS
     500: {
@@ -680,5 +690,14 @@ SensorId = {
             "display_name": "IMU Temperature",
             "is_float": True
         }
+    },
+
+    # 600 - MISC SENSORS
+    600: {
+        "name": "temperature",
+        "object": "Temperature",
+        "num_bytes": 4,
+        "display_name": "Temperature",
+        "is_float": True
     }
 }

@@ -1,38 +1,53 @@
 from PyQt5 import uic, QtWidgets, QtGui, QtCore
 
+from dataclasses import dataclass
 from functools import partial
-import threading
+from typing import Dict
 import logging
 import os
-import time
 import sys
 import serial
 import glob
 import ctypes
+import threading
 
-from Scenes import DAATAScene
-from Scenes.Homepage import Homepage
-from Scenes.DataCollection import DataCollection
-from Scenes.EngineDyno import EngineDyno
-from Scenes.Layout_Test import Widget_Test
+from Scenes import DAATAScene, MultiDataGraphPreview
 from Scenes.BlinkLEDTest import BlinkLEDTest
-from Scenes.EngineDynoExp import EngineDynoExp
+from Scenes.DataCollection import DataCollection
+from Scenes.DataCollectionPreview import DataCollectionPreview
+from Scenes.EngineDyno import EngineDyno
+from Scenes.EngineDynoPreview import EngineDynoPreview
+from Scenes.Homepage import Homepage
+from Scenes.Layout_Test import Widget_Test
+from Scenes.MultiDataGraph import MultiDataGraph
+from Scenes.MultiDataGraphPreview import MultiDataGraphPreview
 
-from Utilities.Popups.popups import popup_ParentChildrenTree
 from MainWindow._tabHandler import close_tab
+from Utilities.Popups.popups import popup_ParentChildrenTree
 import DataAcquisition
 
 from DataAcquisition import is_data_collecting, data_import, stop_thread
-from DataAcquisition.DataImport import DataImport
-
+from Utilities.OpenCSVFile import OpenCSVFile
 from Utilities.DataExport.dataFileExplorer import open_data_file
+from Utilities.GoogleDriveHandler.GDriveDataExport import CreateUploadJSON
+from Utilities.GoogleDriveHandler.GDriveDataExport.upload_all_drive_files import \
+    UploadDriveFiles
+from Utilities.GoogleDriveHandler.GDriveDataImport import \
+    GDriveDataImport as GoogleDriveDataImport
+from Utilities import general_constants
 
 import re, itertools
 # import winreg as winreg
+# import breeze_resources
+
+import itertools
+import winreg as winreg
 
 logger = logging.getLogger("MainWindow")
 
-Ui_MainWindow, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'MainWindow.ui'))  # loads the .ui file from QT Desginer
+Ui_MainWindow, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__),
+                                               'MainWindow.ui'))  # loads the .ui file from QT Desginer
+
 
 class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def __init__(self):
@@ -42,7 +57,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.data_sending_thread = QtCore.QTimer()
         self.data_sending_thread.timeout.connect(DataAcquisition.send_data)
 
-        self.data_reading_thread = threading.Thread(target=DataAcquisition.read_data)
+        self.data_reading_thread = threading.Thread(
+            target=DataAcquisition.read_data)
 
         # Attach the internal timer
         data_import.attach_internal_sensor(101)
@@ -51,7 +67,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.setupUi(self)
 
         # instantiates dictionary that holds objects for widgets
-        self.dict_scenes = {}
+        self.dict_scenes: Dict[str, _Scene] = {}
 
         self.import_scenes()
         self.dict_ports = {}
@@ -99,10 +115,12 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             for scene in self.tabWidget.findChildren(DAATAScene):
                 if scene.isVisible():
                     try:
-                        if (self.update_counter_active % scene.update_period) == 0:
+                        if (
+                                self.update_counter_active % scene.update_period) == 0:
                             scene.update_active()
-                    except:
-                        pass
+                    except Exception as e:
+                        logger.error(e)
+                        logger.debug(logger.findCaller(True))
 
     def update_passive(self):
         """
@@ -115,8 +133,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.homepage.update_passive()
         for scene in self.tabWidget.findChildren(DAATAScene):
             scene.update_passive()
-
-
 
     def set_app_icon(self):
         """
@@ -154,66 +170,77 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         """
 
         stylesheet = """
-        /*  MainWindow color scheme  */
+        /*  MainWindow color scheme  */        
         QMainWindow {{
-            background: {bgColor};
+            background: {bg_color};
+            color: {default_text};
             }}
 
         QMainWindow [objectName^="tab_scenes"] {{
-            background: {bgColor};
+            background: {bg_color};
+            color: {default_text};
             }}
         QMainWindow QTabWidget {{
             }}
         QStackedWidget {{
-            background-color: {bgColor2};
+            background-color: {bg_color_2};
+            color: {default_text};
         }}
         QMenuBar {{
-            background: #ffffff;
+            background: {bg_color};
+            color: {default_text};
             }}
         QMenuBar::item {{
             padding: 4px;
             background: transparent;
             border-right: 1px solid lightGray;
-
+            background-color: {bg_color_2};
+            color: {default_text};
             }}
         QMenuBar::item:selected {{
-            background: rgb(237,237,237,100);
+            background: {bg_color};
+            color: {default_text};
             }}
         
         
         
         /*  DataCollection scene color scheme   */
         DataCollection QWidget {{
-            background-color: {foreColor};
+            background-color: {bg_color};
+            color: {default_text};
             }}
         DataCollection QPushButton {{
-            background-color: white;
+            background-color: {bg_color_2};
+            color: {default_text};
             }}
         DataCollection CustomPlotWidget {{
             border-radius: 7px;
             border: 1px solid gray;
+            background-color: {bg_color_2};
+            color: {default_text};
             }}
         
         
         
         /*  Homepage scene color scheme */
-        Homepage .QWidget {{
-            background-color: {foreColor};
+        Homepage QWidget {{
+            background-color: {bg_color};
+            color: {default_text};
             }}
-        Homepage .QFrame {{
-            background-color: {foreColor};
+        Homepage QFrame {{
+            background-color: {bg_color};
+            color: {default_text};
             }}
         
         """
 
         stylesheet = stylesheet.format(
-            testColor = "pink",
-            bgColor = "##ffffff",
-            bgColor2 = "white",
-            foreColor = "#f4f4f4",
-            #windowBorder = "#B3A369",
-            windowBorder = "white",
-            defaultText = "white"
+            test_color="pink",
+            bg_color="#28292b",
+            bg_color_2="#A9A9A9",
+            fore_color="#f4f4f4",
+            window_border="white",
+            default_text="white"
         )
 
         self.setStyleSheet(stylesheet)
@@ -226,25 +253,24 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         """
 
         self.dict_scenes = {
-            'Data Collection': {
-                'create_scene': DataCollection
-            },
+            'Data Collection': _Scene(DataCollection, "DataCollection"),
 
-            'Layout Test': {
-                'create_scene': Widget_Test
-            },
+            'Data Collection Preview':
+                _Scene(DataCollectionPreview, "DataCollectionPreview", True),
 
-            'Engine Dyno': {
-                'create_scene': EngineDyno
-            },
+            'Layout Test': _Scene(Widget_Test, "Layout_Test"),
 
-            'Blink LED Test': {
-                'create_scene': BlinkLEDTest
-            },
+            'Engine Dyno': _Scene(EngineDyno, "EngineDyno"),
 
-            'Engine Dyno Exp': {
-                'create_scene': EngineDynoExp
-            }
+            'Engine Dyno Preview':
+                _Scene(EngineDynoPreview, "EngineDynoPreview", True),
+
+            'Blink LED Test': _Scene(BlinkLEDTest, "BlinkLEDTest"),
+
+            'Multi Data Graph': _Scene(MultiDataGraph, "MultiDataGraph"),
+
+            'Multi Data Graph Preview':
+                _Scene(MultiDataGraphPreview, "MultiDataGraphPreview", True),
         }
 
     def enumerate_serial_ports(self):
@@ -283,7 +309,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         """
 
         # adds the Auto option no matter what
-        self.dict_ports["Auto"] = None 
+        self.dict_ports["Auto"] = None
         for portName in self.enumerate_serial_ports():
             self.dict_ports[portName] = None
 
@@ -301,7 +327,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def com_input_mode(self):
         for key in self.dict_ports.keys():
             if self.dict_ports[key].isChecked():
-                self.set_input_mode(key)              
+                self.set_input_mode(key)
 
     def set_input_mode(self, input_mode):
         """
@@ -320,11 +346,12 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             try:
                 directory = open_data_file(".bin")
                 if directory != "":
-                    is_data_collecting.set()                    
+                    is_data_collecting.set()
                     data_import.open_bin_file(directory)
                 else:
                     data_import.input_mode = ""
-                    logger.info("You must open a BIN file before changing to BIN input mode")
+                    logger.info(
+                        "You must open a BIN file before changing to BIN input mode")
             except Exception as e:
                 logger.error(e)
         elif data_import.input_mode == "CSV":        
@@ -346,35 +373,116 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 logger.info("We connected to serial!")
         if input_mode != "" and not self.data_reading_thread.is_alive() and input_mode != "Auto":
             self.data_reading_thread.start()
-        
+
+    def __import_from_google_drive(self):
+        """
+        Opens a 'GDriveDataImport' window asking which file to import from
+        Google Drive and display on the graph. Once a file is selected,
+        the 'GDriveDataImport' window is closed and a new scene tab is opened
+        with the data in that file. Currently, only supports .csv files.
+
+        :return: None
+        """
+        # filepath is "" if an error occurred
+        filepath, file_metadata = GoogleDriveDataImport(self.dict_scenes) \
+            .selected_filepath_and_metadata
+        if filepath:
+            self.__create_preview_scene_tab(filepath, file_metadata)
+
+    @staticmethod
+    def __upload_remaining_to_gdrive():
+        UploadDriveFiles()
+
+    @staticmethod
+    def __manual_upload_to_gdrive():
+        CreateUploadJSON()
+
+    # @property
+    # def all_scenes(self) -> dict:
+    #     return self.dict_scenes
+
+    def __create_preview_scene_tab(self, filepath: str,
+                                   file_metadata: dict = None,
+                                   selected_scene: str = ""):
+        file_formal_scene: str = ""
+        if selected_scene:
+            file_formal_scene = selected_scene
+        elif file_metadata and file_metadata.get("properties"):
+            file_formal_scene = file_metadata.get("properties").get("scene")
+        if file_formal_scene in general_constants.DISPLAYABLE_IMPORTED_SCENES:
+            logger.info(
+                f"Displaying imported {file_formal_scene} scene "
+                f"of {os.path.basename(filepath)}...")
+        else:
+            logger.warning(
+                f"Scene {file_formal_scene} of {os.path.basename(filepath)} "
+                f"not supported")
+            return
+
+        if file_formal_scene == "DataCollection":
+            self.create_scene_tab("Data Collection Preview", True,
+                                  initial_data_filepath=filepath,
+                                  file_metadata=file_metadata)
+        elif file_formal_scene == "EngineDyno":
+            self.create_scene_tab("Engine Dyno Preview", True,
+                                  initial_data_filepath=filepath,
+                                  file_metadata=file_metadata)
+        elif file_formal_scene == "MultiDataGraph":
+            self.create_scene_tab("Multi Data Graph Preview", True,
+                                  initial_data_filepath=filepath,
+                                  file_metadata=file_metadata)
+
+    def __open_csv_file(self):
+        selected_filepath, scene = OpenCSVFile(
+            self.dict_scenes).selected_filepath_scene
+        if selected_filepath and scene:
+            self.__create_preview_scene_tab(selected_filepath, None, scene)
+
+    def __toggle_fake_input_option(self):
+        if self.actionFake_Data.isChecked():
+            self.set_input_mode("FAKE")
+            self.actionFake_Data.setDisabled(True)
 
     def connect_signals_and_slots(self):
         """
-        This function connects all the Qt signals with the slots so that elements such as buttons or checkboxes
-        can be tied to specific functions.
+        This function connects all the Qt signals with the slots so that
+        elements such as buttons or checkboxes can be tied to specific
+        functions.
 
         :return: None
         """
 
         for key in self.dict_scenes.keys():
-            self.dict_scenes[key]['menu_action'].triggered.connect(partial(self.create_scene_tab, key))
+            self.dict_scenes[key].menu_action.triggered.connect(
+                partial(self.create_scene_tab, key))
 
         ## Handles event of a COM port being selected
         for key in self.dict_ports.keys():
-            self.dict_ports[key].triggered.connect(lambda: self.com_input_mode())
+            self.dict_ports[key].triggered.connect(
+                lambda: self.com_input_mode())
 
         ## Functionality for the following menu items
-        self.actionFake_Data.triggered.connect(lambda: self.set_input_mode("FAKE"))
-        self.actionBIN_File.triggered.connect(lambda: self.set_input_mode("BIN"))
-        self.actionCSV_File.triggered.connect(lambda: self.set_input_mode("CSV"))
+        self.actionFake_Data.triggered.connect(self.__toggle_fake_input_option)
+        self.actionBIN_File.triggered.connect(
+            lambda: self.set_input_mode("BIN"))
+        self.openCSV_File.triggered.connect(self.__open_csv_file)
+
+        self.import_from_gDrive_widget.triggered.connect(
+            self.__import_from_google_drive)
+        self.upload_remaining_gDrive_widget.triggered.connect(
+            self.__upload_remaining_to_gdrive)
+        self.manual_upload_gDrive_widget.triggered.connect(
+            self.__manual_upload_to_gdrive)
 
         self.tabWidget.tabBarDoubleClicked.connect(self.rename_tab)
         self.tabWidget.tabCloseRequested.connect(partial(self.close_tab, self))
-        self.action_parentChildrenTree.triggered.connect(partial(popup_ParentChildrenTree, self))
+        self.action_parentChildrenTree.triggered.connect(
+            partial(popup_ParentChildrenTree, self))
         self.action_Preferences.triggered.connect(self.SettingsDialog)
 
     # --- Imported methods --- #
-    from ._tabHandler import create_tab_widget, create_scene_tab, rename_tab, close_tab
+    from ._tabHandler import create_tab_widget, create_scene_tab, rename_tab, \
+        close_tab
     from ._menubarHandler import populate_menu
     from Utilities.Settings.SettingsDialog import SettingsDialog
 
@@ -386,17 +494,16 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         :return: None
         """
-        
+
         stop_thread.set()
         if self.data_sending_thread.isActive():
-            self.data_sending_thread.stop()            
+            self.data_sending_thread.stop()
         if self.data_reading_thread.isAlive():
             self.data_reading_thread.join()
         self.timer_active.stop()
         self.timer_passive.stop()
         sys.exit()
 
-        
     def paintEvent(self, pe):
         """
         This method allows the color scheme of the class to be changed by CSS stylesheets
@@ -411,4 +518,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         s = self.style()
         s.drawPrimitive(QtWidgets.QStyle.PE_Widget, opt, p, self)
 
-    
+
+@dataclass
+class _Scene:
+    create_scene: type
+    formal_name: str
+    is_preview_scene: bool = False
+    preview_scene: type = None
+    menu_action: QtWidgets.QAction = None

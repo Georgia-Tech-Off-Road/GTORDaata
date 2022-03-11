@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>561</width>
-    <height>450</height>
+    <width>578</width>
+    <height>644</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -85,6 +85,65 @@
      </layout>
     </widget>
    </item>
+   <item row="10" column="1">
+    <widget class="QFrame" name="frame_buttons">
+     <property name="frameShape">
+      <enum>QFrame::StyledPanel</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Raised</enum>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
+      <item>
+       <spacer name="horizontalSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QPushButton" name="pushButton_save">
+        <property name="styleSheet">
+         <string notr="true">background-color: #4d97db;
+color: white
+</string>
+        </property>
+        <property name="text">
+         <string>Save</string>
+        </property>
+        <property name="shortcut">
+         <string>Return</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="pushButton_cancel">
+        <property name="text">
+         <string>Cancel</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
    <item row="7" column="1">
     <widget class="QWidget" name="widget_SDCard" native="true">
      <layout class="QGridLayout" name="gridLayout_5">
@@ -100,6 +159,13 @@
       <property name="bottomMargin">
        <number>20</number>
       </property>
+      <item row="0" column="1">
+       <widget class="QLineEdit" name="lineEdit_filenameSD">
+        <property name="toolTip">
+         <string>Must be less than 12 characters</string>
+        </property>
+       </widget>
+      </item>
       <item row="1" column="0">
        <widget class="QLabel" name="label_folderSD">
         <property name="text">
@@ -107,30 +173,6 @@
         </property>
         <property name="alignment">
          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1">
-       <widget class="QLineEdit" name="lineEdit_folderSD">
-        <property name="readOnly">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="0">
-       <widget class="QLabel" name="label_filenameSD">
-        <property name="text">
-         <string>Filename: </string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QLineEdit" name="lineEdit_filenameSD">
-        <property name="toolTip">
-         <string>Must be less than 12 characters</string>
         </property>
        </widget>
       </item>
@@ -154,6 +196,23 @@
           <width>20</width>
           <height>25</height>
          </size>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_filenameSD">
+        <property name="text">
+         <string>Filename: </string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QLineEdit" name="lineEdit_folderSD">
+        <property name="readOnly">
+         <bool>true</bool>
         </property>
        </widget>
       </item>
@@ -231,77 +290,37 @@
      </layout>
     </widget>
    </item>
-   <item row="9" column="1">
-    <widget class="QFrame" name="frame_buttons">
-     <property name="frameShape">
-      <enum>QFrame::StyledPanel</enum>
+   <item row="1" column="1">
+    <widget class="QLabel" name="label">
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>30</height>
+      </size>
      </property>
-     <property name="frameShadow">
-      <enum>QFrame::Raised</enum>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
      </property>
-     <layout class="QHBoxLayout" name="horizontalLayout">
-      <property name="leftMargin">
-       <number>0</number>
-      </property>
-      <property name="topMargin">
-       <number>0</number>
-      </property>
-      <property name="rightMargin">
-       <number>0</number>
-      </property>
-      <property name="bottomMargin">
-       <number>0</number>
-      </property>
-      <item>
-       <spacer name="horizontalSpacer">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>40</width>
-          <height>20</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-      <item>
-       <widget class="QPushButton" name="pushButton_save">
-        <property name="styleSheet">
-         <string notr="true">background-color: #4d97db;
-color: white
-</string>
-        </property>
-        <property name="text">
-         <string>Save</string>
-        </property>
-        <property name="shortcut">
-         <string>Return</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="pushButton_cancel">
-        <property name="text">
-         <string>Cancel</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
+     <property name="text">
+      <string>Location:</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignBottom|Qt::AlignLeading|Qt::AlignLeft</set>
+     </property>
+     <property name="indent">
+      <number>-1</number>
+     </property>
     </widget>
    </item>
    <item row="8" column="1">
-    <spacer name="verticalSpacer_6">
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
+    <widget class="QCheckBox" name="checkBox_GDrive">
+     <property name="text">
+      <string>Google Drive</string>
      </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>20</width>
-       <height>40</height>
-      </size>
-     </property>
-    </spacer>
+    </widget>
    </item>
    <item row="6" column="1">
     <widget class="QCheckBox" name="checkBox_SDCard">
@@ -324,27 +343,18 @@ color: white
      </property>
     </widget>
    </item>
-   <item row="1" column="1">
-    <widget class="QLabel" name="label">
-     <property name="minimumSize">
+   <item row="9" column="1">
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
       <size>
-       <width>0</width>
-       <height>30</height>
+       <width>20</width>
+       <height>40</height>
       </size>
      </property>
-     <property name="font">
-      <font>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="text">
-      <string>Location:</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignBottom|Qt::AlignLeading|Qt::AlignLeft</set>
-     </property>
-    </widget>
+    </spacer>
    </item>
   </layout>
  </widget>

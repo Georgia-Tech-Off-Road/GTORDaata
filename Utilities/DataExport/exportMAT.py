@@ -1,15 +1,18 @@
-import numpy
-import scipy.io as sio
-import os
 from DataAcquisition import data
+import logging
+import numpy
+import os
+import scipy.io as sio
+
+logger = logging.getLogger("DataExport")
 
 
-def saveMAT(self, filename, directory):
+def saveMAT(filename, directory):
+    logger.info("Constructing MAT file...")
     if filename == "":
         return
     if ".mat" not in filename:
         filename = filename + ".mat"
-
 
     dataDict = dict()
     dataDict['collected_data'] = dict()
@@ -19,9 +22,17 @@ def saveMAT(self, filename, directory):
     lastIndex = data.get_most_recent_index()
 
     for sensor in sensorsList:
-        dataDict['collected_data'][sensor] = data.get_values(sensor, lastIndex, lastIndex+1)
+        dataDict['collected_data'][sensor] = numpy.fromiter(
+            data.get_values(sensor, lastIndex, lastIndex + 1), dtype=float)
 
-    sio.savemat(os.path.join(directory, filename), dataDict, appendmat=True, oned_as="column")
+    sio.savemat(os.path.join(directory, filename), dataDict, appendmat=True,
+                oned_as="column")
+
+    size = os.path.getsize(f"{directory}/{filename}")
+    logger.info(
+        f"MAT file of size {round(size / 1048576, 2)} MB constructed "
+        f"successfully")
+
 
 if __name__ == "__main__":
     pass

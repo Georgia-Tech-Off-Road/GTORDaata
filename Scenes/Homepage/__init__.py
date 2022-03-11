@@ -1,6 +1,6 @@
 from PyQt5 import QtWidgets, uic, QtCore, QtGui
 import os
-from DataAcquisition import data
+from DataAcquisition import data, data_import
 from Scenes import DAATAScene
 import logging
 
@@ -16,8 +16,8 @@ class Homepage(DAATAScene, uiFile):
         self.dict_sensorStatus = {}
         self.connected_sensors = data.get_sensors(is_connected=True)
 
-        self.create_sensorStatusCheckboxes()
-        self.create_connectionStatusCheckboxes()        
+        self.create_sensor_status_checkboxes()
+        self.create_connection_status_checkboxes()        
 
         # gridPlotLayout checks for new sensors every x*10 ms (so 1000ms)
         self.update_period = 100
@@ -35,7 +35,7 @@ class Homepage(DAATAScene, uiFile):
 
         pass
 
-    def create_sensorStatusCheckboxes(self):
+    def create_sensor_status_checkboxes(self):
         """
         Lists all sensors in the home page with their respective names and ids
         to show whether they are active or not.
@@ -59,7 +59,7 @@ class Homepage(DAATAScene, uiFile):
                                             QtWidgets.QSizePolicy.Expanding)
         self.verticalLayout_sensorStatus.addItem(spacerItem1)
 
-    def update_sensorStatus(self):
+    def update_sensor_status(self):
         """
         Updates sensor indication colors depending on connected sensors.
         
@@ -73,7 +73,7 @@ class Homepage(DAATAScene, uiFile):
             else:
                 self.dict_sensorStatus[sensor]['indicator'].setChecked(False)
 
-    def create_connectionStatusCheckboxes(self):
+    def create_connection_status_checkboxes(self):
         """
         Creates status indicators for RF Box, SD Card, and Network Drive.
         
@@ -95,13 +95,27 @@ class Homepage(DAATAScene, uiFile):
                                             QtWidgets.QSizePolicy.Expanding)
         self.verticalLayout_connectionStatus.addItem(spacerItem1)
 
-    def update_connectionStatus(self):
+    def update_connection_status(self):
         """
         Updates non-sensor indicators depending on what's connected.
         
         :return: None
         """
 
+        if data_import.teensy_found:
+            # Connected to teensy
+            self.connection_Label.setText("Connected")
+            if data_import.ack_code == 3:
+                # Connected and stable
+                self.connection_Label.setStyleSheet("background-color: #0df200; border: 1px solid black; color: white")                
+            else:
+                # Connected but not stable
+                self.connection_Label.setStyleSheet("background-color: #e3c62f; border: 1px solid black; color: white")
+        else:
+            # We are not connected to teensy
+            self.connection_Label.setText("Disconnected")
+            self.connection_Label.setStyleSheet("background-color: #d60000; border: 1px solid black; color: white")
+           
         # Check if GTOR network drive is connected
         # network_drive = self.GTORNetwork.get_GTORNetworkDrive()
         # if network_drive:
@@ -119,8 +133,8 @@ class Homepage(DAATAScene, uiFile):
         :return: None
         """
 
-        self.update_sensorStatus()
-        self.update_connectionStatus()
+        self.update_sensor_status()
+        self.update_connection_status()
 
     def update_passive(self):
         """

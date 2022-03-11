@@ -1,24 +1,27 @@
-from PyQt5 import QtWidgets, uic, QtGui, QtCore
+from PyQt5 import QtWidgets, uic, QtGui
 from PyQt5.QtCore import QSettings
-from PyQt5.QtGui import QPalette
+from datetime import datetime
+from functools import partial
+from typing import List, Dict
 import os
 
-import pyqtgraph as pg
-from functools import partial
-import DataAcquisition
 from DataAcquisition import data
-from Utilities.CustomWidgets.Plotting import CustomPlotWidget, GridPlotLayout
 from Scenes import DAATAScene
+from Utilities.CustomWidgets.Plotting import CustomPlotWidget, GridPlotLayout
+import DataAcquisition
 import logging
+import pyqtgraph as pg
 
 # Default plot configuration for pyqtgraph
-pg.setConfigOption('background', 'w')   # white
-pg.setConfigOption('foreground', 'k')   # black
+pg.setConfigOption('background', 'w')  # white
+pg.setConfigOption('foreground', 'k')  # black
 
 # Load the .ui file from QT Designer
-uiFile, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'data_collection.ui'))
+uiFile, _ = uic.loadUiType(
+    os.path.join(os.path.dirname(__file__), 'data_collection.ui'))
 
 logger = logging.getLogger("DataCollection")
+
 
 # Todo List      ####################################
 # add warning dialog if trying to start recording data while teensy is not plugged in (checked with data.is_connected)
@@ -31,19 +34,21 @@ class DataCollection(DAATAScene, uiFile):
         self.hide()
 
         # Tab updates every x*10 ms (ex. 3*10 = every 30 ms)
-        self.update_period = 3  
+        self.update_period = 3
 
-        self.graph_objects = dict()
-        self.checkbox_objects = dict()
-        self.currentKeys = data.get_sensors(is_plottable=True)
+        self.graph_objects: Dict[str, CustomPlotWidget] = dict()
+        self.checkbox_objects: Dict[str, QtWidgets.QCheckBox] = dict()
+        self.currentKeys: List[str] = data.get_sensors(is_plottable=True)
 
         self.gridPlotLayout = GridPlotLayout(self.scrollAreaWidgetContents)
         self.gridPlotLayout.setObjectName("gridPlotLayout")
         self.scrollAreaWidgetContents.setLayout(self.gridPlotLayout)
 
+        self.collection_start_time: datetime = datetime.min
         self.create_sensor_checkboxes()
         self.create_graph_dimension_combo_box()
-        self.create_graphs()
+        self.__create_graphs()
+        self.__first_run = True
         self.create_grid_plot_layout()
 
         from MainWindow import is_data_collecting
@@ -62,17 +67,23 @@ class DataCollection(DAATAScene, uiFile):
         """
 
         # Create the checkbox for selecting all of the sensors
-        self.selectAll_checkbox = QtWidgets.QCheckBox("Select All", self.scrollAreaWidgetContents_2, objectName="selectAll_checkbox")
+        self.selectAll_checkbox = QtWidgets.QCheckBox("Select All",
+                                                      self.scrollAreaWidgetContents_2,
+                                                      objectName="selectAll_checkbox")
         self.selectAll_checkbox.setToolTip(self.selectAll_checkbox.objectName())
         self.gridLayout_2.addWidget(self.selectAll_checkbox)
 
         # Create a checkbox for each sensor in dictionary in self.scrollAreaWidgetContents_2
         for key in self.currentKeys:
-            self.checkbox_objects[key] = QtWidgets.QCheckBox(data.get_display_name(key), self.scrollAreaWidgetContents_2, objectName=key)
+            self.checkbox_objects[key] = QtWidgets.QCheckBox(
+                data.get_display_name(key), self.scrollAreaWidgetContents_2,
+                objectName=key)
             self.gridLayout_2.addWidget(self.checkbox_objects[key])
 
         # Create a vertical spacer that forces checkboxes to the top
-        spacerItem1 = QtWidgets.QSpacerItem(20, 1000000, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        spacerItem1 = QtWidgets.QSpacerItem(20, 1000000,
+                                            QtWidgets.QSizePolicy.Minimum,
+                                            QtWidgets.QSizePolicy.Expanding)
         self.gridLayout_2.addItem(spacerItem1)
 
     def create_graph_dimension_combo_box(self):
@@ -102,17 +113,22 @@ class DataCollection(DAATAScene, uiFile):
         row = 0
         col = 0
 
-        leftMar, topMar, rightMar, botMar = self.gridPlotLayout.getContentsMargins()        
+        leftMar, topMar, rightMar, botMar = self.gridPlotLayout.getContentsMargins()
         vSpace = self.gridPlotLayout.verticalSpacing()
-        graphHeight = (self.scrollArea_graphs.height()-topMar-botMar-vSpace*(max_rows-1)) / max_rows
+        graphHeight = (
+                              self.scrollArea_graphs.height() - topMar - botMar - vSpace * (
+                              max_rows - 1)) / max_rows
 
         for key in self.graph_objects.keys():
             if self.graph_objects[key].isVisible():
                 try:
                     self.gridPlotLayout.removeWidget(self.graph_objects[key])
                     self.graph_objects[key].hide()
-                except:
-                    print(key + " is " + self.graph_objects[key].isVisible())
+                except Exception:
+                    visible = "visible" if self.graph_objects[
+                        key].isVisible() else "hidden"
+                    print(f"{key} is {visible}")
+                    logger.debug(logger.findCaller(True))
 
         for key in self.checkbox_objects.keys():
             if self.checkbox_objects[key].isChecked():
@@ -120,15 +136,18 @@ class DataCollection(DAATAScene, uiFile):
                     col = 0
                     row += 1
                 self.graph_objects[key].set_height(graphHeight)
-                self.gridPlotLayout.addWidget((self.graph_objects[key]), row, col, 1, 1)
+                self.gridPlotLayout.addWidget((self.graph_objects[key]), row,
+                                              col, 1, 1)
                 self.graph_objects[key].show()
 
                 col += 1
 
-        self.spacerItem_gridPlotLayout = QtWidgets.QSpacerItem(20, 1000000, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        self.spacerItem_gridPlotLayout = QtWidgets.QSpacerItem(20, 1000000,
+                                                               QtWidgets.QSizePolicy.Minimum,
+                                                               QtWidgets.QSizePolicy.Expanding)
         self.gridPlotLayout.addItem(self.spacerItem_gridPlotLayout)
 
-    def create_graphs(self):
+    def __create_graphs(self):
         """
         Populates graph dictionary with graphs based on active sensors.
 
@@ -136,7 +155,10 @@ class DataCollection(DAATAScene, uiFile):
         """
 
         for key in self.currentKeys:
-            self.graph_objects[key] = CustomPlotWidget(key, parent=self.scrollAreaWidgetContents, layout=self.gridPlotLayout, graph_width_seconds = 8)
+            self.graph_objects[key] = \
+                CustomPlotWidget(key, parent=self.scrollAreaWidgetContents,
+                                 layout=self.gridPlotLayout,
+                                 graph_width_seconds=8)
             self.graph_objects[key].setObjectName(key)
             self.graph_objects[key].hide()
 
@@ -149,6 +171,8 @@ class DataCollection(DAATAScene, uiFile):
         """
 
         if self.button_display.isChecked():
+            self.__reset_all()
+            self.collection_start_time = datetime.now()
             self.indicator_onOrOff.setText("On")
             self.indicator_onOrOff.setStyleSheet("color: green;")
             self.button_display.setText("Stop Collecting Data")
@@ -158,7 +182,16 @@ class DataCollection(DAATAScene, uiFile):
             self.indicator_onOrOff.setStyleSheet("color: red;")
             self.button_display.setText("Start Collecting Data")
             self.is_data_collecting.clear()
-            self.popup_dataSaveLocation()
+            self.popup_dataSaveLocation("DataCollection",
+                                        self.collection_start_time)
+
+    def __reset_all(self):
+        if self.__first_run:
+            self.__first_run = False
+        else:
+            data.reset_hard()
+            self.__create_graphs()
+            self.create_grid_plot_layout()
 
     def slot_checkbox_state_change(self):
         """
@@ -187,9 +220,12 @@ class DataCollection(DAATAScene, uiFile):
 
         self.active_sensor_count = 0
         for key in self.checkbox_objects.keys():
-            if self.checkbox_objects[key].isVisible() and self.checkbox_objects[key].isChecked():
-                    self.active_sensor_count = self.active_sensor_count + 1
-        self.label_active_sensor_count.setText('(' + str(self.active_sensor_count) + '/' + str(len(self.graph_objects)) + ')')
+            if self.checkbox_objects[key].isVisible() and self.checkbox_objects[
+                key].isChecked():
+                self.active_sensor_count = self.active_sensor_count + 1
+        self.label_active_sensor_count.setText(
+            '(' + str(self.active_sensor_count) + '/' + str(
+                len(self.graph_objects)) + ')')
 
     def update_graphs(self):
         """
@@ -197,7 +233,6 @@ class DataCollection(DAATAScene, uiFile):
 
         :return: None
         """
-
         for key in self.currentKeys:
             if self.graph_objects[key].isVisible():
                 self.graph_objects[key].update_graph()
@@ -211,17 +246,21 @@ class DataCollection(DAATAScene, uiFile):
         """
 
         try:
-            seconds_elapsed = DataAcquisition.data.get_value("time_internal_seconds",
-                                                             DataAcquisition.data.get_most_recent_index())
+            seconds_elapsed = DataAcquisition.data.get_value(
+                "time_internal_seconds",
+                DataAcquisition.data.get_most_recent_index())
             seconds_elapsed_int = int(seconds_elapsed)
             hours_elapsed = int(seconds_elapsed_int / 3600)
-            minutes_elapsed = int((seconds_elapsed_int - hours_elapsed * 3600) / 60)
+            minutes_elapsed = int(
+                (seconds_elapsed_int - hours_elapsed * 3600) / 60)
             seconds_elapsed = seconds_elapsed % 60
             format_time = "{hours:02d}:{minutes:02d}:{seconds:05.2f}"
-            str_time = format_time.format(hours=hours_elapsed, minutes=minutes_elapsed, seconds=seconds_elapsed)
+            str_time = format_time.format(hours=hours_elapsed,
+                                          minutes=minutes_elapsed,
+                                          seconds=seconds_elapsed)
             self.label_timeElapsed.setText(str_time)
         except TypeError:
-            pass
+            logger.debug(logger.findCaller(True))
 
     def update_sensor_checkboxes(self):
         """
@@ -230,7 +269,8 @@ class DataCollection(DAATAScene, uiFile):
         :return: None
         """
 
-        connected_sensors = data.get_sensors(is_plottable=True, is_connected=True)
+        connected_sensors = data.get_sensors(is_plottable=True,
+                                             is_connected=True)
         for key in connected_sensors:
             if key not in self.currentKeys:
                 self.checkbox_objects[key].show()
@@ -239,7 +279,7 @@ class DataCollection(DAATAScene, uiFile):
                 try:
                     self.checkbox_objects[key].hide()
                 except Exception:
-                    pass
+                    logger.debug(logger.findCaller(True))
         self.currentKeys = connected_sensors
 
     def update_active(self):
@@ -286,21 +326,27 @@ class DataCollection(DAATAScene, uiFile):
         :return: None
         """
 
-        self.button_display.clicked.connect(self.slot_data_collecting_state_change)
+        self.button_display.clicked.connect(
+            self.slot_data_collecting_state_change)
 
         for key in self.currentKeys:
-            self.checkbox_objects[key].clicked.connect(self.create_grid_plot_layout)
+            self.checkbox_objects[key].clicked.connect(
+                self.create_grid_plot_layout)
             self.checkbox_objects[key].clicked.connect(self.save_settings)
 
-        self.selectAll_checkbox.stateChanged.connect(self.slot_checkbox_state_change)
+        self.selectAll_checkbox.stateChanged.connect(
+            self.slot_checkbox_state_change)
 
-        self.comboBox_graphDimension.currentTextChanged.connect(self.create_grid_plot_layout)
-        self.comboBox_graphDimension.currentTextChanged.connect(self.save_settings)
+        self.comboBox_graphDimension.currentTextChanged.connect(
+            self.create_grid_plot_layout)
+        self.comboBox_graphDimension.currentTextChanged.connect(
+            self.save_settings)
 
-        ## connections to GridPlotLayout
+        # connections to GridPlotLayout
         for key in self.graph_objects.keys():
             widget = self.graph_objects[key]
-            settings = widget.button_settings.clicked.connect(partial(self.graph_objects[key].open_SettingsWindow))
+            widget.button_settings.clicked.connect(
+                partial(self.graph_objects[key].open_SettingsWindow))
 
     def save_settings(self):
         """
@@ -310,8 +356,10 @@ class DataCollection(DAATAScene, uiFile):
         :return: None
         """
 
-        self.configFile.setValue('graph_dimension', self.comboBox_graphDimension.currentText())
-        self.configFile.setValue('scrollArea_graphs_height', self.scrollArea_graphs.height())
+        self.configFile.setValue('graph_dimension',
+                                 self.comboBox_graphDimension.currentText())
+        self.configFile.setValue('scrollArea_graphs_height',
+                                 self.scrollArea_graphs.height())
 
         enabledSensors = []
         for key in self.graph_objects.keys():
@@ -336,14 +384,17 @@ class DataCollection(DAATAScene, uiFile):
                 self.graph_objects[key].show()
                 active_sensor_count = active_sensor_count + 1
                 self.label_active_sensor_count.setText(
-                    '(' + str(active_sensor_count) + '/' + str(len(self.graph_objects)) + ')')
+                    '(' + str(active_sensor_count) + '/' + str(
+                        len(self.graph_objects)) + ')')
         except TypeError or KeyError:
-            logger.error("Possibly invalid key in config. May need to clear config file using self.configFile.clear()")
-            pass
+            logger.error(
+                "Possibly invalid key in config. May need to clear config file using self.configFile.clear()")
+            logger.debug(logger.findCaller(True))
 
-        self.comboBox_graphDimension.setCurrentText(self.configFile.value('graph_dimension'))        
+        self.comboBox_graphDimension.setCurrentText(
+            self.configFile.value('graph_dimension'))
         self.create_grid_plot_layout()
-        logger.debug("Data Collection config files loaded")        
+        logger.debug("Data Collection config files loaded")
 
     def debug_settings(self):
         """
@@ -361,7 +412,7 @@ class DataCollection(DAATAScene, uiFile):
     from Utilities.DataExport.exportMAT import saveMAT
 
     # --- Overridden event methods --- #
-    def closeEvent(self):
+    def closeEvent(self, event=None):
         """
         Handles closing of the DataCollection scene.
 
@@ -370,7 +421,6 @@ class DataCollection(DAATAScene, uiFile):
 
         self.save_settings()
         self.window().setWindowTitle('closed tab')
-
 
     def paintEvent(self, pe):
         """
