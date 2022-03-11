@@ -122,7 +122,7 @@ class MultiDataGraph(DAATAScene, uiFile):
     def create_graph(self, key):
         self.graph_objects.pop(key, None)
         MDG_init_props = MDGInitProps(y_sensors=self.connected_sensors[:3])
-        self.graph_objects[key] = CustomPlotWidget(key,
+        self.graph_objects[key] = CustomPlotWidget(str(key),
                                                    parent=self.scrollAreaWidgetContents,
                                                    layout=self.gridPlotLayout,
                                                    graph_width_seconds=8,
@@ -130,7 +130,7 @@ class MultiDataGraph(DAATAScene, uiFile):
                                                    MDG_init_props=MDG_init_props)
         # activate settings button
         widget = self.graph_objects[key]
-        settings = widget.button_settings.clicked.connect(
+        widget.button_settings.clicked.connect(
             partial(self.graph_objects[key].open_SettingsWindow))
 
         self.graph_objects[key].show()
@@ -309,22 +309,6 @@ class MultiDataGraph(DAATAScene, uiFile):
 
         :return: None
         """
-        try:
-            active_sensor_count = 0
-            for key in self.configFile.value('enabledSensors'):
-                print(key)
-                # self.checkbox_objects[key].setChecked(True)
-                self.graph_objects[key].show()
-                active_sensor_count = active_sensor_count + 1
-                self.label_active_sensor_count.setText(
-                    '(' + str(active_sensor_count) + '/' + str(
-                        len(self.graph_objects)) + ')')
-        except TypeError or KeyError:
-            logger.error(
-                "Possibly invalid key in config. May need to clear config "
-                "file using self.configFile.clear()")
-            pass
-
         self.comboBox_graphDimension.setCurrentText(
             self.configFile.value('graph_dimension'))
         logger.debug("Data Collection config files loaded")

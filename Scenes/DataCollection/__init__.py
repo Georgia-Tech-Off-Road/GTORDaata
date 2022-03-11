@@ -155,13 +155,11 @@ class DataCollection(DAATAScene, uiFile):
         """
 
         for key in self.currentKeys:
-            # TODO Faris disable scroll
             self.graph_objects[key] = \
                 CustomPlotWidget(key, parent=self.scrollAreaWidgetContents,
                                  layout=self.gridPlotLayout,
                                  graph_width_seconds=8,
                                  enable_scroll=(False, False))
-            self.graph_objects[key].setObjectName(key)
             self.graph_objects[key].hide()
 
     def slot_data_collecting_state_change(self):

@@ -20,7 +20,7 @@ uiPlotWidget, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__),
 
 
 class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
-    def __init__(self, sensor_name, parent=None,
+    def __init__(self, sensor_name: str, parent=None,
                  enable_scroll: Tuple[bool, bool] = (False, False),
                  MDG_init_props: MDGInitProps = None, **kwargs):
         super().__init__()
@@ -30,6 +30,7 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
         pg.setConfigOption('foreground', 'w')
 
         self.enable_multi_plot = (MDG_init_props is not None)
+        self.setObjectName(sensor_name)
         if self.enable_multi_plot:
             self.__MDG_init_props: MDGInitProps = MDG_init_props
             self.setObjectName("MDG #" + str(sensor_name))
@@ -108,7 +109,7 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
 
         self.initialCounter = 0
 
-        self.configFile = QtCore.QSettings('DAATA_plot', self.sensor_name)
+        self.configFile = QtCore.QSettings('DAATA_plot', self.objectName())
         self.configFile.clear()
         self.loadStylesheet()
         self.loadSettings()
@@ -377,7 +378,12 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
         if yMax is None:
             self.configFile.setValue("yMax", "auto")
             yMax = "auto"
-        self.set_graphWidth(self.configFile.value("seconds_in_view"))
+        saved_graph_seconds = self.configFile.value("seconds_in_view")
+        if saved_graph_seconds:
+            self.set_graphWidth(saved_graph_seconds)
+        else:
+            self.configFile.setValue("seconds_in_view",
+                                     str(self.__seconds_in_view))
 
         self.set_yMinMax(yMin, yMax)
 
