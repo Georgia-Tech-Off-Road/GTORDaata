@@ -75,14 +75,16 @@ SensorId = {
         "h_file_comment": "Contains lattitude, longitude, and speed (knots)",
         0: {
             "name": "gps_lattitude",
-            "object": "Position",
+            "object": "GPS",
             "display_name": "GPS Lattitude",
+            "orientation": "lattitude",
             "is_float": False
         },
         1: {
             "name": "gps_longitude",
-            "object": "Position",
+            "object": "GPS",
             "display_name": "GPS Longitude",
+            "orientation": "longitude",
             "is_float": False
         },
         0: {
