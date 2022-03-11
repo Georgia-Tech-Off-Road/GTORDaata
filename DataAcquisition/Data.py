@@ -97,6 +97,8 @@ class Data:
             self.__data[sensor_name] = Gyro(**param_dict)
         if object_type == "Temperature":
             self.__data[sensor_name] = Temperature(**param_dict)
+        if object_type == "GPS":
+            self.__data[sensor_name] = GPS(**param_dict)
 
         # Derived Sensors
         if object_type == "WheelSpeed":

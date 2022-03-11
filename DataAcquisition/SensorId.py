@@ -69,6 +69,31 @@ SensorId = {
         "num_bytes": 4,
         "is_float": True
     },
+    8: {
+        "name": "gps_sensor",
+        "num_bytes": [4, 4, 4],
+        "h_file_comment": "Contains lattitude, longitude, and speed (knots)",
+        0: {
+            "name": "gps_lattitude",
+            "object": "GPS",
+            "display_name": "GPS Lattitude",
+            "orientation": "lattitude",
+            "is_float": False
+        },
+        1: {
+            "name": "gps_longitude",
+            "object": "GPS",
+            "display_name": "GPS Longitude",
+            "orientation": "longitude",
+            "is_float": False
+        },
+        0: {
+            "name": "gps_speed",
+            "object": "Speed",
+            "display_name": "GPS Speed",
+            "is_float": False
+        }
+    },
     90: {
         "name": "test_sensor_0",
         "display_name": "Test Sensor 0",

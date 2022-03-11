@@ -125,8 +125,7 @@ class DataImport:
                     assert self.teensy_ser.in_waiting != 0
                     self.current_packet.append(self.teensy_ser.read(1))  # read in a single byte from COM
                 except AssertionError:
-                    logger.debug("Input buffer is empty")
-                    time.sleep(1)
+                    logger.debug("Input buffer is empty")                    
                 except TypeError:
                     logger.info("Teensy has been disconnected, closing and attempting reopen")
                     self.teensy_ser.close()
@@ -143,22 +142,16 @@ class DataImport:
             elif not self.teensy_found:
                 self.connect_serial()
             else:
-                break
+                # We break if teensy is disconnected or if input buffer is empty
+                break            
+            # If end code is found then unpacketize and clear packet
             packet_length = len(self.current_packet)
-            if packet_length > 8:
-                # If end code is found then unpacketize and clear packet
-                end_code_match = False
-                if self.current_packet[(packet_length - 8):(packet_length)] == self.end_code:
-                    end_code_match = True
-                if end_code_match:     
-                    self.packet_count += 1
-                    logger.debug("Packet count: {}".format(self.packet_count))
-
-                    self.current_packet = self.current_packet[0:(packet_length - 8)]                    
-                    self.unpacketize()
-                    self.current_packet.clear()
-
-                    
+            if packet_length > 8 and self.current_packet[(packet_length - 8):(packet_length)] == self.end_code:  
+                self.packet_count += 1
+                logger.debug("Packet count: {}".format(self.packet_count))
+                self.current_packet = self.current_packet[0:(packet_length - 8)]                    
+                self.unpacketize()
+                self.current_packet.clear()                    
     
     def open_bin_file(self, dir):
         """

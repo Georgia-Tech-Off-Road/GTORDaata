@@ -287,7 +287,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         :return: None
         """
-
+        
         # adds the Auto option no matter what
         self.dict_ports["Auto"] = None
         for portName in self.enumerate_serial_ports():
@@ -305,6 +305,12 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.gridLayout_tab_homepage.addWidget(self.homepage)
 
     def com_input_mode(self):
+        """
+        Sets the input mode to whichever serial port is checked.
+
+        :return: None
+        """        
+
         for key in self.dict_ports.keys():
             if self.dict_ports[key].isChecked():
                 self.set_input_mode(key)
