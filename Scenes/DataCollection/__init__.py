@@ -155,10 +155,12 @@ class DataCollection(DAATAScene, uiFile):
         """
 
         for key in self.currentKeys:
+            # TODO Faris disable scroll
             self.graph_objects[key] = \
                 CustomPlotWidget(key, parent=self.scrollAreaWidgetContents,
                                  layout=self.gridPlotLayout,
-                                 graph_width_seconds=8)
+                                 graph_width_seconds=8,
+                                 enable_scroll=(False, False))
             self.graph_objects[key].setObjectName(key)
             self.graph_objects[key].hide()
 
@@ -311,11 +313,19 @@ class DataCollection(DAATAScene, uiFile):
     def update_passive(self):
         """
         This function will update no matter what scene is selected to keep
-        the checkboxes accurate with active sensors.
+        the checkboxes accurate with active sensors. And periodically update the
+        graph width, so it becomes more accurate.
         Called by MainWindow.__init__.py.
 
         :return: None
         """
+        index_time = data.get_most_recent_index()
+        if index_time > 0:
+            start = data.get_value("time_internal_seconds", 0)
+            end = data.get_value("time_internal_seconds", index_time)
+            new_sampling_freq = index_time / (end - start)
+            for graph in self.graph_objects.values():
+                graph.update_graph_width(new_sampling_freq)
 
         self.update_sensor_checkboxes()
 

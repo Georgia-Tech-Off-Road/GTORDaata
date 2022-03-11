@@ -1,9 +1,10 @@
 from DataAcquisition import data
 from PyQt5 import QtCore, QtWidgets, uic
+from Utilities.Popups.generic_popup import GenericPopup
 from Utilities.general_constants import TIME_OPTION
 from dataclasses import dataclass
 from functools import partial
-from typing import List, Dict, Tuple
+from typing import List, Dict
 import os
 
 # loads the .ui file from QT Designer
@@ -37,7 +38,7 @@ class PlotSettingsDialog(QtWidgets.QDialog, uiSettingsDialog):
 
     def loadSettings(self):
         self.lineEdit_graph_width_seconds.setText(
-            str(self.parent.graph_width / self.parent.samplingFreq))
+            str(self.parent.seconds_in_view))
         self.lineEdit_yMin.setText(self.configFile.value("yMin"))
         self.lineEdit_yMax.setText(self.configFile.value("yMax"))
 
@@ -50,10 +51,23 @@ class PlotSettingsDialog(QtWidgets.QDialog, uiSettingsDialog):
         self.lineEdit_yMax.setText(self.configFile.value("yMax"))
 
     def saveSettings(self):
+        input_width_seconds = self.lineEdit_graph_width_seconds.text()
+        input_yMin = self.lineEdit_yMin.text()
+        input_yMax = self.lineEdit_yMax.text()
+
+        try:
+            float(input_width_seconds)
+            float(input_yMin)
+            float(input_yMax)
+        except ValueError:
+            if not(input_yMin == "auto" or input_yMin == "auto"):
+                GenericPopup("Value inputs must be floats")
+                return
+
         self.configFile.setValue("graph_width",
-                                 self.lineEdit_graph_width_seconds.text())
-        self.configFile.setValue("yMin", self.lineEdit_yMin.text())
-        self.configFile.setValue("yMax", self.lineEdit_yMax.text())
+                                 input_width_seconds)
+        self.configFile.setValue("yMin", input_yMin)
+        self.configFile.setValue("yMax", input_yMax)
 
     # direction can be 'up','left','right','down'
     def sendMoveSignal(self, direction):
@@ -286,7 +300,7 @@ class PlotSettingsDialogMDG(QtWidgets.QDialog, uiSettingsDialogMDG):
 
     def __loadSettings(self):
         self.lineEdit_graph_width_seconds.setText(str(
-            self.parent.graph_width / self.parent.samplingFreq))
+            self.configFile.value("seconds_in_view")))
         self.lineEdit_yMin.setText(self.configFile.value("yMin"))
         self.lineEdit_yMax.setText(self.configFile.value("yMax"))
 
@@ -294,7 +308,7 @@ class PlotSettingsDialogMDG(QtWidgets.QDialog, uiSettingsDialogMDG):
         self.__saveSettings()
         self.parent.set_yMinMax(self.configFile.value("yMin"),
                                 self.configFile.value("yMax"))
-        self.parent.set_graphWidth(self.configFile.value("graph_width"))
+        self.parent.set_graphWidth(self.configFile.value("seconds_in_view"))
         self.lineEdit_yMin.setText(self.configFile.value("yMin"))
         self.lineEdit_yMax.setText(self.configFile.value("yMax"))
         self.parent.update_plot_type(self.pending_plot_type_is_line)
