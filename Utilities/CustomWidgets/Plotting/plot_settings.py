@@ -49,20 +49,25 @@ class PlotSettingsDialog(QtWidgets.QDialog, uiSettingsDialog):
         self.parent.set_graphWidth(self.configFile.value("graph_width"))
         self.lineEdit_yMin.setText(self.configFile.value("yMin"))
         self.lineEdit_yMax.setText(self.configFile.value("yMax"))
+        self.close()
 
     def saveSettings(self):
+        def is_float_or_auto(string) -> bool:
+            try:
+                float(string)
+                return True
+            except ValueError:
+                return string == "auto"
+
         input_width_seconds = self.lineEdit_graph_width_seconds.text()
         input_yMin = self.lineEdit_yMin.text()
         input_yMax = self.lineEdit_yMax.text()
 
-        try:
-            float(input_width_seconds)
-            float(input_yMin)
-            float(input_yMax)
-        except ValueError:
-            if not(input_yMin == "auto" or input_yMin == "auto"):
-                GenericPopup("Value inputs must be floats")
-                return
+        if not (is_float_or_auto(input_width_seconds) and
+                is_float_or_auto(input_yMin) and
+                is_float_or_auto(input_yMax)):
+            GenericPopup("Value inputs must be floats or 'auto'")
+            return
 
         self.configFile.setValue("graph_width",
                                  input_width_seconds)

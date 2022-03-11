@@ -147,10 +147,11 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
         """
         self.setStyleSheet(self.stylesheetDefault)
 
-    def set_graphWidth(self, seconds):
+    def set_graphWidth(self, seconds: str):
         try:
-            self.__graph_width = int(seconds * self.__sampling_freq)
-            self.__seconds_in_view = seconds
+            self.__seconds_in_view = float(seconds)
+            self.__graph_width = int(
+                self.__seconds_in_view * self.__sampling_freq)
         except (ValueError, TypeError):
             self.__graph_width = int(
                 self.__seconds_in_view * self.__sampling_freq)

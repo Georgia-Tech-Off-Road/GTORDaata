@@ -1,24 +1,26 @@
 from PyQt5 import QtWidgets, uic, QtGui, QtCore
 from PyQt5.QtCore import QSettings
 from PyQt5.QtGui import QPalette
-import os
-
-import pyqtgraph as pg
+from datetime import datetime
 from functools import partial
-import DataAcquisition
+from typing import Dict
+import logging
+import os
+import pyqtgraph as pg
+
 from DataAcquisition import data
 from DataAcquisition import data_import
-from Utilities.CustomWidgets.Plotting import CustomPlotWidget, GridPlotLayout
 from Scenes import DAATAScene
-import logging
-from datetime import datetime
+from Utilities.CustomWidgets.Plotting import CustomPlotWidget, GridPlotLayout
+import DataAcquisition
 
 # Default plot configuration for pyqtgraph
-pg.setConfigOption('background', 'w')   # white
-pg.setConfigOption('foreground', 'k')   # black
+pg.setConfigOption('background', 'w')  # white
+pg.setConfigOption('foreground', 'k')  # black
 
 # load the .ui file from QT Designer
-uiFile, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'engine_dyno.ui'))
+uiFile, _ = uic.loadUiType(
+    os.path.join(os.path.dirname(__file__), 'engine_dyno.ui'))
 
 logger = logging.getLogger("EngineDyno")
 
@@ -31,9 +33,10 @@ class EngineDyno(DAATAScene, uiFile):
 
         self.update_period = 3  # the tab updates every x*10 ms (ex. 3*10 = every 30 ms)
 
-        self.graph_objects = dict()
+        self.graph_objects: Dict[str, CustomPlotWidget] = dict()
         # self.current_keys = ["rpm_vs_time", "torque_vs_time", "cvt_ratio_vs_time", "power_vs_rpm"]
-        self.current_keys = ["dyno_engine_speed", "dyno_secondary_speed", "force_enginedyno_lbs", "ratio_dyno_cvt"]
+        self.current_keys = ["dyno_engine_speed", "dyno_secondary_speed",
+                             "force_enginedyno_lbs", "ratio_dyno_cvt"]
         self.collection_start_time: datetime = datetime.min
         self.create_graphs()
 
@@ -69,7 +72,10 @@ class EngineDyno(DAATAScene, uiFile):
         row = 0
         col = 0
         for key in self.current_keys:
-            self.graph_objects[key] = CustomPlotWidget(key, parent=self.graph_frame, layout=self.graph_layout, graph_width_seconds=8)
+            self.graph_objects[key] = CustomPlotWidget(key,
+                                                       parent=self.graph_frame,
+                                                       layout=self.graph_layout,
+                                                       graph_width_seconds=8)
             self.graph_objects[key].setObjectName(key)
             self.graph_layout.addWidget(self.graph_objects[key], row, col, 1, 1)
             self.graph_objects[key].show()
@@ -106,7 +112,8 @@ class EngineDyno(DAATAScene, uiFile):
 
     def slot_set_load_cell_scale(self):
         logger.info("Changing load cell scale")
-        data.set_sensor_scale("force_enginedyno_lbs", self.load_cell_scale.value())
+        data.set_sensor_scale("force_enginedyno_lbs",
+                              self.load_cell_scale.value())
 
     def update_graphs(self):
         for key in self.current_keys:
@@ -120,14 +127,18 @@ class EngineDyno(DAATAScene, uiFile):
         :return: None
         """
         try:
-            seconds_elapsed = DataAcquisition.data.get_value("time_internal_seconds",
-                                                             DataAcquisition.data.get_most_recent_index())
+            seconds_elapsed = DataAcquisition.data.get_value(
+                "time_internal_seconds",
+                DataAcquisition.data.get_most_recent_index())
             seconds_elapsed_int = int(seconds_elapsed)
             hours_elapsed = int(seconds_elapsed_int / 3600)
-            minutes_elapsed = int((seconds_elapsed_int - hours_elapsed * 3600) / 60)
+            minutes_elapsed = int(
+                (seconds_elapsed_int - hours_elapsed * 3600) / 60)
             seconds_elapsed = seconds_elapsed % 60
             format_time = "{hours:02d}:{minutes:02d}:{seconds:05.2f}"
-            str_time = format_time.format(hours=hours_elapsed, minutes=minutes_elapsed, seconds=seconds_elapsed)
+            str_time = format_time.format(hours=hours_elapsed,
+                                          minutes=minutes_elapsed,
+                                          seconds=seconds_elapsed)
             self.label_timeElapsed.setText(str_time)
         except TypeError:
             logger.debug(logger.findCaller(True))
@@ -141,15 +152,20 @@ class EngineDyno(DAATAScene, uiFile):
         :return: None
         """
         if self.engine_speed_lcd.isEnabled():
-            self.engine_speed_lcd.display(data.get_current_value("dyno_engine_speed"))
+            self.engine_speed_lcd.display(
+                data.get_current_value("dyno_engine_speed"))
         if self.secondary_speed_lcd.isEnabled():
-            self.secondary_speed_lcd.display(data.get_current_value("dyno_secondary_speed"))
+            self.secondary_speed_lcd.display(
+                data.get_current_value("dyno_secondary_speed"))
         if self.force_lcd.isEnabled():
-            self.force_lcd.display(data.get_current_value("force_enginedyno_lbs"))
+            self.force_lcd.display(
+                data.get_current_value("force_enginedyno_lbs"))
         if self.torque_lcd.isEnabled():
-            self.torque_lcd.display(data.get_current_value("force_enginedyno_lbs"))
+            self.torque_lcd.display(
+                data.get_current_value("force_enginedyno_lbs"))
         if self.power_lcd.isEnabled():
-            self.power_lcd.display(data.get_current_value("power_engine_horsepower"))
+            self.power_lcd.display(
+                data.get_current_value("power_engine_horsepower"))
         if self.cvt_ratio_lcd.isEnabled():
             self.cvt_ratio_lcd.display(data.get_current_value("ratio_dyno_cvt"))
 
@@ -171,7 +187,7 @@ class EngineDyno(DAATAScene, uiFile):
             self.button_display.setChecked(False)
 
     def update_passive(self):
-        # Enable or disable the lcd displays based on what sensors are connected
+        # Enable or disable the LCD displays based on what sensors are connected
         if data.get_is_connected("dyno_engine_speed"):
             self.engine_speed_lcd.setEnabled(True)
         else:
@@ -205,11 +221,13 @@ class EngineDyno(DAATAScene, uiFile):
         # Attach or detach the load cell tare sensor based on if the tab is active
         if self.isVisible():
             if not self.is_sensors_attached:
-                data_import.attach_output_sensor(data.get_id("command_tare_load_cell"))
+                data_import.attach_output_sensor(
+                    data.get_id("command_tare_load_cell"))
                 self.is_sensors_attached = True
         else:
             if self.is_sensors_attached:
-                data_import.detach_output_sensor(data.get_id("command_tare_load_cell"))
+                data_import.detach_output_sensor(
+                    data.get_id("command_tare_load_cell"))
                 self.is_sensors_attached = False
 
         if self.load_cell_taring:
@@ -217,9 +235,17 @@ class EngineDyno(DAATAScene, uiFile):
         else:
             data.set_current_value("command_tare_load_cell", 0)
 
+        index_time = data.get_most_recent_index()
+        if index_time > 0:
+            start = data.get_value("time_internal_seconds", 0)
+            end = data.get_value("time_internal_seconds", index_time)
+            new_sampling_freq = index_time / (end - start)
+            for graph in self.graph_objects.values():
+                graph.update_graph_width(new_sampling_freq)
 
     def connect_slots_and_signals(self):
-        self.button_display.clicked.connect(self.slot_data_collecting_state_change)
+        self.button_display.clicked.connect(
+            self.slot_data_collecting_state_change)
 
         self.load_cell_tare.clicked.connect(self.slot_tare_load_cell)
         self.load_cell_scale.valueChanged.connect(self.slot_set_load_cell_scale)
@@ -236,8 +262,10 @@ class EngineDyno(DAATAScene, uiFile):
 
         :return: None
         """
-        self.configFile.setValue('graph_dimension', self.comboBox_graphDimension.currentText())
-        self.configFile.setValue('scrollArea_graphs_height', self.scrollArea_graphs.height())
+        self.configFile.setValue('graph_dimension',
+                                 self.comboBox_graphDimension.currentText())
+        self.configFile.setValue('scrollArea_graphs_height',
+                                 self.scrollArea_graphs.height())
 
         enabledSensors = []
         for key in self.graph_objects.keys():
@@ -262,12 +290,15 @@ class EngineDyno(DAATAScene, uiFile):
                 self.graph_objects[key].show()
                 active_sensor_count = active_sensor_count + 1
                 self.label_active_sensor_count.setText(
-                    '(' + str(active_sensor_count) + '/' + str(len(self.graph_objects)) + ')')
+                    '(' + str(active_sensor_count) + '/' + str(
+                        len(self.graph_objects)) + ')')
         except TypeError or KeyError:
-            logger.error("Possibly invalid key in config. May need to clear config file using self.configFile.clear()")
+            logger.error(
+                "Possibly invalid key in config. May need to clear config file using self.configFile.clear()")
             logger.debug(logger.findCaller(True))
 
-        self.comboBox_graphDimension.setCurrentText(self.configFile.value('graph_dimension'))
+        self.comboBox_graphDimension.setCurrentText(
+            self.configFile.value('graph_dimension'))
         # self.slot_graphDimension()
         self.create_grid_plot_layout()
         logger.debug("Data Collection config files loaded")
