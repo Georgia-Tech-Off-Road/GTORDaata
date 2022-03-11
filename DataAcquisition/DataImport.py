@@ -108,8 +108,6 @@ class DataImport:
             logger.error(e)
             logger.error("Error in connect_serial")
 
-        
-
     def read_packet(self):
         """
         Manages all incoming data on the Serial port and in a BIN file and detects 

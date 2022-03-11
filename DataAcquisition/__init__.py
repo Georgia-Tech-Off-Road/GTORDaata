@@ -35,8 +35,7 @@ def read_data():
     while True:
         if is_data_collecting.is_set() and not data_was_collecting:
             logger.info("Starting data collection")
-            if "COM" in data_import.input_mode:
-                data.reset()
+            data.reset()
             data_was_collecting = True
 
         if not is_data_collecting.is_set() and data_was_collecting:
@@ -54,7 +53,7 @@ def read_data():
                 data_import.read_packet()                                   
             except Exception as e:
                 logger.error(e)        
-        elif "COM" in data_import.input_mode and data_import.teensy_found:            
+        elif data_import.input_mode is not "" and data_import.teensy_found:            
             try:
                 try:
                     data_import.teensy_ser.flushInput()
@@ -87,7 +86,7 @@ def send_data():
     """
 
     
-    if "COM" not in data_import.input_mode:
+    if data_import.input_mode in ["CSV", "FAKE", "BIN"]:
         pass
     else:
         try:

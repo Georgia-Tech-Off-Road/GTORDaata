@@ -274,25 +274,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             except (OSError, serial.SerialException):
                 pass
         return result
-        # """ 
-        # Uses the Win32 registry to return an iterator of serial (COM) ports
-        # existing on this computer.
-
-        # :return: None
-        # """
-
-        # path = 'HARDWARE\\DEVICEMAP\\SERIALCOMM'
-        # try:
-        #     key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, path)
-        # except WindowsError:
-        #     raise StopIteration
-
-        # for i in itertools.count():
-        #     try:
-        #         val = winreg.EnumValue(key, i)
-        #         yield str(val[1])
-        #     except EnvironmentError:
-        #         break
 
     def import_coms(self):
         """
@@ -358,7 +339,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 logger.error(e)
             finally:
                 data_import.input_mode = ""
-        if "COM" in data_import.input_mode:
+        if data_import.input_mode is not "":
             data_import.connect_serial()
             if not self.data_sending_thread.isActive():
                 self.data_sending_thread.start(100)
