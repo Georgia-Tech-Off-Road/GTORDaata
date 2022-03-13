@@ -127,6 +127,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         self.homepage.update_passive()
         for scene in self.tabWidget.findChildren(DAATAScene):
+            scene.update_graph_frequency_passively()
             scene.update_passive()
 
     def set_app_icon(self):

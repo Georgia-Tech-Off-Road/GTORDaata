@@ -234,14 +234,6 @@ class EngineDyno(DAATAScene, uiFile):
         else:
             data.set_current_value("command_tare_load_cell", 0)
 
-        index_time = data.get_most_recent_index()
-        if index_time > 0:
-            start = data.get_value("time_internal_seconds", 0)
-            end = data.get_value("time_internal_seconds", index_time)
-            new_sampling_freq = index_time / (end - start)
-            for graph in self.graph_objects.values():
-                graph.update_graph_width(new_sampling_freq)
-
     def connect_slots_and_signals(self):
         self.button_display.clicked.connect(
             self.slot_data_collecting_state_change)

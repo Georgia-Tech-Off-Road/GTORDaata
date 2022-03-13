@@ -186,12 +186,9 @@ class DataCollection(DAATAScene, uiFile):
                                         self.collection_start_time)
 
     def __reset_all(self):
-        if self.__first_run:
-            self.__first_run = False
-        else:
-            data.reset_hard()
-            self.__create_graphs()
-            self.create_grid_plot_layout()
+        data.reset_hard()
+        self.__create_graphs()
+        self.create_grid_plot_layout()
 
     def slot_checkbox_state_change(self):
         """
@@ -317,14 +314,6 @@ class DataCollection(DAATAScene, uiFile):
 
         :return: None
         """
-        index_time = data.get_most_recent_index()
-        if index_time > 0:
-            start = data.get_value("time_internal_seconds", 0)
-            end = data.get_value("time_internal_seconds", index_time)
-            new_sampling_freq = index_time / (end - start)
-            for graph in self.graph_objects.values():
-                graph.update_graph_width(new_sampling_freq)
-
         self.update_sensor_checkboxes()
 
     def connect_slots_and_signals(self):

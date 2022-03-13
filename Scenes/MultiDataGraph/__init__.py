@@ -232,14 +232,6 @@ class MultiDataGraph(DAATAScene, uiFile):
             self.button_display.setChecked(False)
 
     def update_passive(self):
-        index_time = data.get_most_recent_index()
-        if index_time > 0:
-            start = data.get_value("time_internal_seconds", 0)
-            end = data.get_value("time_internal_seconds", index_time)
-            new_sampling_freq = index_time / (end - start)
-            for graph in self.graph_objects.values():
-                graph.update_graph_width(new_sampling_freq)
-
         self.update_connected_sensors()
 
     def addMDG(self):
