@@ -76,16 +76,19 @@ imu_sensor = """
 """
 
 # Get the length of the longest string name for nice formatting :)
+print("Getting longest sensor name for nice formatting ... ", end="")
 longest_name = 0
 for sensor_id in SensorId.keys():
     if len(SensorId[sensor_id]["name"]) > longest_name:
         longest_name = len(SensorId[sensor_id]["name"])
+print("Done")
 
 # Add everything to file
 with open("BlockId.h", "w") as file:
     file.write(file_beginning)
 
     # Write all the default sensors
+    print("Writing all default sensors ... ", end="")
     file.write(default_sensor)
     for sensor_id in SensorId.keys():
         if sensor_id < 100:
@@ -95,7 +98,9 @@ with open("BlockId.h", "w") as file:
             if "h_file_comment" in SensorId[sensor_id].keys():
                 file.write(" - " + SensorId[sensor_id]["h_file_comment"])
             file.write("\n")
+    print("Done")
 
+    print("Writing all time sensors ... ", end="")
     file.write(time_sensor)
     for sensor_id in SensorId.keys():
         if 100 <= sensor_id < 200:
@@ -105,7 +110,9 @@ with open("BlockId.h", "w") as file:
             if "h_file_comment" in SensorId[sensor_id].keys():
                 file.write(" - " + SensorId[sensor_id]["h_file_comment"])
             file.write("\n")
+    print("Done")
 
+    print("Writing all speed sensors ... ", end="")
     file.write(speed_sensor)
     for sensor_id in SensorId.keys():
         if 200 <= sensor_id < 300:
@@ -115,7 +122,9 @@ with open("BlockId.h", "w") as file:
             if "h_file_comment" in SensorId[sensor_id].keys():
                 file.write(" - " + SensorId[sensor_id]["h_file_comment"])
             file.write("\n")
+    print("Done")
 
+    print("Writing all force/pressure sensors ... ", end="")
     file.write(force_pressure_sensor)
     for sensor_id in SensorId.keys():
         if 300 <= sensor_id < 400:
@@ -125,7 +134,9 @@ with open("BlockId.h", "w") as file:
             if "h_file_comment" in SensorId[sensor_id].keys():
                 file.write(" - " + SensorId[sensor_id]["h_file_comment"])
             file.write("\n")
+    print("Done")
 
+    print("Writing all LDS sensors ... ", end="")
     file.write(lds_sensor)
     for sensor_id in SensorId.keys():
         if 400 <= sensor_id < 500:
@@ -135,7 +146,9 @@ with open("BlockId.h", "w") as file:
             if "h_file_comment" in SensorId[sensor_id].keys():
                 file.write(" - " + SensorId[sensor_id]["h_file_comment"])
             file.write("\n")
+    print("Done")
 
+    print("Writing all IMU sensors ... ", end="")
     file.write(imu_sensor)
     for sensor_id in SensorId.keys():
         if 500 <= sensor_id < 600:
@@ -145,5 +158,8 @@ with open("BlockId.h", "w") as file:
             if "h_file_comment" in SensorId[sensor_id].keys():
                 file.write(" - " + SensorId[sensor_id]["h_file_comment"])
             file.write("\n")
+    print("Done")
 
     file.write(file_end)
+
+print("Completed file write")
