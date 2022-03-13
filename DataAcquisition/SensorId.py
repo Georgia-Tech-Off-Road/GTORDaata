@@ -87,7 +87,7 @@ SensorId = {
             "orientation": "longitude",
             "is_float": False
         },
-        0: {
+        2: {
             "name": "gps_speed",
             "object": "Speed",
             "display_name": "GPS Speed",
