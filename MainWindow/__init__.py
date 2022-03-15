@@ -16,6 +16,7 @@ from Scenes.Homepage import Homepage
 from Scenes.Layout_Test import Widget_Test
 
 from MainWindow._tabHandler import close_tab
+from MainWindow._menubarHandler import create_comMenu
 from Utilities.Popups.popups import popup_ParentChildrenTree
 import DataAcquisition
 
@@ -115,6 +116,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         :return: None
         """
+
+        # Update anc check for COM input mode
+        self.import_coms()
+        self.com_input_mode()
+        create_comMenu
 
         self.homepage.update_passive()
         for scene in self.tabWidget.findChildren(DAATAScene):
@@ -280,7 +286,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 val = winreg.EnumValue(key, i)
                 yield str(val[1])
             except EnvironmentError:
-                logger.debug(logger.findCaller(True))
+                #logger.debug(logger.findCaller(True))
                 break
 
     def import_coms(self):
@@ -308,7 +314,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def com_input_mode(self):
         for key in self.dict_ports.keys():
-            if self.dict_ports[key].isChecked():
+            if self.dict_ports[key] and self.dict_ports[key].isChecked:
                 self.set_input_mode(key)              
 
     def set_input_mode(self, input_mode):
