@@ -353,6 +353,7 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
                                   self.__MDG_init_props.read_only,
                                   available_sensors)
         else:
+            # print(self.plotWidget.viewRange())
             PlotSettingsDialog(self, self.embedLayout, self.sensor_name)
 
     def connectSignalSlots(self):

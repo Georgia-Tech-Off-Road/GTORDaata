@@ -154,6 +154,7 @@ class DataCollection(DAATAScene, uiFile):
         :return: None
         """
 
+        self.graph_objects.clear()
         for key in self.currentKeys:
             self.graph_objects[key] = \
                 CustomPlotWidget(key, parent=self.scrollAreaWidgetContents,
@@ -161,6 +162,11 @@ class DataCollection(DAATAScene, uiFile):
                                  graph_width_seconds=8,
                                  enable_scroll=(False, False))
             self.graph_objects[key].hide()
+
+            # connections to GridPlotLayout
+            widget = self.graph_objects[key]
+            widget.button_settings.clicked.connect(
+                partial(self.graph_objects[key].open_SettingsWindow))
 
     def slot_data_collecting_state_change(self):
         """
@@ -338,12 +344,6 @@ class DataCollection(DAATAScene, uiFile):
             self.create_grid_plot_layout)
         self.comboBox_graphDimension.currentTextChanged.connect(
             self.save_settings)
-
-        # connections to GridPlotLayout
-        for key in self.graph_objects.keys():
-            widget = self.graph_objects[key]
-            widget.button_settings.clicked.connect(
-                partial(self.graph_objects[key].open_SettingsWindow))
 
     def save_settings(self):
         """
