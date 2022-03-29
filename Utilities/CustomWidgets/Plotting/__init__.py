@@ -30,7 +30,7 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
         pg.setConfigOption('foreground', 'w')
 
         self.enable_multi_plot = (MDG_init_props is not None)
-        self.setObjectName(sensor_name)
+        self.setObjectName(str(sensor_name))
         if self.enable_multi_plot:
             self.__MDG_init_props: MDGInitProps = MDG_init_props
             self.setObjectName("MDG #" + str(sensor_name))
