@@ -128,30 +128,26 @@ class DataImport:
                     logger.debug("Input buffer is empty")                    
                 except TypeError:
                     logger.info("Teensy has been disconnected, closing and attempting reopen")
-                    self.teensy_ser.close()
-                    self.connect_serial()
+                    self.teensy_ser.close
+                    self.connect_serial
                 except Exception:
-                    logger.debug(logger.findCaller(True))
-            elif self.data_file != None and self.data_file.readable():                
-                byte = self.data_file.read(1)
-                if not byte:
-                    logger.info("Finished BIN file parsing")
-                    self.input_mode = ""
-                    break                
-                self.current_packet.append(byte)   # read in a single byte from file                
+                    logger.debug(logger.findCaller(True))                            
             elif not self.teensy_found:
-                self.connect_serial()
+                self.connect_serial
             else:
                 # We break if teensy is disconnected or if input buffer is empty
-                break            
-            # If end code is found then unpacketize and clear packet
-            packet_length = len(self.current_packet)
-            if packet_length > 8 and self.current_packet[(packet_length - 8):(packet_length)] == self.end_code:  
-                self.packet_count += 1
-                logger.debug("Packet count: {}".format(self.packet_count))
-                self.current_packet = self.current_packet[0:(packet_length - 8)]                    
-                self.unpacketize()
-                self.current_packet.clear()                    
+                break
+            self.handle_packet
+
+    def handle_packet(self):
+        # If end code is found then unpacketize and clear packet
+        packet_length = len(self.current_packet)
+        if packet_length > 8 and self.current_packet[(packet_length - 8):(packet_length)] == self.end_code:  
+            self.packet_count += 1
+            logger.debug("Packet count: {}".format(self.packet_count))
+            self.current_packet = self.current_packet[0:(packet_length - 8)]                    
+            self.unpacketize()
+            self.current_packet.clear()
     
     def open_bin_file(self, dir):
         """
@@ -161,6 +157,23 @@ class DataImport:
         """
 
         self.data_file = open(dir, "rb")
+
+    def read_bin_file(self):
+        """
+        Opens the BIN file specified by the given directory and stores it.
+
+        :return: None
+        """
+
+        while True:
+            if self.data_file != None and self.data_file.readable():                
+                byte = self.data_file.read(1)
+                if not byte:
+                    logger.info("Finished BIN file parsing")
+                    self.input_mode = ""
+                    break                
+                self.current_packet.append(byte)   # read in a single byte from file
+                self.handle_packet
 
     def import_csv(self, directory):
         """

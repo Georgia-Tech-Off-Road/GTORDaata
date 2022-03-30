@@ -49,7 +49,7 @@ def read_data():
             time.sleep(0.02)
         elif data_import.input_mode == "BIN" and data_import.data_file is not None:
             try:
-                data_import.read_packet()
+                data_import.read_bin_file
             except Exception as e:
                 logger.error(e)
                 logger.debug(logger.findCaller(True))
