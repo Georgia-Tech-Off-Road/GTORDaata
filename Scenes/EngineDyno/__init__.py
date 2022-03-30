@@ -247,8 +247,9 @@ class EngineDyno(DAATAScene, uiFile):
 
     def save_settings(self):
         """
-        This function will save the settings for a given scene to a config file so that they can be loaded in again
-        the next time that the scene is opened (even if the entire GUI is restarted).
+        This function will save the settings for a given scene to a config
+        file so that they can be loaded in again the next time that the scene
+        is opened (even if the entire GUI is restarted).
 
         :return: None
         """
