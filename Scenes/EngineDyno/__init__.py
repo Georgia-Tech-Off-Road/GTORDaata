@@ -75,6 +75,7 @@ class EngineDyno(DAATAScene, uiFile):
             self.graph_objects[key] = CustomPlotWidget(key,
                                                        parent=self.graph_frame,
                                                        layout=self.graph_layout,
+                                                       enable_scroll=(True, False),
                                                        graph_width_seconds=8)
             self.graph_layout.addWidget(self.graph_objects[key], row, col, 1, 1)
             self.graph_objects[key].show()
@@ -98,11 +99,9 @@ class EngineDyno(DAATAScene, uiFile):
             self.popup_dataSaveLocation("EngineDynoTest",
                                         self.collection_start_time)
 
-    def __reset_all(self):
-        # NOTE: If this Pyton file doesn't work, try commenting these two lines
-        # -Faris
+    @staticmethod
+    def __reset_all():
         data.reset_hard()
-        self.create_graphs()
 
     def slot_tare_load_cell(self):
         logger.info("Taring load cell")
