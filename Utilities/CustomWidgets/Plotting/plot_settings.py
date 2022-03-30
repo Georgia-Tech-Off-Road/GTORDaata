@@ -14,12 +14,13 @@ uiSettingsDialog, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__),
 
 class PlotSettingsDialog(QtWidgets.QDialog, uiSettingsDialog):
     def __init__(self, parent, embedLayout, sensor_name,
-                 is_read_only: bool = False):
+                 is_read_only: bool = False, new_seconds_range: float = None):
         super().__init__()
         self.setupUi(self)
         self.parent = parent
         self.embedLayout = embedLayout
         self.sensor_name = sensor_name
+        self.new_seconds_range = new_seconds_range
         self.window().setWindowTitle(
             data.get_display_name(sensor_name) + " Plot Settings")
         self.connectSlotsSignals()
@@ -38,7 +39,8 @@ class PlotSettingsDialog(QtWidgets.QDialog, uiSettingsDialog):
 
     def loadSettings(self):
         self.lineEdit_graph_width_seconds.setText(
-            str(self.parent.seconds_in_view))
+            str(self.new_seconds_range) if self.new_seconds_range
+            else str(self.parent.seconds_in_view))
         self.lineEdit_yMin.setText(self.configFile.value("yMin"))
         self.lineEdit_yMax.setText(self.configFile.value("yMax"))
 

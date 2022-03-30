@@ -176,6 +176,7 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
             # self.plotWidget.setAutoVisible(y=True)
 
     def enable_autoRange(self, enable=True):
+        self.plotWidget.setAutoVisible(y=True)
         self.plotWidget.enableAutoRange(enable)
 
     def set_height(self, height):
@@ -353,8 +354,10 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
                                   self.__MDG_init_props.read_only,
                                   available_sensors)
         else:
-            # print(self.plotWidget.viewRange())
-            PlotSettingsDialog(self, self.embedLayout, self.sensor_name)
+            view_range_x = self.plotWidget.viewRange()[0]
+            new_seconds_range = round(view_range_x[1] - view_range_x[0], 3)
+            PlotSettingsDialog(self, self.embedLayout, self.sensor_name,
+                               new_seconds_range=new_seconds_range)
 
     def connectSignalSlots(self):
         self.button_settings.clicked.connect(

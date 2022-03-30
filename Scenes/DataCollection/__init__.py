@@ -147,6 +147,14 @@ class DataCollection(DAATAScene, uiFile):
                                                                QtWidgets.QSizePolicy.Expanding)
         self.gridPlotLayout.addItem(self.spacerItem_gridPlotLayout)
 
+    def __remove_all_graphs(self):
+        # clear all CustomPlotWidget from the grid area
+        current_plots: List[CustomPlotWidget] = \
+            self.scrollAreaWidgetContents.children()[1:]
+        for plot in current_plots:
+            plot.deleteLater()
+        self.graph_objects.clear()
+
     def __create_graphs(self):
         """
         Populates graph dictionary with graphs based on active sensors.
@@ -154,13 +162,13 @@ class DataCollection(DAATAScene, uiFile):
         :return: None
         """
 
-        self.graph_objects.clear()
+        self.__remove_all_graphs()
         for key in self.currentKeys:
             self.graph_objects[key] = \
                 CustomPlotWidget(key, parent=self.scrollAreaWidgetContents,
                                  layout=self.gridPlotLayout,
                                  graph_width_seconds=8,
-                                 enable_scroll=(False, False))
+                                 enable_scroll=(True, False))
             self.graph_objects[key].hide()
 
             # connections to GridPlotLayout

@@ -121,13 +121,13 @@ class MultiDataGraph(DAATAScene, uiFile):
 
     def create_graph(self, key):
         self.graph_objects.pop(key, None)
-        MDG_init_props = MDGInitProps(y_sensors=self.connected_sensors[:3])
+        MDG_initial_props = MDGInitProps(y_sensors=self.connected_sensors[:3])
         self.graph_objects[key] = CustomPlotWidget(str(key),
                                                    parent=self.scrollAreaWidgetContents,
                                                    layout=self.gridPlotLayout,
                                                    graph_width_seconds=8,
                                                    enable_scroll=(False, False),
-                                                   MDG_init_props=MDG_init_props)
+                                                   MDG_init_props=MDG_initial_props)
         # activate settings button
         widget = self.graph_objects[key]
         widget.button_settings.clicked.connect(
