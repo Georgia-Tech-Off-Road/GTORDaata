@@ -183,6 +183,7 @@ class DataCollectionPreview(DAATAScene, uiFile):
             self.graph_objects[key] = CustomPlotWidget(
                 key, parent=self.scrollAreaWidgetContents,
                 layout=self.gridPlotLayout, enable_scroll=(True, False),
+                is_read_only=True,
                 graph_width_seconds=8)
             self.graph_objects[key].setObjectName(key)
             self.graph_objects[key].hide()

@@ -22,10 +22,12 @@ uiPlotWidget, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__),
 class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
     def __init__(self, sensor_name: str, parent=None,
                  enable_scroll: Tuple[bool, bool] = (False, False),
-                 MDG_init_props: MDGInitProps = None, **kwargs):
+                 MDG_init_props: MDGInitProps = None,
+                 is_read_only: bool = False, **kwargs):
         super().__init__()
         self.setupUi(self)
         self.sensor_name = sensor_name
+        self.is_read_only = is_read_only
 
         pg.setConfigOption('foreground', 'w')
 
@@ -39,7 +41,7 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
             self.__mdg_x_sensor: str = MDG_init_props.x_sensor
             self.__mdg_y_sensors: List[str] = \
                 MDG_init_props.y_sensors if MDG_init_props.y_sensors[:] else []
-            if MDG_init_props.read_only:
+            if self.is_read_only:
                 self.INIT_SENSOR_VALUES: Dict[str, numpy.ndarray] = \
                     MDG_init_props.initial_data_values
                 # by default limits the max number of sensors plotted
@@ -338,26 +340,28 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
         if y_sensors:
             self.__mdg_y_sensors = y_sensors
         self.__create_multi_graphs()
-        if self.__MDG_init_props.read_only:
+        if self.is_read_only:
             self.initialize_MDG_values()
 
     def open_SettingsWindow(self):
+        view_range_x = self.plotWidget.viewRange()[0]
+        new_seconds_range = round(view_range_x[1] - view_range_x[0], 3)
         if self.enable_multi_plot:
-            if self.__MDG_init_props.read_only:
-                available_sensors = self.__MDG_init_props.initial_data_values.keys()
+            if self.is_read_only:
+                available_sensors = list(self.__MDG_init_props.initial_data_values.keys())
             else:
                 available_sensors = data.get_sensors(is_plottable=True,
                                                      is_connected=True)
             PlotSettingsDialogMDG(self, self.embedLayout, self.__mdg_x_sensor,
                                   self.__mdg_y_sensors,
                                   self.__mdg_is_line_graph,
-                                  self.__MDG_init_props.read_only,
-                                  available_sensors)
+                                  self.is_read_only,
+                                  available_sensors,
+                                  new_seconds_range=new_seconds_range)
         else:
-            view_range_x = self.plotWidget.viewRange()[0]
-            new_seconds_range = round(view_range_x[1] - view_range_x[0], 3)
             PlotSettingsDialog(self, self.embedLayout, self.sensor_name,
-                               new_seconds_range=new_seconds_range)
+                               new_seconds_range=new_seconds_range,
+                               is_read_only=self.is_read_only)
 
     def connectSignalSlots(self):
         self.button_settings.clicked.connect(

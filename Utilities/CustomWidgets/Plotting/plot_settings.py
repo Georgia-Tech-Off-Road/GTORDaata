@@ -34,8 +34,7 @@ class PlotSettingsDialog(QtWidgets.QDialog, uiSettingsDialog):
 
     def __setup(self, is_read_only: bool = False):
         if is_read_only:
-            self.lineEdit_graph_width_seconds.hide()
-            self.label_secondsDisplayed.hide()
+            self.lineEdit_graph_width_seconds.setDisabled(True)
 
     def loadSettings(self):
         self.lineEdit_graph_width_seconds.setText(
@@ -148,26 +147,25 @@ class PlotSettingsDialogMDG(QtWidgets.QDialog, uiSettingsDialogMDG):
         is_line_graph: bool
 
     def __init__(self, parent, embedLayout, x_sensor: str,
-                 y_sensors: List[str], is_line_graph: bool, read_only: bool,
-                 available_sensors: List[str]):
+                 y_sensors: List[str], is_line_graph: bool, is_read_only: bool,
+                 available_sensors: List[str], new_seconds_range: float = None):
         super().__init__()
         self.setupUi(self)
         self.parent = parent
         self.embedLayout = embedLayout
+        self.new_seconds_range = new_seconds_range
 
         multi_graph_name = parent.objectName()
         self.window().setWindowTitle(multi_graph_name + " Plot Settings")
         self.INIT_MDG_SETTINGS = self.InitMDGSettings(x_sensor, y_sensors[:],
                                                       is_line_graph)
         self.pending_plot_type_is_line = is_line_graph
-        self.READ_ONLY = read_only
+        self.READ_ONLY = is_read_only
         self.available_sensors: List[str] = available_sensors
 
         if self.READ_ONLY:
             if TIME_OPTION in self.available_sensors:
                 self.available_sensors.remove(TIME_OPTION)
-            self.lineEdit_graph_width_seconds.hide()
-            self.label_secondsDisplayed.hide()
         else:
             if self.parent.mdg_is_line_graph:
                 self.scatterOrLineBtn.setText("Scatter Plot")
@@ -189,6 +187,7 @@ class PlotSettingsDialogMDG(QtWidgets.QDialog, uiSettingsDialogMDG):
 
         self.__connectSlotsSignals()
         self.__reposition()
+        self.__setup(self.READ_ONLY)
 
         self.configFile = QtCore.QSettings('DAATA_plot', multi_graph_name)
         self.__loadSettings()
@@ -198,6 +197,10 @@ class PlotSettingsDialogMDG(QtWidgets.QDialog, uiSettingsDialogMDG):
         self.lineEdit_yMax.setText("auto")
 
         returnValue = self.exec()
+
+    def __setup(self, is_read_only: bool = False):
+        if is_read_only:
+            self.lineEdit_graph_width_seconds.setDisabled(True)
 
     def __addXSensorCheckboxes(self):
         """
@@ -305,8 +308,9 @@ class PlotSettingsDialogMDG(QtWidgets.QDialog, uiSettingsDialogMDG):
                     self.checked_x_key = key
 
     def __loadSettings(self):
-        self.lineEdit_graph_width_seconds.setText(str(
-            self.configFile.value("seconds_in_view")))
+        self.lineEdit_graph_width_seconds.setText(
+            str(self.new_seconds_range) if self.new_seconds_range
+            else str(self.parent.seconds_in_view))
         self.lineEdit_yMin.setText(self.configFile.value("yMin"))
         self.lineEdit_yMax.setText(self.configFile.value("yMax"))
 
