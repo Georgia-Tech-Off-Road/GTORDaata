@@ -94,6 +94,12 @@ SensorId = {
             "is_float": False
         }
     },
+    9: {
+        "name": "command_auxdaq_sdwrite",
+        "object": "Command",
+        "num_bytes": 1,
+        "is_float": False
+    },
     90: {
         "name": "test_sensor_0",
         "display_name": "Test Sensor 0",
