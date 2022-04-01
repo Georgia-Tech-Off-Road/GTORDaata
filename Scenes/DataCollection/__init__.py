@@ -61,7 +61,8 @@ class DataCollection(DAATAScene, uiFile):
 
     def create_sensor_checkboxes(self):
         """
-        Creates checkboxes for each active sensor and for selecting all active sensors.
+        Creates checkboxes for each active sensor and for selecting all
+        active sensors.
 
         :return: None
         """
@@ -223,6 +224,11 @@ class DataCollection(DAATAScene, uiFile):
         self.create_grid_plot_layout()
         self.update_sensor_count()
 
+        if self.__active_sensor_count > 0:
+            self.is_data_collecting.set()
+        else:
+            self.is_data_collecting.clear()
+
     def update_sensor_count(self, selectAll_checked: int = -1):
         """
         Updates the count of active sensors based on selected sensors
@@ -308,9 +314,10 @@ class DataCollection(DAATAScene, uiFile):
 
     def update_active(self):
         """
-        This function will update only if the Data Collection tab is the current tab. This function will get called
-        at whatever frequency self.update_freq is set at. It is called via the update_all function from the
-        MainWindow.
+        This function will update only if the Data Collection tab is the
+        current tab. This function will get called at whatever frequency
+        self.update_freq is set at. It is called via the update_all function
+        from the MainWindow.
 
         :return: None
         """
@@ -345,7 +352,8 @@ class DataCollection(DAATAScene, uiFile):
 
     def connect_slots_and_signals(self):
         """
-        Assigns button clicks and UI element events with their respective functions.
+        Assigns button clicks and UI element events with their respective
+        functions.
 
         :return: None
         """
@@ -442,7 +450,8 @@ class DataCollection(DAATAScene, uiFile):
 
     def paintEvent(self, pe):
         """
-        This method allows the color scheme of the class to be changed by CSS stylesheets.
+        This method allows the color scheme of the class to be changed by CSS
+        stylesheets.
 
         :param pe:
         :return: None
