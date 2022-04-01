@@ -57,6 +57,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # Attach the internal timer
         data_import.attach_internal_sensor(101)
+        data_import.attach_output_sensor(9)        
 
         # Set up all the elements of the UI
         self.setupUi(self)
@@ -355,7 +356,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         #         logger.debug(logger.findCaller(True))
         #     finally:
         #         data_import.input_mode = ""
-        if "COM" in data_import.input_mode:
+        if "COM" in data_import.input_mode:            
             data_import.connect_serial()
             if not self.data_sending_thread.isActive():
                 self.data_sending_thread.start(100)

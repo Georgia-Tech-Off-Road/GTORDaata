@@ -641,30 +641,30 @@ SensorId = {
     401: {
         "name": "lds_frontleftshock_mm",
         "object": "LDS",
-        "num_bytes": 1,
+        "num_bytes": 4,
         "stroke_length": 200,
-        "is_float": False
+        "is_float": True
     },
     402: {
         "name": "lds_frontrightshock_mm",
         "object": "LDS",
-        "num_bytes": 1,
+        "num_bytes": 4,
         "stroke_length": 200,
-        "is_float": False
+        "is_float": True
     },
     403: {
         "name": "lds_backleftshock_mm",
         "object": "LDS",
-        "num_bytes": 1,
+        "num_bytes": 4,
         "stroke_length": 225,
-        "is_float": False
+        "is_float": True
     },
     404: {
         "name": "lds_backrightshock_mm",
         "object": "LDS",
-        "num_bytes": 1,
+        "num_bytes": 4,
         "stroke_length": 225,
-        "is_float": False
+        "is_float": True
     },
     405: {
         "name": "lds_shockdyno_mm",

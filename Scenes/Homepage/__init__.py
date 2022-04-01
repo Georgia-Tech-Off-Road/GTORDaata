@@ -17,7 +17,9 @@ class Homepage(DAATAScene, uiFile):
         self.connected_sensors = data.get_sensors(is_connected=True)
 
         self.create_sensor_status_checkboxes()
-        self.create_connection_status_checkboxes()        
+        self.create_connection_status_checkboxes()  
+
+        self.connect_slots_and_signals()      
 
         # gridPlotLayout checks for new sensors every x*10 ms (so 1000ms)
         self.update_period = 100
@@ -124,6 +126,11 @@ class Homepage(DAATAScene, uiFile):
         else:
             self.ind_connectionStatus.setText("Network Drive Disconnected")
             self.ind_connectionStatus.setCheckState(False)
+    
+    def update_sd_card_status(self):  
+        current = data.get_current_value("command_auxdaq_sdwrite")
+        data.set_current_value("command_auxdaq_sdwrite", not current)
+        print(current)
 
     def update_active(self):
         """
@@ -145,6 +152,9 @@ class Homepage(DAATAScene, uiFile):
         """
 
         pass
+
+    def connect_slots_and_signals(self):
+        self.SDWriteButton.clicked.connect(self.update_sd_card_status)
 
     # --- imported methods --- #
     from Utilities.CustomWidgets.indicatorWidget import QIndicator
