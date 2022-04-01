@@ -48,7 +48,7 @@ class DataCollection(DAATAScene, uiFile):
         self.create_sensor_checkboxes()
         self.create_graph_dimension_combo_box()
         self.__create_graphs()
-        self.__first_run = True
+        self.__active_sensor_count = 0
         self.create_grid_plot_layout()
 
         from MainWindow import is_data_collecting
@@ -194,10 +194,10 @@ class DataCollection(DAATAScene, uiFile):
     def __reset_all():
         data.reset_hard()
 
-    def slot_checkbox_state_change(self):
+    def __selectAll_checkbox_state_change(self):
         """
-        Handles checkbox functionality after checking or unchecking events and updates
-        sensors and the grid plot accordingly.
+        Handles checkbox functionality after checking or unchecking the
+        "Select All" checkbox and the grid plot accordingly.
 
         :return: None
         """
@@ -208,10 +208,22 @@ class DataCollection(DAATAScene, uiFile):
         else:
             for key in self.currentKeys:
                 self.checkbox_objects[key].setChecked(False)
-        self.update_sensor_count()
         self.create_grid_plot_layout()
+        self.update_sensor_count(
+            1 if self.selectAll_checkbox.isChecked() else 0)
 
-    def update_sensor_count(self):
+    def __slot_checkbox_state_change(self):
+        """
+        Handles checkbox functionality after checking or unchecking events
+        and updates sensors and the grid plot accordingly.
+
+        :return: None
+        """
+
+        self.create_grid_plot_layout()
+        self.update_sensor_count()
+
+    def update_sensor_count(self, selectAll_checked: int = -1):
         """
         Updates the count of active sensors based on selected sensors
         in the checkbox.
@@ -219,14 +231,25 @@ class DataCollection(DAATAScene, uiFile):
         :return: None
         """
 
-        self.active_sensor_count = 0
+        if selectAll_checked != -1:
+            if selectAll_checked == 0:
+                self.__active_sensor_count = 0
+                self.label_active_sensor_count.setText(
+                    f"(0/{len(self.graph_objects)})")
+                return
+            elif selectAll_checked == 1:
+                self.__active_sensor_count = len(self.graph_objects)
+                self.label_active_sensor_count.setText(
+                    f"({len(self.graph_objects)}/{len(self.graph_objects)})")
+                return
+
+        self.__active_sensor_count = 0
         for key in self.checkbox_objects.keys():
-            if self.checkbox_objects[key].isVisible() and self.checkbox_objects[
-                key].isChecked():
-                self.active_sensor_count = self.active_sensor_count + 1
+            if self.checkbox_objects[key].isVisible() and \
+                    self.checkbox_objects[key].isChecked():
+                self.__active_sensor_count = self.__active_sensor_count + 1
         self.label_active_sensor_count.setText(
-            '(' + str(self.active_sensor_count) + '/' + str(
-                len(self.graph_objects)) + ')')
+            f"({self.__active_sensor_count}/{len(self.graph_objects)})")
 
     def update_graphs(self):
         """
@@ -332,11 +355,11 @@ class DataCollection(DAATAScene, uiFile):
 
         for key in self.currentKeys:
             self.checkbox_objects[key].clicked.connect(
-                self.create_grid_plot_layout)
+                self.__slot_checkbox_state_change)
             self.checkbox_objects[key].clicked.connect(self.save_settings)
 
         self.selectAll_checkbox.stateChanged.connect(
-            self.slot_checkbox_state_change)
+            self.__selectAll_checkbox_state_change)
 
         self.comboBox_graphDimension.currentTextChanged.connect(
             self.create_grid_plot_layout)

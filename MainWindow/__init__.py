@@ -451,6 +451,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.dict_ports[key].triggered.connect(
                 lambda: self.com_input_mode())
 
+        # TODO Faris remove these two lines
+        self.actionFake_Data.setChecked(True)
+        self.__toggle_fake_input_option()
+
         ## Functionality for the following menu items
         self.actionFake_Data.triggered.connect(self.__toggle_fake_input_option)
         self.actionBIN_File.triggered.connect(
