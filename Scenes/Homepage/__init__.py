@@ -26,7 +26,7 @@ class Homepage(DAATAScene, uiFile):
         self.connect_slots_and_signals()   
 
         # Vars for sd logic
-        self.current_sd_state = False
+        self.is_sd_toggle = False
         self.last_sd_time = time()
 
         # gridPlotLayout checks for new sensors every x*10 ms (so 1000ms)
@@ -148,10 +148,10 @@ class Homepage(DAATAScene, uiFile):
         
         :return: None
         """
-
-        self.current_sd_state = data.get_current_value("command_auxdaq_sdwrite")
-        data.set_current_value("command_auxdaq_sdwrite", not self.current_sd_state)
+              
         self.last_sd_time = time()
+        data.set_current_value("command_auxdaq_sdwrite", True)
+        self.is_sd_toggle = True
 
     def update_active(self):
         """
@@ -171,9 +171,12 @@ class Homepage(DAATAScene, uiFile):
         :return: None
         """
 
-        time_diff = Decimal(time()) - Decimal(self.last_sd_time)
-        if self.current_sd_state and time_diff > 1:
-            data.set_current_value("flag_auxdaq_sdwrite", False)
+        if self.is_sd_toggle:
+            time_diff = Decimal(time()) - Decimal(self.last_sd_time)
+            if time_diff > 0.25:
+                data.set_current_value("command_auxdaq_sdwrite", False)
+                self.is_sd_toggle = False
+        
 
     def connect_slots_and_signals(self):
         """

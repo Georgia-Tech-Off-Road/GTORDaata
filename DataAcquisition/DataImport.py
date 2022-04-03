@@ -99,7 +99,7 @@ class DataImport:
             self.is_receiving_data = False
             self.is_sending_data = False
             self.teensy_port = self.input_mode
-            self.teensy_ser = serial.Serial(baudrate=115200, port=self.teensy_port, timeout=2,
+            self.teensy_ser = serial.Serial(baudrate=230400, port=self.teensy_port, timeout=2,
                                             write_timeout=1)
             logger.info("Teensy found on port {}".format(self.teensy_ser.port))            
             self.teensy_ser.flushInput
