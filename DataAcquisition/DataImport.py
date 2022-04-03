@@ -125,7 +125,8 @@ class DataImport:
                     assert self.teensy_ser.in_waiting != 0
                     self.current_packet.append(self.teensy_ser.read(1))  # read in a single byte from COM
                 except AssertionError:
-                    logger.debug("Input buffer is empty")                    
+                    pass
+                    # logger.debug("Input buffer is empty")
                 except TypeError:
                     logger.info("Teensy has been disconnected, closing and attempting reopen")
                     self.teensy_ser.close()

@@ -14,7 +14,6 @@ Required parameters:
 
 Optional parameters:
     - h_file_comment (not stored within Sensor)
-    - name_multi     (required if multiple sensors are contained within the same ID)
     - is_float       (defaults to None)
     - display_name   (defaults to None)
     - unit           (defaults to None)
@@ -424,7 +423,7 @@ SensorId = {
     },
     212: {
         "name": "speed_dynoengine600_rpm",
-        "num_bytes": [4, 4],
+        "num_bytes": [4, 2],
         "h_file_comment": "Speed in RPM and position in ticks (600ppr sensor)",
         0: {
             "name": "dyno_engine_position",
@@ -441,7 +440,7 @@ SensorId = {
     },
     213: {
         "name": "speed_dynosecondary30_rpm",
-        "num_bytes": [4, 4],
+        "num_bytes": [4, 2],
         "h_file_comment": "Speed in RPM and position in ticks (600ppr sensor)",
         0: {
             "name": "dyno_secondary_position",
@@ -672,6 +671,16 @@ SensorId = {
         "num_bytes": 1,
         "stroke_length": 225,
         "is_float": False
+    },
+    406: {
+        "name": "lds_pedal_mm",
+        "display_name": "Pedal Position",
+        "h_file_comment": "This sensor probably only used for testing day 4/2/22",
+        "unit_short": "mm",
+        "object": "LDS",
+        "num_bytes": 4,
+        "stroke_length": 200,
+        "is_float": True
     },
 
     # 500 - IMU SENSORS
