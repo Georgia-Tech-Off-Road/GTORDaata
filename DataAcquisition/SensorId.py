@@ -99,6 +99,12 @@ SensorId = {
         "num_bytes": 1,
         "is_float": False
     },
+    10: {
+        "name": "flag_auxdaq_sdwrite",
+        "object": "Flag",
+        "num_bytes": 1,
+        "is_float": False
+    },
     90: {
         "name": "test_sensor_0",
         "display_name": "Test Sensor 0",
