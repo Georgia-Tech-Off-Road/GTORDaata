@@ -524,14 +524,14 @@ SensorId = {
     304: {
         "name": "pressure_frontbrake_psi",
         "object": "Pressure",
-        "num_bytes": 2,
-        "is_float": False
+        "num_bytes": 4,
+        "is_float": True
     },
     305: {
         "name": "pressure_rearbrake_psi",
         "object": "Pressure",
-        "num_bytes": 2,
-        "is_float": False
+        "num_bytes": 4,
+        "is_float": True
     },
     306: {
         "name": "force_enginedyno_lbs",
