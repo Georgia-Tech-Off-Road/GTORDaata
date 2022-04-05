@@ -15,7 +15,7 @@ Required parameters:
 
 Optional parameters:
     - h_file_comment (not stored within Sensor)
-    - name_multi     (required if multiple sensors are contained within the same ID)
+    - is_float       (defaults to None)
     - display_name   (defaults to None)
     - unit           (defaults to None)
     - unit_short     (defaults to None)
@@ -97,6 +97,12 @@ SensorId = {
     9: {
         "name": "command_auxdaq_sdwrite",
         "object": "Command",
+        "num_bytes": 1,
+        "is_float": False
+    },
+    10: {
+        "name": "flag_auxdaq_sdwrite",
+        "object": "Flag",
         "num_bytes": 1,
         "is_float": False
     },
@@ -424,7 +430,7 @@ SensorId = {
     },
     212: {
         "name": "speed_dynoengine600_rpm",
-        "num_bytes": [4, 4],
+        "num_bytes": [4, 2],
         "h_file_comment": "Speed in RPM and position in ticks (600ppr sensor)",
         0: {
             "name": "dyno_engine_position",
@@ -443,7 +449,7 @@ SensorId = {
     },
     213: {
         "name": "speed_dynosecondary30_rpm",
-        "num_bytes": [4, 4],
+        "num_bytes": [4, 2],
         "h_file_comment": "Speed in RPM and position in ticks (600ppr sensor)",
         0: {
             "name": "dyno_secondary_position",
@@ -527,14 +533,14 @@ SensorId = {
     304: {
         "name": "pressure_frontbrake_psi",
         "object": "Pressure",
-        "num_bytes": 2,
-        "data_type": "float"
+        "num_bytes": 4,
+        "is_float": True
     },
     305: {
         "name": "pressure_rearbrake_psi",
         "object": "Pressure",
-        "num_bytes": 2,
-        "data_type": "float"
+        "num_bytes": 4,
+        "is_float": True
     },
     306: {
         "name": "force_enginedyno_lbs",
@@ -649,30 +655,30 @@ SensorId = {
     401: {
         "name": "lds_frontleftshock_mm",
         "object": "LDS",
-        "num_bytes": 1,
+        "num_bytes": 4,
         "stroke_length": 200,
-        "data_type": "uint8"
+        "is_float": True
     },
     402: {
         "name": "lds_frontrightshock_mm",
         "object": "LDS",
-        "num_bytes": 1,
+        "num_bytes": 4,
         "stroke_length": 200,
-        "data_type": "uint8"
+        "is_float": True
     },
     403: {
         "name": "lds_backleftshock_mm",
         "object": "LDS",
-        "num_bytes": 1,
+        "num_bytes": 4,
         "stroke_length": 225,
-        "data_type": "uint8"
+        "is_float": True
     },
     404: {
         "name": "lds_backrightshock_mm",
         "object": "LDS",
-        "num_bytes": 1,
+        "num_bytes": 4,
         "stroke_length": 225,
-        "data_type": "uint8"
+        "is_float": True
     },
     405: {
         "name": "lds_shockdyno_mm",
@@ -680,6 +686,16 @@ SensorId = {
         "num_bytes": 1,
         "stroke_length": 225,
         "data_type": "uint8"
+    },
+    406: {
+        "name": "lds_pedal_mm",
+        "display_name": "Pedal Position",
+        "h_file_comment": "This sensor probably only used for testing day 4/2/22",
+        "unit_short": "mm",
+        "object": "LDS",
+        "num_bytes": 4,
+        "stroke_length": 200,
+        "is_float": True
     },
 
     # 500 - IMU SENSORS

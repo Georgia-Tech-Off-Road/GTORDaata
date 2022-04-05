@@ -99,7 +99,7 @@ class DataImport:
             self.is_receiving_data = False
             self.is_sending_data = False
             self.teensy_port = self.input_mode
-            self.teensy_ser = serial.Serial(baudrate=115200, port=self.teensy_port, timeout=2,
+            self.teensy_ser = serial.Serial(baudrate=230400, port=self.teensy_port, timeout=2,
                                             write_timeout=1)
             logger.info("Teensy found on port {}".format(self.teensy_ser.port))            
             self.teensy_ser.flushInput
@@ -125,7 +125,8 @@ class DataImport:
                     assert self.teensy_ser.in_waiting != 0
                     self.current_packet.append(self.teensy_ser.read(1))  # read in a single byte from COM
                 except AssertionError:
-                    logger.debug("Input buffer is empty")                    
+                    pass
+                    # logger.debug("Input buffer is empty")
                 except TypeError:
                     logger.info("Teensy has been disconnected, closing and attempting reopen")
                     self.teensy_ser.close()

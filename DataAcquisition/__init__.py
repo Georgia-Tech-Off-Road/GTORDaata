@@ -14,6 +14,9 @@ stop_thread = threading.Event()
 # This is the main variable that can be accessed from other areas of the code. Use 'DataAcquisition.data'
 data = Data(data_collection_lock)
 
+# Initializes SD write value
+data.set_current_value("command_auxdaq_sdwrite", False)
+
 # This is the object that controls importing data
 data_import = DataImport(data, data_collection_lock, is_data_collecting)
 

@@ -1,3 +1,7 @@
+from decimal import Decimal
+from distutils.command.install_egg_info import to_filename
+from sqlite3 import Time
+from time import time
 from PyQt5 import QtWidgets, uic, QtCore, QtGui
 import os
 from DataAcquisition import data, data_import
@@ -17,7 +21,13 @@ class Homepage(DAATAScene, uiFile):
         self.connected_sensors = data.get_sensors(is_connected=True)
 
         self.create_sensor_status_checkboxes()
-        self.create_connection_status_checkboxes()        
+        self.create_connection_status_checkboxes()  
+
+        self.connect_slots_and_signals()   
+
+        # Vars for sd logic
+        self.is_sd_toggle = False
+        self.last_sd_time = time()
 
         # gridPlotLayout checks for new sensors every x*10 ms (so 1000ms)
         self.update_period = 100
@@ -125,6 +135,24 @@ class Homepage(DAATAScene, uiFile):
             self.ind_connectionStatus.setText("Network Drive Disconnected")
             self.ind_connectionStatus.setCheckState(False)
 
+        # Check if SD write is enabled
+        sd_state = data.get_current_value("flag_auxdaq_sdwrite")
+        if sd_state:
+            self.ind_SDCard.setChecked(True)
+        else:
+            self.ind_SDCard.setChecked(False)
+    
+    def update_sd_card_status(self):  
+        """
+        Updates SD card write state whenever the button is clicked.
+        
+        :return: None
+        """
+              
+        self.last_sd_time = time()
+        data.set_current_value("command_auxdaq_sdwrite", True)
+        self.is_sd_toggle = True
+
     def update_active(self):
         """
         Updates Homepage elements if it is the currently selected scene.
@@ -138,13 +166,28 @@ class Homepage(DAATAScene, uiFile):
 
     def update_passive(self):
         """
-        This method is called no matter what scene is selected, but does nothing
-        at the moment.
+        This method is called no matter what scene is selected.
         
         :return: None
         """
 
-        pass
+        if self.is_sd_toggle:
+            time_diff = Decimal(time()) - Decimal(self.last_sd_time)
+            if time_diff > 0.25:
+                data.set_current_value("command_auxdaq_sdwrite", False)
+                self.is_sd_toggle = False
+        
+
+    def connect_slots_and_signals(self):
+        """
+        This function connects all the Qt signals with the slots so that
+        elements such as buttons or checkboxes can be tied to specific
+        functions.
+
+        :return: None
+        """
+
+        self.SDWriteButton.clicked.connect(self.update_sd_card_status)
 
     # --- imported methods --- #
     from Utilities.CustomWidgets.indicatorWidget import QIndicator
