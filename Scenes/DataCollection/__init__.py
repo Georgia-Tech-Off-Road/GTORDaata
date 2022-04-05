@@ -74,7 +74,8 @@ class DataCollection(DAATAScene, uiFile):
         self.selectAll_checkbox.setToolTip(self.selectAll_checkbox.objectName())
         self.gridLayout_2.addWidget(self.selectAll_checkbox)
 
-        # Create a checkbox for each sensor in dictionary in self.scrollAreaWidgetContents_2
+        # Create a checkbox for each sensor in dictionary in
+        # self.scrollAreaWidgetContents_2
         for key in self.currentKeys:
             self.checkbox_objects[key] = QtWidgets.QCheckBox(
                 data.get_display_name(key), self.scrollAreaWidgetContents_2,
@@ -323,21 +324,8 @@ class DataCollection(DAATAScene, uiFile):
         """
 
         if self.is_data_collecting.is_set():
-            if self.button_display.isChecked():
-                self.update_graphs()
-                self.update_time_elapsed()
-
-        # temporary implementation of global recording button update
-        if self.is_data_collecting.is_set():
-            self.indicator_onOrOff.setText("On")
-            self.indicator_onOrOff.setStyleSheet("color: green;")
-            self.button_display.setText("Stop Collecting Data")
-            self.button_display.setChecked(True)
-        else:
-            self.indicator_onOrOff.setText("Off")
-            self.indicator_onOrOff.setStyleSheet("color: red;")
-            self.button_display.setText("Start Collecting Data")
-            self.button_display.setChecked(False)
+            self.update_graphs()
+            self.update_time_elapsed()
 
     def update_passive(self):
         """
