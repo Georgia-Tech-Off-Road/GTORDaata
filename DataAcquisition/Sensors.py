@@ -198,4 +198,11 @@ class Voltage(Sensor):
         super().__init__(**kwargs)
         self.unit = kwargs.get('unit', "Volts")
         self.unit_short = kwargs.get('unit_short', "V")
+
+
+class Strain(Sensor):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.unit = kwargs.get('unit', "Strain")
+        self.unit_short = kwargs.get('unit_short', "%")
         

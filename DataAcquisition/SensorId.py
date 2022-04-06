@@ -635,8 +635,8 @@ SensorId = {
         }
     },
     311: {
-        "name": "force_straingauge_lbs",
-        "object": "Force",
+        "name": "force_straingauge_strain",
+        "object": "Strain",
         "num_bytes": 4,
         "is_float": True
     },
