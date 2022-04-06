@@ -22,7 +22,6 @@ from Scenes.MultiDataGraph import MultiDataGraph
 from Scenes.MultiDataGraphPreview import MultiDataGraphPreview
 
 from MainWindow._tabHandler import close_tab
-from MainWindow._menubarHandler import create_comMenu
 from Utilities.Popups.popups import popup_ParentChildrenTree
 import DataAcquisition
 
@@ -131,7 +130,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # Update and check for COM ports
         self.import_coms()
-        self.com_input_mode()        
+        self.com_input_mode()
 
         self.homepage.update_passive()
         for scene in self.tabWidget.findChildren(DAATAScene):
@@ -298,12 +297,12 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         :return: None
         """
 
-        # clear the old list of coms
-        self.dict_ports.clear()
-        # adds the Auto option no matter what
-        self.dict_ports["Auto"] = None
-        for portName in self.enumerate_serial_ports():
-            self.dict_ports[portName] = None
+        new_ports = self.enumerate_serial_ports()
+        prev_ports = list(self.dict_ports.keys())
+        if prev_ports != new_ports:
+            for portName in new_ports:
+                self.dict_ports[portName] = None
+            self.update_comMenu()
 
     def create_homepage(self):
         """
@@ -326,8 +325,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         """
 
         for key in self.dict_ports.keys():
-            if self.dict_ports[key] and self.dict_ports[key].isChecked:
-                self.set_input_mode(key)              
+            if self.dict_ports[key] and self.dict_ports[key].isChecked():
+                self.set_input_mode(key)
 
     def set_input_mode(self, input_mode):
         """
@@ -477,8 +476,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.manual_upload_gDrive_widget.triggered.connect(
             self.__manual_upload_to_gdrive)
 
-        self.menuInput.triggered.connect(create_comMenu(self))
-
         self.tabWidget.tabBarDoubleClicked.connect(self.rename_tab)
         self.tabWidget.tabCloseRequested.connect(partial(self.close_tab, self))
         self.action_parentChildrenTree.triggered.connect(
@@ -488,7 +485,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     # --- Imported methods --- #
     from ._tabHandler import create_tab_widget, create_scene_tab, rename_tab, \
         close_tab
-    from ._menubarHandler import populate_menu
+    from ._menubarHandler import populate_menu, update_comMenu
     from Utilities.Settings.SettingsDialog import SettingsDialog
 
     # --- Overridden event methods --- #

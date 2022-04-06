@@ -6,7 +6,7 @@ from PyQt5 import QtWidgets
 def populate_menu(self):
     create_addLayoutMenu(self)
     create_fileMenu(self)
-    create_comMenu(self)
+    update_comMenu(self)
     create_google_drive_menu(self)
 
 
@@ -32,7 +32,7 @@ def create_fileMenu(self):
     self.menuFile.addAction(self.action_Preferences)
 
 
-def create_comMenu(self):
+def update_comMenu(self):
     # Clear the list of COM ports
     self.menuCOM_Port.clear()
     # Create an action for each available COM port
