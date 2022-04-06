@@ -37,7 +37,7 @@ class MultiDataGraph(DAATAScene, uiFile):
         # the tab updates every x*10 ms (ex. 3*10 = every 30 ms)
         self.update_period = 3
 
-        self.graph_objects: Dict[str, CustomPlotWidget] = dict()
+        self.graph_objects: Dict[int, CustomPlotWidget] = dict()
         self.connected_sensors: List[str] = []
         self.update_connected_sensors()
         self.y_sensors: List[str] = []
@@ -47,11 +47,11 @@ class MultiDataGraph(DAATAScene, uiFile):
         self.scrollAreaWidgetContents.setLayout(self.gridPlotLayout)
         self.collection_start_time: datetime = datetime.min
 
-        self.create_graph_dimension_combo_box()
-        self.addMDG()
-
         from MainWindow import is_data_collecting
         self.is_data_collecting = is_data_collecting
+
+        self.create_graph_dimension_combo_box()
+        self.addMDG()
 
         self.connect_slots_and_signals()
         self.configFile = QSettings('DAATA', 'MultiDataGraph')
@@ -119,7 +119,7 @@ class MultiDataGraph(DAATAScene, uiFile):
                                   QtWidgets.QSizePolicy.Expanding)
         self.gridPlotLayout.addItem(self.spacerItem_gridPlotLayout)
 
-    def create_graph(self, key):
+    def create_graph(self, key: int):
         self.graph_objects.pop(key, None)
         MDG_initial_props = MDGInitProps(y_sensors=self.connected_sensors[:3])
         self.graph_objects[key] = CustomPlotWidget(str(key),
@@ -214,22 +214,9 @@ class MultiDataGraph(DAATAScene, uiFile):
 
         :return: None
         """
-
-        if self.is_data_collecting.is_set() and self.button_display.isChecked():
+        if self.is_data_collecting.is_set():
             self.update_graphs()
             self.update_time_elapsed()
-
-        # temporary implementation of global recording button update
-        if self.is_data_collecting.is_set():
-            self.indicator_onOrOff.setText("On")
-            self.indicator_onOrOff.setStyleSheet("color: green;")
-            self.button_display.setText("Stop Collecting Data")
-            self.button_display.setChecked(True)
-        else:
-            self.indicator_onOrOff.setText("Off")
-            self.indicator_onOrOff.setStyleSheet("color: red;")
-            self.button_display.setText("Start Collecting Data")
-            self.button_display.setChecked(False)
 
     def update_passive(self):
         self.update_connected_sensors()
@@ -246,13 +233,15 @@ class MultiDataGraph(DAATAScene, uiFile):
         current_MDG_count = len(self.graph_objects)
         self.create_graph(current_MDG_count)
 
+        self.is_data_collecting.set()
+
     def removeMDG(self):
         """
         Removes the most recently added multi data graph from the scene
         """
         # decreasing the MDG count text on GUI
         newMDGNumber = int(self.mdgNumber.text()) - 1
-        if newMDGNumber <= 0:
+        if newMDGNumber < 0:
             return
         self.mdgNumber.setText(str(newMDGNumber))
 
@@ -262,6 +251,9 @@ class MultiDataGraph(DAATAScene, uiFile):
         self.graph_objects[latest_mdg_key].hide()
         del self.graph_objects[latest_mdg_key]
         self.create_grid_plot_layout()
+
+        if newMDGNumber == 0:
+            self.is_data_collecting.clear()
 
     def connect_slots_and_signals(self):
         self.button_display.clicked.connect(

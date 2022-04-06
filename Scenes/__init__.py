@@ -16,10 +16,14 @@ class DAATAScene(QtWidgets.QWidget):
 
     def update_graph_frequency_passively(self):
         index_time = data.get_most_recent_index()
-        if index_time > 0:
-            start = data.get_value("time_internal_seconds", 0)
-            end = data.get_value("time_internal_seconds", index_time)
-            new_sampling_freq = index_time / (end - start)
-            for graph in self.graph_objects.values():
-                if graph.isVisible():
-                    graph.update_graph_width(new_sampling_freq)
+        try:
+            _ = self.graph_objects
+            if index_time > 0:
+                start = data.get_value("time_internal_seconds", 0)
+                end = data.get_value("time_internal_seconds", index_time)
+                new_sampling_freq = index_time / (end - start)
+                for graph in self.graph_objects.values():
+                    if graph.isVisible():
+                        graph.update_graph_width(new_sampling_freq)
+        except AttributeError:
+            return
