@@ -32,7 +32,9 @@ def create_fileMenu(self):
 
 
 def create_comMenu(self):
-    ## Create an action for COM port
+    # Clear the list of COM ports
+    self.menuCOM_Port.clear()
+    # Create an action for each available COM port
     for key in self.dict_ports.keys():
         self.dict_ports[key] = QtWidgets.QAction(self)
         self.dict_ports[key].setCheckable(True)

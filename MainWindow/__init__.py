@@ -120,8 +120,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         """
 
         # Update and check for COM ports
-        self.import_coms()
-        self.com_input_mode()
+        self.import_coms
+        self.com_input_mode
         create_comMenu
 
         self.homepage.update_passive()
@@ -302,7 +302,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         """
         
         # clear the old list of coms
-        #self.dict_ports.clear
+        self.dict_ports.clear
         # adds the Auto option no matter what
         self.dict_ports["Auto"] = None 
         for portName in self.enumerate_serial_ports():
