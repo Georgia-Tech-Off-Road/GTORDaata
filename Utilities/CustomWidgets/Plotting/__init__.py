@@ -315,8 +315,7 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
                     timeArray = data.get_values("time_internal_seconds",
                                                 index_time, self.__graph_width)
                     # add points
-                    self.multi_plots[sensor].addPoints(timeArray,
-                                                       valueArrayY)
+                    self.multi_plots[sensor].setData(timeArray, valueArrayY)
                 else:
                     index_sensorX = data.get_most_recent_index(
                         sensor_name=self.__mdg_x_sensor)
