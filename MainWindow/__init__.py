@@ -300,7 +300,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         :return: None
         """
-
+        
+        # clear the old list of coms
+        #self.dict_ports.clear
         # adds the Auto option no matter what
         self.dict_ports["Auto"] = None 
         for portName in self.enumerate_serial_ports():
@@ -313,11 +315,19 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         :return: None
         """
+
         self.homepage = Homepage()
         self.homepage.setObjectName("Homepage")
         self.gridLayout_tab_homepage.addWidget(self.homepage)
 
     def com_input_mode(self):
+        """
+        Based on the available COM ports that are listed, it sets the input mode
+        to whichever port is checked at the given time.
+        
+        return: None
+        """
+
         for key in self.dict_ports.keys():
             if self.dict_ports[key] and self.dict_ports[key].isChecked:
                 self.set_input_mode(key)              
