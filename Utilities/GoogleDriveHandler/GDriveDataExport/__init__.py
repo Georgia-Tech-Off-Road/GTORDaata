@@ -2,7 +2,8 @@ from PyQt5 import QtWidgets, QtCore, uic
 from Utilities.DataExport.dataFileExplorer import open_data_file
 from Utilities.DataExport.exportCSV import saveCSV
 from Utilities.DataExport.exportMAT import saveMAT
-from Utilities.GoogleDriveHandler import gdrive_constants, GoogleDriveHandler
+from Utilities.GoogleDriveHandler import GoogleDriveHandler
+from Utilities import general_constants
 from Utilities.GoogleDriveHandler.GDriveDataExport.missing_oAuth import \
     MissingOAuthFile
 from Utilities.Popups.generic_popup import GenericPopup
@@ -85,7 +86,7 @@ class CreateUploadJSON(QtWidgets.QDialog, uiFile):
 
     def __validate_inputs(self) -> tuple:
         def valid_windows_filename(filename: str) -> bool:
-            filename_regex = gdrive_constants.FILENAME_REGEX
+            filename_regex = general_constants.FILENAME_REGEX
             if len(re.findall(filename_regex, filename)) != 1:
                 # validating filename using regex by src
                 # https://stackoverflow.com/a/11794507/11031425
@@ -176,7 +177,7 @@ class CreateUploadJSON(QtWidgets.QDialog, uiFile):
                 value_trimmed = tagData[1].text()[:value_limit]
                 custom_props[tagData[0].text()] = value_trimmed
 
-        self.__oAuth_file_input: str = gdrive_constants.GDRIVE_OAUTH2_SECRET
+        self.__oAuth_file_input: str = general_constants.GDRIVE_OAUTH2_SECRET
 
         if self.__save_local_only:
             filepaths = self.__save_locally(custom_props)
@@ -208,19 +209,19 @@ class CreateUploadJSON(QtWidgets.QDialog, uiFile):
     def __save_locally(self, custom_props: dict) -> str:
         if self.MANUAL_UPLOAD:
             shutil.copy2(self.file_location.text(),
-                         gdrive_constants.DEFAULT_UPLOAD_DIRECTORY)
+                         general_constants.DEFAULT_UPLOAD_DIRECTORY)
             extension = self.file_location.text()[-3:]
-            filepaths = f"{gdrive_constants.DEFAULT_UPLOAD_DIRECTORY}" \
+            filepaths = f"{general_constants.DEFAULT_UPLOAD_DIRECTORY}" \
                         f"{self.__new_filename_without_extension}.{extension}"
         else:
             saveCSV(self.__new_filename_without_extension,
-                    gdrive_constants.DEFAULT_UPLOAD_DIRECTORY)
+                    general_constants.DEFAULT_UPLOAD_DIRECTORY)
             saveMAT(self.__new_filename_without_extension,
-                    gdrive_constants.DEFAULT_UPLOAD_DIRECTORY)
-            filepaths = f"{gdrive_constants.DEFAULT_UPLOAD_DIRECTORY}" \
+                    general_constants.DEFAULT_UPLOAD_DIRECTORY)
+            filepaths = f"{general_constants.DEFAULT_UPLOAD_DIRECTORY}" \
                         f"{self.__new_filename_without_extension}.csv" \
                         f"\n&\n" \
-                        f"{gdrive_constants.DEFAULT_UPLOAD_DIRECTORY}" \
+                        f"{general_constants.DEFAULT_UPLOAD_DIRECTORY}" \
                         f"{self.__new_filename_without_extension}.mat"
         self.__dump_custom_properties(custom_props)
         self.__complete_save_and_exit = True
@@ -305,7 +306,7 @@ class CreateUploadJSON(QtWidgets.QDialog, uiFile):
     def __default(self):
         formatted_start_time = \
             self.collection_start_time.strftime(
-                gdrive_constants.FILENAME_TIME_FORMAT)
+                general_constants.FILENAME_TIME_FORMAT)
         default_GDFilename = f"{formatted_start_time} {self.default_scene_name}"
         self.Name.setText(default_GDFilename)
         self.Date.setText(self.collection_start_time.strftime(
@@ -359,7 +360,7 @@ class CreateUploadJSON(QtWidgets.QDialog, uiFile):
 
         del custom_properties["__Sensors"]
 
-        with open(f"{gdrive_constants.DEFAULT_UPLOAD_DIRECTORY}"
+        with open(f"{general_constants.DEFAULT_UPLOAD_DIRECTORY}"
                   f"{self.__new_filename_without_extension}.json", "w") \
                 as outfile:
             json.dump(custom_properties, outfile)
@@ -374,7 +375,7 @@ class CreateUploadJSON(QtWidgets.QDialog, uiFile):
         :return: the input datetime in UTC time in ISO string format
         """
         dt_utc = GoogleDriveHandler.local_to_utc(dt)
-        return dt_utc.strftime(gdrive_constants.ISO_TIME_FORMAT)
+        return dt_utc.strftime(general_constants.ISO_TIME_FORMAT)
 
     @property
     def complete_save_and_exit(self):

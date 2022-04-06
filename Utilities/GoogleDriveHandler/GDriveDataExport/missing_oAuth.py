@@ -1,5 +1,5 @@
 from PyQt5 import QtWidgets, uic
-from Utilities.GoogleDriveHandler.gdrive_constants import GDRIVE_OAUTH2_SECRET
+from Utilities import general_constants
 import os
 
 # loads the .ui file from QT Designer
@@ -21,7 +21,7 @@ class MissingOAuthFile(QtWidgets.QDialog, uiFile):
         alt_option_text = f"You may also download the oAuth file " \
                           f"<a href='https://drive.google.com/file/d/117yhiyV2BAZNxityj4la6J50FECaEPJB/view?usp=sharing'>" \
                           f"here</a> and place it at <br />" \
-                          f"{GDRIVE_OAUTH2_SECRET}"
+                          f"{general_constants.GDRIVE_OAUTH2_SECRET}"
         self.alt_option.setText(alt_option_text)
 
     def __connectSlotsSignals(self):

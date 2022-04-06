@@ -2,7 +2,7 @@ from Utilities.GoogleDriveHandler.Google import Create_Service
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from googleapiclient.http import MediaFileUpload, MediaIoBaseDownload
-import Utilities.GoogleDriveHandler.gdrive_constants
+from Utilities import general_constants
 import google.auth.exceptions
 import httplib2
 import io
@@ -23,9 +23,9 @@ class DriveSearchQuery:
     only_csv_mat: bool = False
     parent_id: str = None
     custom_properties: dict = None
-    year: int = None
-    month: int = None
-    day: int = None
+    year: int = 0
+    month: int = 0
+    day: int = 0
     # derived search queries
     test_date_period: str = "All"  # All, Last hour, Today, This Week, ...
     duration: str = "All"  # All, Under 4 minutes, 4-20 minutes, ...
@@ -47,8 +47,8 @@ class GoogleDriveHandler:
     # ROOT_FOLDER is "GTORDaata Graph Files"
     _ROOT_FOLDER_ID = "1OaMbG-wAqC6_Ad8u5FiNS9L8z2W7eB2i"
     _DRIVE_ID = "0AFmSv7widPF9Uk9PVA"  # Drive ID of GTOR_DAQ_DATA shared drive
-    DEFAULT_UPLOAD_DIRECTORY = gdrive_constants.DEFAULT_UPLOAD_DIRECTORY
-    DEFAULT_DOWNLOAD_DIRECTORY = gdrive_constants.DEFAULT_DOWNLOAD_DIRECTORY
+    DEFAULT_UPLOAD_DIRECTORY = general_constants.DEFAULT_UPLOAD_DIRECTORY
+    DEFAULT_DOWNLOAD_DIRECTORY = general_constants.DEFAULT_DOWNLOAD_DIRECTORY
 
     def __init__(self, secret_client_file_path: str):
         # Mime_type for CSV and MATLAB files, see
@@ -88,13 +88,11 @@ class GoogleDriveHandler:
         except google.auth.exceptions.RefreshError:
             # the file must exist
             os.remove(
-                f"{gdrive_constants.PICKLE_DIRECTORY}/token_drive_v3.pickle")
+                f"{general_constants.PICKLE_DIRECTORY}/token_drive_v3.pickle")
             return Create_Service(
                 CLIENT_SECRET_FILE, API_NAME, API_VERSION, SCOPES)
 
     def __develop_drive_search_q(self, search_q: DriveSearchQuery) -> str:
-        # FUTURE TODO improve performance by filtering by date here instead of
-        #  in __filter_by_derived_queries
         query = "trashed=false"
         if search_q.filename is not None:
             if query != "":
@@ -167,9 +165,6 @@ class GoogleDriveHandler:
                 page_token = response.get('nextPageToken', None)
             except httplib2.error.ServerNotFoundError:
                 raise self.NoInternetError
-            # except googleapiclient.errors.HttpError as e:
-            #     logger.error(str(e))
-            #     raise self.NoAccessError
             if page_token is None:
                 break
 
@@ -182,22 +177,20 @@ class GoogleDriveHandler:
             # if no files are inputted, return an empty list (obviously)
             return found_files
 
-        if (search_q.year == search_q.month == search_q.day is None
+        if (search_q.year == search_q.month == search_q.day == 0
                 and search_q.test_date_period == "All"
                 and search_q.duration == "All"):
             # if none of the derived filters are set, return original input
             return found_files
 
         def valid_year(begin_time: datetime) -> bool:
-            return search_q.year is None or \
-                   begin_time.year == int(search_q.year)
+            return not search_q.year or begin_time.year == int(search_q.year)
 
         def valid_month(begin_time: datetime) -> bool:
-            return search_q.month is None or \
-                   begin_time.month == int(search_q.month)
+            return not search_q.month or begin_time.month == int(search_q.month)
 
         def valid_day(begin_time: datetime) -> bool:
-            return search_q.day is None or \
+            return not search_q.day or \
                    self.utc_to_local(begin_time).day == int(search_q.day)
 
         def valid_test_date_period(begin_time: datetime) -> bool:
@@ -274,7 +267,7 @@ class GoogleDriveHandler:
 
         test_local_date_iso = datetime.strptime(
             file_metadata["collection_start_time"],
-            gdrive_constants.ISO_TIME_FORMAT)
+            general_constants.ISO_TIME_FORMAT)
         test_local_date = str(self.utc_to_local(test_local_date_iso).date())
 
         # if using previously searched folder, reuse it. Else, find it
@@ -345,7 +338,10 @@ class GoogleDriveHandler:
         elif len(search_file_results) == 1:
             return search_file_results[0].get('id')
         else:
-            return None
+            logger.error("File hierarchy error in Google Drive. Possibly two "
+                         "same folder names. Creating another folder of the "
+                         "same name.")
+            return self.create_folder_in_drive(day, month_folder_id)
 
     def __get_Month_folder_id(self, test_date: str, year_folder_id: str):
         month = test_date[:7]
@@ -359,8 +355,9 @@ class GoogleDriveHandler:
             return search_file_results[0].get('id')
         else:
             logger.error("File hierarchy error in Google Drive. Possibly two "
-                         "same folder names")
-            return None
+                         "same folder names. Creating another folder of the "
+                         "same name.")
+            return self.create_folder_in_drive(month, year_folder_id)
 
     def __get_Year_folder_id(self, test_date: str):
         year = test_date[:4]
@@ -375,8 +372,9 @@ class GoogleDriveHandler:
             return search_file_results[0].get('id')
         else:
             logger.error("File hierarchy error in Google Drive. Possibly two "
-                         "same folder names")
-            return None
+                         "same folder names. Creating another folder of the "
+                         "same name.")
+            return self.create_folder_in_drive(year, self._ROOT_FOLDER_ID)
 
     def create_folder_in_drive(self, folder_name: str,
                                parent_folder_id: str = 'root'):
@@ -643,7 +641,7 @@ class GoogleDriveHandler:
                     # add microseconds parameter if it does not exist
                     retrieved_time = f"{retrieved_time}.00"
                 begin_end[i] = datetime.strptime(
-                    retrieved_time, gdrive_constants.ISO_TIME_FORMAT)
+                    retrieved_time, general_constants.ISO_TIME_FORMAT)
             except AttributeError:
                 # parameter properties or appProperties is missing
                 return []
@@ -701,16 +699,16 @@ class GoogleDriveHandler:
 
     @staticmethod
     def initialize_download_upload_directories() -> None:
-        if not os.path.exists(gdrive_constants.DEFAULT_UPLOAD_DIRECTORY):
+        if not os.path.exists(general_constants.DEFAULT_UPLOAD_DIRECTORY):
             logger.info(
-                f"Default path {gdrive_constants.DEFAULT_UPLOAD_DIRECTORY} not "
+                f"Default path {general_constants.DEFAULT_UPLOAD_DIRECTORY} not "
                 f"found. Making the directory...")
-            os.makedirs(gdrive_constants.DEFAULT_UPLOAD_DIRECTORY)
-        if not os.path.exists(gdrive_constants.DEFAULT_DOWNLOAD_DIRECTORY):
+            os.makedirs(general_constants.DEFAULT_UPLOAD_DIRECTORY)
+        if not os.path.exists(general_constants.DEFAULT_DOWNLOAD_DIRECTORY):
             logger.info(
-                f"Default path {gdrive_constants.DEFAULT_DOWNLOAD_DIRECTORY} "
+                f"Default path {general_constants.DEFAULT_DOWNLOAD_DIRECTORY} "
                 f"not found. Making the directory...")
-            os.makedirs(gdrive_constants.DEFAULT_DOWNLOAD_DIRECTORY)
+            os.makedirs(general_constants.DEFAULT_DOWNLOAD_DIRECTORY)
 
     @staticmethod
     def utc_to_local(dt_utc: datetime) -> datetime:
@@ -721,6 +719,23 @@ class GoogleDriveHandler:
     def local_to_utc(dt_local: datetime) -> datetime:
         utc_offset = datetime.utcnow() - datetime.now()  # +5:00
         return dt_local + utc_offset
+
+    @staticmethod
+    def parse_utc_to_local(dt_utc: str) -> datetime:
+        return datetime.strptime(dt_utc, general_constants.ISO_TIME_FORMAT)
+
+    @staticmethod
+    def get_start_date_str(file_metadata: dict) -> str:
+        if file_metadata and file_metadata.get(
+                "properties") and file_metadata.get("properties").get(
+            "collection_start_time"):
+            start_dt = file_metadata.get("properties").get(
+                "collection_start_time")
+            datetime_str = GoogleDriveHandler.parse_utc_to_local(start_dt)
+            local_dt_str = GoogleDriveHandler.utc_to_local(datetime_str)
+            return local_dt_str.strftime("%Y-%m-%d")
+        else:
+            return ""
 
     @property
     def warning_msg(self):

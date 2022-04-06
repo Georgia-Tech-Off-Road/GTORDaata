@@ -10,7 +10,8 @@ workspace.xml
 vcs.xml
 misc.xml
 daata_v1_0.iml
-
+.idea/**
+**/.idea
 
 
 # User-specific stuff
