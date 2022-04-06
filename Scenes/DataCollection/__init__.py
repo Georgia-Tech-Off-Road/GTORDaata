@@ -136,8 +136,8 @@ class DataCollection(DAATAScene, uiFile):
         leftMar, topMar, rightMar, botMar = self.gridPlotLayout.getContentsMargins()
         vSpace = self.gridPlotLayout.verticalSpacing()
         graphHeight = (
-                              self.scrollArea_graphs.height() - topMar - botMar - vSpace * (
-                              max_rows - 1)) / max_rows
+                                  self.scrollArea_graphs.height() - topMar - botMar - vSpace * (
+                                      max_rows - 1)) / max_rows
 
         for key in self.graph_objects.keys():
             if self.graph_objects[key].isVisible():
@@ -174,6 +174,10 @@ class DataCollection(DAATAScene, uiFile):
                              layout=self.gridPlotLayout,
                              graph_width_seconds=8,
                              enable_scroll=(True, False))
+        self.graph_objects[key].plotWidget.getAxis('left').setTextPen('w')
+        self.graph_objects[key].plotWidget.getAxis('left').setPen('w')
+        self.graph_objects[key].plotWidget.getAxis('bottom').setTextPen('w')
+        self.graph_objects[key].plotWidget.getAxis('bottom').setPen('w')
 
     def __create_graphs(self):
         """
