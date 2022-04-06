@@ -30,8 +30,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>698</width>
-        <height>719</height>
+        <width>696</width>
+        <height>717</height>
        </rect>
       </property>
       <property name="layoutDirection">
@@ -142,7 +142,7 @@
         <x>0</x>
         <y>0</y>
         <width>298</width>
-        <height>649</height>
+        <height>641</height>
        </rect>
       </property>
       <layout class="QGridLayout" name="gridLayout_2">
@@ -163,7 +163,7 @@
             </font>
            </property>
            <property name="text">
-            <string>Displayed Sensors</string>
+            <string>Connected Sensors</string>
            </property>
            <property name="alignment">
             <set>Qt::AlignCenter</set>
@@ -179,7 +179,7 @@
             </sizepolicy>
            </property>
            <property name="text">
-            <string>(0/0)</string>
+            <string>0</string>
            </property>
            <property name="alignment">
             <set>Qt::AlignCenter</set>

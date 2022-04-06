@@ -163,16 +163,6 @@ class MultiDataGraph(DAATAScene, uiFile):
             graph.update_xy_sensors()
         self.__create_grid_plot_layout()
 
-    def __update_sensor_count(self):
-        self.active_sensor_count = 0
-        # for key in self.checkbox_objects.keys():
-        #     if self.checkbox_objects[key].isVisible():
-        #         if self.checkbox_objects[key].isChecked():
-        #             self.active_sensor_count = self.active_sensor_count + 1
-        self.label_active_sensor_count.setText(
-            '(' + str(self.active_sensor_count) + '/' + str(
-                len(self.graph_objects)) + ')')
-
     def __update_graphs(self):
         for key in self.graph_objects.keys():
             self.graph_objects[key].update_graph()
@@ -224,6 +214,7 @@ class MultiDataGraph(DAATAScene, uiFile):
 
     def update_passive(self):
         self.__update_connected_sensors()
+        self.label_active_sensor_count.setText(str(len(self.connected_sensors)))
 
     def __addMDG(self):
         """
