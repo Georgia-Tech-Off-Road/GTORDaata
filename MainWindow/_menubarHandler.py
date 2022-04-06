@@ -24,7 +24,7 @@ def create_addLayoutMenu(self):
 
 
 def create_fileMenu(self):
-    ## Create an action for Preferences
+    # Create an action for Preferences
     self.action_Preferences = QtWidgets.QAction(self)
     self.action_Preferences.setCheckable(False)
     self.action_Preferences.setToolTip("Edit application config_MainWindow")

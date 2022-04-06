@@ -130,9 +130,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         """
 
         # Update and check for COM ports
-        self.import_coms
-        self.com_input_mode
-        create_comMenu
+        self.import_coms()
+        self.com_input_mode()
+        create_comMenu(self)
 
         self.homepage.update_passive()
         for scene in self.tabWidget.findChildren(DAATAScene):
@@ -266,8 +266,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         return self.dict_scenes
 
-    @staticmethod
-    def enumerate_serial_ports():
+    def enumerate_serial_ports(self):
         """ 
         Uses the Win32 registry to return an iterator of serial (COM) ports
         existing on this computer.
@@ -281,7 +280,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             # this excludes your current terminal "/dev/tty"
             ports = glob.glob('/dev/tty[A-Za-z]*')
         else:
-            logger.error("Unsupported platform")
+            logger.error("Unsupported platform for COM ports")
         
         result = []
         for port in ports:
@@ -299,9 +298,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         :return: None
         """
-        
+
         # clear the old list of coms
-        self.dict_ports.clear
+        self.dict_ports.clear()
         # adds the Auto option no matter what
         self.dict_ports["Auto"] = None
         for portName in self.enumerate_serial_ports():
