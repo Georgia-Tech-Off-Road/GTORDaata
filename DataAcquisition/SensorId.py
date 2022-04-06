@@ -643,6 +643,12 @@ SensorId = {
             "data_type": "float"
         }
     },
+    311: {
+        "name": "force_straingauge_lbs",
+        "object": "Force",
+        "num_bytes": 4,
+        "is_float": True
+    },
 
     # 400 - LDS SENSORS
     400: {
