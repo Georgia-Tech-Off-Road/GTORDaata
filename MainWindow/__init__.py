@@ -5,6 +5,8 @@ import logging
 import os
 import sys
 import threading
+import glob
+import serial
 
 from Scenes import DAATAScene
 from Scenes.BlinkLEDTest import BlinkLEDTest
@@ -117,7 +119,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         :return: None
         """
 
-        # Update anc check for COM input mode
+        # Update and check for COM ports
         self.import_coms()
         self.com_input_mode()
         create_comMenu
@@ -271,23 +273,26 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         Uses the Win32 registry to return an iterator of serial (COM) ports
         existing on this computer.
 
-        :return: None
+        :return: List of available COM ports
         """
 
-        path = 'HARDWARE\\DEVICEMAP\\SERIALCOMM'
-        try:
-            key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, path)
-        except WindowsError:
-            logger.debug(logger.findCaller(True))
-            raise StopIteration
-
-        for i in itertools.count():
+        if sys.platform.startswith('win'):
+            ports = ['COM%s' % (i + 1) for i in range(256)]
+        elif sys.platform.startswith('linux') or sys.platform.startswith('cygwin'):
+            # this excludes your current terminal "/dev/tty"
+            ports = glob.glob('/dev/tty[A-Za-z]*')
+        else:
+            logger.error("Unsupported platform")
+        
+        result = []
+        for port in ports:
             try:
-                val = winreg.EnumValue(key, i)
-                yield str(val[1])
-            except EnvironmentError:
-                #logger.debug(logger.findCaller(True))
-                break
+                s = serial.Serial(port)
+                s.close()
+                result.append(port)
+            except (OSError, serial.SerialException):
+                pass
+        return result
 
     def import_coms(self):
         """
