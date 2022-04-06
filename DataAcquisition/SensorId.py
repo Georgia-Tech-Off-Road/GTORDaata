@@ -745,5 +745,12 @@ SensorId = {
         "num_bytes": 4,
         "display_name": "Temperature",
         "is_float": True
+    },
+    601: {
+        "name": "voltage",
+        "object": "Voltage",
+        "num_bytes": 4,
+        "display_name": "Voltage",
+        "is_float": True
     }
 }

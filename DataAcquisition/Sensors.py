@@ -191,4 +191,11 @@ class GPS(Sensor):
         self.orientation = orientation
         self.unit = kwargs.get("unit", "Degrees")
         self.unit_short = kwargs.get("unit_short", "°")        
+
+
+class Voltage(Sensor):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.unit = kwargs.get('unit', "Volts")
+        self.unit_short = kwargs.get('unit_short', "V")
         
