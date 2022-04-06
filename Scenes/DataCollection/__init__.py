@@ -49,18 +49,19 @@ class DataCollection(DAATAScene, uiFile):
         self.collection_start_time: datetime = datetime.min
         self.selectAll_checkbox: QtWidgets.QCheckBox = None
         self.__create_sensor_checkboxes()
-        self.create_graph_dimension_combo_box()
+        self.__update_sensor_count()
+        self.__create_graph_dimension_combo_box()
         self.__create_graphs()
         self.__active_sensor_count = 0
-        self.create_grid_plot_layout()
+        self.__create_grid_plot_layout()
 
         from MainWindow import is_data_collecting
         self.is_data_collecting = is_data_collecting
 
-        self.connect_slots_and_signals()
+        self.__connect_slots_and_signals()
         self.configFile = QSettings('DAATA', 'data_collection')
         self.configFile.clear()
-        self.load_settings()
+        self.__load_settings()
 
     def __create_sensor_checkboxes(self):
         """
@@ -96,7 +97,7 @@ class DataCollection(DAATAScene, uiFile):
                 objectName=key)
             self.checkbox_objects[key].clicked.connect(
                 self.__slot_checkbox_state_change)
-            self.checkbox_objects[key].clicked.connect(self.save_settings)
+            self.checkbox_objects[key].clicked.connect(self.__save_settings)
             self.gridLayout_2.addWidget(self.checkbox_objects[key])
 
         # Create a vertical spacer that forces checkboxes to the top
@@ -105,7 +106,7 @@ class DataCollection(DAATAScene, uiFile):
                                             QtWidgets.QSizePolicy.Expanding)
         self.gridLayout_2.addItem(spacerItem1)
 
-    def create_graph_dimension_combo_box(self):
+    def __create_graph_dimension_combo_box(self):
         """
         This function creates the drop-down box that allows changing the
         number of graphs on the screen.
@@ -118,7 +119,7 @@ class DataCollection(DAATAScene, uiFile):
             for col in range(1, max_cols + 1):
                 self.comboBox_graphDimension.addItem("{0}x{1}".format(row, col))
 
-    def create_grid_plot_layout(self):
+    def __create_grid_plot_layout(self):
         """
         Creates the layout of grids based on selected sensors to be shown and
         the selected plot configuration (i.e. 2X3).
@@ -195,7 +196,7 @@ class DataCollection(DAATAScene, uiFile):
             widget.button_settings.clicked.connect(
                 partial(self.graph_objects[key].open_SettingsWindow))
 
-    def slot_data_collecting_state_change(self):
+    def __slot_data_collecting_state_change(self):
         """
         Handles toggling data collecting button and changes values and
         attributes accordingly.
@@ -236,8 +237,8 @@ class DataCollection(DAATAScene, uiFile):
         else:
             for key in self.currentKeys:
                 self.checkbox_objects[key].setChecked(False)
-        self.create_grid_plot_layout()
-        self.update_sensor_count(
+        self.__create_grid_plot_layout()
+        self.__update_sensor_count(
             1 if self.selectAll_checkbox.isChecked() else 0)
 
     def __slot_checkbox_state_change(self):
@@ -248,15 +249,15 @@ class DataCollection(DAATAScene, uiFile):
         :return: None
         """
 
-        self.create_grid_plot_layout()
-        self.update_sensor_count()
+        self.__create_grid_plot_layout()
+        self.__update_sensor_count()
 
         if self.__active_sensor_count > 0:
             self.is_data_collecting.set()
         else:
             self.is_data_collecting.clear()
 
-    def update_sensor_count(self, selectAll_checked: int = -1):
+    def __update_sensor_count(self, selectAll_checked: int = -1):
         """
         Updates the count of active sensors based on selected sensors
         in the checkbox.
@@ -284,7 +285,7 @@ class DataCollection(DAATAScene, uiFile):
         self.label_active_sensor_count.setText(
             f"({self.__active_sensor_count}/{len(self.currentKeys)})")
 
-    def update_graphs(self):
+    def __update_graphs(self):
         """
         Updates the graph objects with their respective values if they are
         visible.
@@ -295,7 +296,7 @@ class DataCollection(DAATAScene, uiFile):
             if graph.isVisible():
                 graph.update_graph()
 
-    def update_time_elapsed(self):
+    def __update_time_elapsed(self):
         """
         This function updates the timer that is displayed in the layout that
         indicates how long a test has been running for.
@@ -320,7 +321,7 @@ class DataCollection(DAATAScene, uiFile):
         except TypeError:
             logger.debug(logger.findCaller(True))
 
-    def update_sensor_checkboxes(self):
+    def __update_sensor_checkboxes(self):
         """
         Will update the sensor checkboxes if new sensors are added.
 
@@ -357,8 +358,8 @@ class DataCollection(DAATAScene, uiFile):
         :return: None
         """
         if self.is_data_collecting.is_set():
-            self.update_graphs()
-            self.update_time_elapsed()
+            self.__update_graphs()
+            self.__update_time_elapsed()
 
     def update_passive(self):
         """
@@ -369,9 +370,9 @@ class DataCollection(DAATAScene, uiFile):
 
         :return: None
         """
-        self.update_sensor_checkboxes()
+        self.__update_sensor_checkboxes()
 
-    def connect_slots_and_signals(self):
+    def __connect_slots_and_signals(self):
         """
         Assigns button clicks and UI element events with their respective
         functions.
@@ -380,22 +381,22 @@ class DataCollection(DAATAScene, uiFile):
         """
 
         self.button_display.clicked.connect(
-            self.slot_data_collecting_state_change)
+            self.__slot_data_collecting_state_change)
 
         for key in self.currentKeys:
             self.checkbox_objects[key].clicked.connect(
                 self.__slot_checkbox_state_change)
-            self.checkbox_objects[key].clicked.connect(self.save_settings)
+            self.checkbox_objects[key].clicked.connect(self.__save_settings)
 
         self.selectAll_checkbox.stateChanged.connect(
             self.__selectAll_checkbox_state_change)
 
         self.comboBox_graphDimension.currentTextChanged.connect(
-            self.create_grid_plot_layout)
+            self.__create_grid_plot_layout)
         self.comboBox_graphDimension.currentTextChanged.connect(
-            self.save_settings)
+            self.__save_settings)
 
-    def save_settings(self):
+    def __save_settings(self):
         """
         This function will save the settings for a given scene to a config
         file so that they can be loaded in again the next time that the scene
@@ -418,7 +419,7 @@ class DataCollection(DAATAScene, uiFile):
         # logger.debug("Data Collection config files saved")
         # self.debug_settings()
 
-    def load_settings(self):
+    def __load_settings(self):
         """
         This function loads in the previously saved settings.
 
@@ -442,10 +443,10 @@ class DataCollection(DAATAScene, uiFile):
 
         self.comboBox_graphDimension.setCurrentText(
             self.configFile.value('graph_dimension'))
-        self.create_grid_plot_layout()
+        self.__create_grid_plot_layout()
         logger.debug("Data Collection config files loaded")
 
-    def debug_settings(self):
+    def __debug_settings(self):
         """
         This method allows you to view the contents of what is currently
         stored in settings.
@@ -469,7 +470,7 @@ class DataCollection(DAATAScene, uiFile):
         :return: None
         """
 
-        self.save_settings()
+        self.__save_settings()
         self.window().setWindowTitle('closed tab')
 
     def paintEvent(self, pe):
