@@ -131,8 +131,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # Update and check for COM ports
         self.import_coms()
-        self.com_input_mode()
-        create_comMenu(self)
+        self.com_input_mode()        
 
         self.homepage.update_passive()
         for scene in self.tabWidget.findChildren(DAATAScene):
@@ -477,6 +476,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.__upload_remaining_to_gdrive)
         self.manual_upload_gDrive_widget.triggered.connect(
             self.__manual_upload_to_gdrive)
+
+        self.menuInput.triggered.connect(create_comMenu(self))
 
         self.tabWidget.tabBarDoubleClicked.connect(self.rename_tab)
         self.tabWidget.tabCloseRequested.connect(partial(self.close_tab, self))
