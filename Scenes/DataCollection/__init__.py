@@ -38,14 +38,16 @@ class DataCollection(DAATAScene, uiFile):
 
         self.graph_objects: Dict[str, CustomPlotWidget] = dict()
         self.checkbox_objects: Dict[str, QtWidgets.QCheckBox] = dict()
-        self.currentKeys: List[str] = data.get_sensors(is_plottable=True)
+        self.currentKeys: List[str] = data.get_sensors(is_plottable=True,
+                                                       is_connected=True)
 
         self.gridPlotLayout = GridPlotLayout(self.scrollAreaWidgetContents)
         self.gridPlotLayout.setObjectName("gridPlotLayout")
         self.scrollAreaWidgetContents.setLayout(self.gridPlotLayout)
 
         self.collection_start_time: datetime = datetime.min
-        self.create_sensor_checkboxes()
+        self.selectAll_checkbox: QtWidgets.QCheckBox = None
+        self.__create_sensor_checkboxes()
         self.create_graph_dimension_combo_box()
         self.__create_graphs()
         self.__active_sensor_count = 0
@@ -59,18 +61,34 @@ class DataCollection(DAATAScene, uiFile):
         self.configFile.clear()
         self.load_settings()
 
-    def create_sensor_checkboxes(self):
+    def __create_sensor_checkboxes(self):
         """
         Creates checkboxes for each active sensor and for selecting all
         active sensors.
 
         :return: None
         """
+        # Create the checkbox for selecting all the sensors
 
-        # Create the checkbox for selecting all of the sensors
+        # for i in reversed(range(self.gridLayout_2.count())):
+        #     self.gridLayout_2.itemAt(i).widget().setParent(None)
+
+        for k, v in self.checkbox_objects.items():
+            self.gridLayout_2.removeWidget(v)
+            v.setParent(None)
+            v.deleteLater()
+        self.checkbox_objects.clear()
+
+        if self.selectAll_checkbox:
+            self.gridLayout_2.removeWidget(self.selectAll_checkbox)
+            self.selectAll_checkbox.setParent(None)
+            self.selectAll_checkbox.deleteLater()
+
         self.selectAll_checkbox = QtWidgets.QCheckBox("Select All",
                                                       self.scrollAreaWidgetContents_2,
                                                       objectName="selectAll_checkbox")
+        self.selectAll_checkbox.stateChanged.connect(
+            self.__selectAll_checkbox_state_change)
         self.selectAll_checkbox.setToolTip(self.selectAll_checkbox.objectName())
         self.gridLayout_2.addWidget(self.selectAll_checkbox)
 
@@ -80,6 +98,9 @@ class DataCollection(DAATAScene, uiFile):
             self.checkbox_objects[key] = QtWidgets.QCheckBox(
                 data.get_display_name(key), self.scrollAreaWidgetContents_2,
                 objectName=key)
+            self.checkbox_objects[key].clicked.connect(
+                self.__slot_checkbox_state_change)
+            self.checkbox_objects[key].clicked.connect(self.save_settings)
             self.gridLayout_2.addWidget(self.checkbox_objects[key])
 
         # Create a vertical spacer that forces checkboxes to the top
@@ -137,6 +158,8 @@ class DataCollection(DAATAScene, uiFile):
                 if col == max_cols:
                     col = 0
                     row += 1
+                if key not in self.graph_objects:
+                    self.__create_graph(key)
                 self.graph_objects[key].set_height(graphHeight)
                 self.gridPlotLayout.addWidget((self.graph_objects[key]), row,
                                               col, 1, 1)
@@ -149,6 +172,13 @@ class DataCollection(DAATAScene, uiFile):
                                                                QtWidgets.QSizePolicy.Expanding)
         self.gridPlotLayout.addItem(self.spacerItem_gridPlotLayout)
 
+    def __create_graph(self, key: str):
+        self.graph_objects[key] = \
+            CustomPlotWidget(key, parent=self.scrollAreaWidgetContents,
+                             layout=self.gridPlotLayout,
+                             graph_width_seconds=8,
+                             enable_scroll=(True, False))
+
     def __create_graphs(self):
         """
         Populates graph dictionary with graphs based on active sensors.
@@ -157,11 +187,7 @@ class DataCollection(DAATAScene, uiFile):
         """
 
         for key in self.currentKeys:
-            self.graph_objects[key] = \
-                CustomPlotWidget(key, parent=self.scrollAreaWidgetContents,
-                                 layout=self.gridPlotLayout,
-                                 graph_width_seconds=8,
-                                 enable_scroll=(True, False))
+            self.__create_graph(key)
             self.graph_objects[key].hide()
 
             # connections to GridPlotLayout
@@ -242,12 +268,12 @@ class DataCollection(DAATAScene, uiFile):
             if selectAll_checked == 0:
                 self.__active_sensor_count = 0
                 self.label_active_sensor_count.setText(
-                    f"(0/{len(self.graph_objects)})")
+                    f"(0/{len(self.currentKeys)})")
                 return
             elif selectAll_checked == 1:
                 self.__active_sensor_count = len(self.graph_objects)
                 self.label_active_sensor_count.setText(
-                    f"({len(self.graph_objects)}/{len(self.graph_objects)})")
+                    f"({len(self.graph_objects)}/{len(self.currentKeys)})")
                 return
 
         self.__active_sensor_count = 0
@@ -256,7 +282,7 @@ class DataCollection(DAATAScene, uiFile):
                     self.checkbox_objects[key].isChecked():
                 self.__active_sensor_count = self.__active_sensor_count + 1
         self.label_active_sensor_count.setText(
-            f"({self.__active_sensor_count}/{len(self.graph_objects)})")
+            f"({self.__active_sensor_count}/{len(self.currentKeys)})")
 
     def update_graphs(self):
         """
@@ -302,16 +328,23 @@ class DataCollection(DAATAScene, uiFile):
 
         connected_sensors = data.get_sensors(is_plottable=True,
                                              is_connected=True)
-        for key in connected_sensors:
-            if key not in self.currentKeys:
-                self.checkbox_objects[key].show()
-        for key in self.currentKeys:
-            if key not in connected_sensors:
-                try:
-                    self.checkbox_objects[key].hide()
-                except Exception:
-                    logger.debug(logger.findCaller(True))
+        self.currentKeys.sort()
+        connected_sensors.sort()
+        if self.currentKeys == connected_sensors:
+            return
+
         self.currentKeys = connected_sensors
+        self.__create_sensor_checkboxes()
+
+        # for key in connected_sensors:
+        #     if key not in self.currentKeys:
+        #         self.checkbox_objects[key].show()
+        # for key in self.currentKeys:
+        #     if key not in connected_sensors:
+        #         try:
+        #             self.checkbox_objects[key].hide()
+        #         except Exception:
+        #             logger.debug(logger.findCaller(True))
 
     def update_active(self):
         """
@@ -322,7 +355,6 @@ class DataCollection(DAATAScene, uiFile):
 
         :return: None
         """
-
         if self.is_data_collecting.is_set():
             self.update_graphs()
             self.update_time_elapsed()
