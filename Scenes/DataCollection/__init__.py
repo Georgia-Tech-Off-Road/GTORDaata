@@ -46,6 +46,9 @@ class DataCollection(DAATAScene, uiFile):
         self.gridPlotLayout.setObjectName("gridPlotLayout")
         self.scrollAreaWidgetContents.setLayout(self.gridPlotLayout)
 
+        from MainWindow import is_data_collecting
+        self.is_data_collecting = is_data_collecting
+
         self.collection_start_time: datetime = datetime.min
         self.selectAll_checkbox: QtWidgets.QCheckBox = None
         self.__create_sensor_checkboxes()
@@ -54,9 +57,6 @@ class DataCollection(DAATAScene, uiFile):
         self.__create_graphs()
         self.__active_sensor_count = 0
         self.__create_grid_plot_layout()
-
-        from MainWindow import is_data_collecting
-        self.is_data_collecting = is_data_collecting
 
         self.__connect_slots_and_signals()
         self.configFile = QSettings('DAATA', 'data_collection')
@@ -252,38 +252,36 @@ class DataCollection(DAATAScene, uiFile):
         self.__create_grid_plot_layout()
         self.__update_sensor_count()
 
-        if self.__active_sensor_count > 0:
-            self.is_data_collecting.set()
-        else:
-            self.is_data_collecting.clear()
-
     def __update_sensor_count(self, selectAll_checked: int = -1):
         """
         Updates the count of active sensors based on selected sensors
-        in the checkbox.
+        in the checkbox. Sets the thread boolean value to true iff the
+        number of active sensors > 0.
 
         :return: None
         """
-
-        if selectAll_checked != -1:
+        if selectAll_checked != -1:  # if selectAll checkbox was not toggled
             if selectAll_checked == 0:
                 self.__active_sensor_count = 0
                 self.label_active_sensor_count.setText(
                     f"(0/{len(self.currentKeys)})")
-                return
             elif selectAll_checked == 1:
                 self.__active_sensor_count = len(self.graph_objects)
                 self.label_active_sensor_count.setText(
                     f"({len(self.graph_objects)}/{len(self.currentKeys)})")
-                return
+        else:
+            self.__active_sensor_count = 0
+            for key in self.checkbox_objects.keys():
+                if self.checkbox_objects[key].isVisible() and \
+                        self.checkbox_objects[key].isChecked():
+                    self.__active_sensor_count = self.__active_sensor_count + 1
+            self.label_active_sensor_count.setText(
+                f"({self.__active_sensor_count}/{len(self.currentKeys)})")
 
-        self.__active_sensor_count = 0
-        for key in self.checkbox_objects.keys():
-            if self.checkbox_objects[key].isVisible() and \
-                    self.checkbox_objects[key].isChecked():
-                self.__active_sensor_count = self.__active_sensor_count + 1
-        self.label_active_sensor_count.setText(
-            f"({self.__active_sensor_count}/{len(self.currentKeys)})")
+        if self.__active_sensor_count > 0:
+            self.is_data_collecting.set()
+        else:
+            self.is_data_collecting.clear()
 
     def __update_graphs(self):
         """
