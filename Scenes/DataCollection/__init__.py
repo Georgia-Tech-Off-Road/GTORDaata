@@ -136,8 +136,8 @@ class DataCollection(DAATAScene, uiFile):
         leftMar, topMar, rightMar, botMar = self.gridPlotLayout.getContentsMargins()
         vSpace = self.gridPlotLayout.verticalSpacing()
         graphHeight = (
-                                  self.scrollArea_graphs.height() - topMar - botMar - vSpace * (
-                                      max_rows - 1)) / max_rows
+                              self.scrollArea_graphs.height() - topMar - botMar - vSpace * (
+                              max_rows - 1)) / max_rows
 
         for key in self.graph_objects.keys():
             if self.graph_objects[key].isVisible():
@@ -206,6 +206,7 @@ class DataCollection(DAATAScene, uiFile):
             self.is_data_collecting.clear()
             self.popup_dataSaveLocation("DataCollection",
                                         self.collection_start_time)
+            self.is_data_collecting.set()
 
     @staticmethod
     def __reset_all():

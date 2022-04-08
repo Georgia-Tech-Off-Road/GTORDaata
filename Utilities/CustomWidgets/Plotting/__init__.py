@@ -100,7 +100,7 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
 
         valueArray = numpy.zeros(self.__graph_width)
 
-        self.plotWidget: pg.PlotWidget = self.plotWidget
+        self.plotWidget: pg.PlotDataItem = self.plotWidget
         self.multi_plots: dict = dict()
         if self.enable_multi_plot:
             self.__create_multi_graphs()
@@ -202,6 +202,7 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
 
     @property
     def seconds_in_view(self) -> float:
+        # Used in another plot_settings.py implicitly, do not delete
         return self.__seconds_in_view
 
     def update_graph(self):
@@ -211,11 +212,13 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
             index_time = data.get_most_recent_index()
             index_sensor = data.get_most_recent_index(
                 sensor_name=self.sensor_name)
+            # collects all value and time data from time 0 to present
             valueArray = data.get_values(self.sensor_name, index_sensor,
-                                         self.__graph_width)
+                                         index_sensor + 1)
             timeArray = data.get_values("time_internal_seconds", index_time,
-                                        self.__graph_width)
+                                        index_time + 1)
             self.plot.setData(timeArray, valueArray)
+            self.plotWidget.setLimits(xMin=timeArray[-1] - self.__seconds_in_view, xMax=timeArray[-1])
 
     @staticmethod
     def __create_pen_brush(color_choice=0, create_pen=True):
@@ -347,7 +350,8 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
         new_seconds_range = round(view_range_x[1] - view_range_x[0], 3)
         if self.enable_multi_plot:
             if self.is_read_only:
-                available_sensors = list(self.__MDG_init_props.initial_data_values.keys())
+                available_sensors = list(
+                    self.__MDG_init_props.initial_data_values.keys())
             else:
                 available_sensors = data.get_sensors(is_plottable=True,
                                                      is_connected=True)
