@@ -54,7 +54,6 @@ class DataCollection(DAATAScene, uiFile):
         self.__create_sensor_checkboxes()
         self.__update_sensor_count()
         self.__create_graph_dimension_combo_box()
-        self.__create_graphs()
         self.__active_sensor_count = 0
         self.__create_grid_plot_layout()
 
@@ -180,21 +179,10 @@ class DataCollection(DAATAScene, uiFile):
         self.graph_objects[key].plotWidget.getAxis('bottom').setTextPen('w')
         self.graph_objects[key].plotWidget.getAxis('bottom').setPen('w')
 
-    def __create_graphs(self):
-        """
-        Populates graph dictionary with graphs based on active sensors.
-
-        :return: None
-        """
-
-        for key in self.currentKeys:
-            self.__create_graph(key)
-            self.graph_objects[key].hide()
-
-            # connections to GridPlotLayout
-            widget = self.graph_objects[key]
-            widget.button_settings.clicked.connect(
-                partial(self.graph_objects[key].open_SettingsWindow))
+        # connections to GridPlotLayout
+        widget = self.graph_objects[key]
+        widget.button_settings.clicked.connect(
+            partial(self.graph_objects[key].open_SettingsWindow))
 
     def __slot_data_collecting_state_change(self):
         """
@@ -243,8 +231,8 @@ class DataCollection(DAATAScene, uiFile):
 
     def __slot_checkbox_state_change(self):
         """
-        Handles checkbox functionality after checking or unchecking events
-        and updates sensors and the grid plot accordingly.
+        Handles checkbox functionality after checking or unchecking sensors
+        and updates graphs and the grid plot accordingly.
 
         :return: None
         """
