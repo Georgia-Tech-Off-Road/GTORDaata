@@ -1,9 +1,10 @@
 from DataAcquisition import data
 from PyQt5 import QtCore, QtWidgets, uic
+from Utilities.Popups.generic_popup import GenericPopup
 from Utilities.general_constants import TIME_OPTION
 from dataclasses import dataclass
 from functools import partial
-from typing import List, Dict, Tuple
+from typing import List, Dict
 import os
 
 # loads the .ui file from QT Designer
@@ -13,12 +14,13 @@ uiSettingsDialog, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__),
 
 class PlotSettingsDialog(QtWidgets.QDialog, uiSettingsDialog):
     def __init__(self, parent, embedLayout, sensor_name,
-                 is_read_only: bool = False):
+                 is_read_only: bool = False, new_seconds_range: float = None):
         super().__init__()
         self.setupUi(self)
         self.parent = parent
         self.embedLayout = embedLayout
         self.sensor_name = sensor_name
+        self.new_seconds_range = new_seconds_range
         self.window().setWindowTitle(
             data.get_display_name(sensor_name) + " Plot Settings")
         self.connectSlotsSignals()
@@ -32,12 +34,12 @@ class PlotSettingsDialog(QtWidgets.QDialog, uiSettingsDialog):
 
     def __setup(self, is_read_only: bool = False):
         if is_read_only:
-            self.lineEdit_graph_width_seconds.hide()
-            self.label_secondsDisplayed.hide()
+            self.lineEdit_graph_width_seconds.setDisabled(True)
 
     def loadSettings(self):
         self.lineEdit_graph_width_seconds.setText(
-            str(self.parent.graph_width / self.parent.samplingFreq))
+            str(self.new_seconds_range) if self.new_seconds_range
+            else str(self.parent.seconds_in_view))
         self.lineEdit_yMin.setText(self.configFile.value("yMin"))
         self.lineEdit_yMax.setText(self.configFile.value("yMax"))
 
@@ -45,15 +47,32 @@ class PlotSettingsDialog(QtWidgets.QDialog, uiSettingsDialog):
         self.saveSettings()
         self.parent.set_yMinMax(self.configFile.value("yMin"),
                                 self.configFile.value("yMax"))
-        self.parent.set_graphWidth(self.configFile.value("graph_width"))
+        self.parent.set_graphWidth(self.configFile.value("seconds_in_view"))
         self.lineEdit_yMin.setText(self.configFile.value("yMin"))
         self.lineEdit_yMax.setText(self.configFile.value("yMax"))
+        self.close()
 
     def saveSettings(self):
-        self.configFile.setValue("graph_width",
-                                 self.lineEdit_graph_width_seconds.text())
-        self.configFile.setValue("yMin", self.lineEdit_yMin.text())
-        self.configFile.setValue("yMax", self.lineEdit_yMax.text())
+        def is_float_or_auto(string) -> bool:
+            try:
+                float(string)
+                return True
+            except ValueError:
+                return string == "auto"
+
+        input_width_seconds = self.lineEdit_graph_width_seconds.text()
+        input_yMin = self.lineEdit_yMin.text()
+        input_yMax = self.lineEdit_yMax.text()
+
+        if not (is_float_or_auto(input_width_seconds) and
+                is_float_or_auto(input_yMin) and
+                is_float_or_auto(input_yMax)):
+            GenericPopup("Value inputs must be floats or 'auto'")
+            return
+
+        self.configFile.setValue("seconds_in_view", input_width_seconds)
+        self.configFile.setValue("yMin", input_yMin)
+        self.configFile.setValue("yMax", input_yMax)
 
     # direction can be 'up','left','right','down'
     def sendMoveSignal(self, direction):
@@ -128,26 +147,25 @@ class PlotSettingsDialogMDG(QtWidgets.QDialog, uiSettingsDialogMDG):
         is_line_graph: bool
 
     def __init__(self, parent, embedLayout, x_sensor: str,
-                 y_sensors: List[str], is_line_graph: bool, read_only: bool,
-                 available_sensors: List[str]):
+                 y_sensors: List[str], is_line_graph: bool, is_read_only: bool,
+                 available_sensors: List[str], new_seconds_range: float = None):
         super().__init__()
         self.setupUi(self)
         self.parent = parent
         self.embedLayout = embedLayout
+        self.new_seconds_range = new_seconds_range
 
         multi_graph_name = parent.objectName()
         self.window().setWindowTitle(multi_graph_name + " Plot Settings")
         self.INIT_MDG_SETTINGS = self.InitMDGSettings(x_sensor, y_sensors[:],
                                                       is_line_graph)
         self.pending_plot_type_is_line = is_line_graph
-        self.READ_ONLY = read_only
+        self.READ_ONLY = is_read_only
         self.available_sensors: List[str] = available_sensors
 
         if self.READ_ONLY:
             if TIME_OPTION in self.available_sensors:
                 self.available_sensors.remove(TIME_OPTION)
-            self.lineEdit_graph_width_seconds.hide()
-            self.label_secondsDisplayed.hide()
         else:
             if self.parent.mdg_is_line_graph:
                 self.scatterOrLineBtn.setText("Scatter Plot")
@@ -169,6 +187,7 @@ class PlotSettingsDialogMDG(QtWidgets.QDialog, uiSettingsDialogMDG):
 
         self.__connectSlotsSignals()
         self.__reposition()
+        self.__setup(self.READ_ONLY)
 
         self.configFile = QtCore.QSettings('DAATA_plot', multi_graph_name)
         self.__loadSettings()
@@ -178,6 +197,10 @@ class PlotSettingsDialogMDG(QtWidgets.QDialog, uiSettingsDialogMDG):
         self.lineEdit_yMax.setText("auto")
 
         returnValue = self.exec()
+
+    def __setup(self, is_read_only: bool = False):
+        if is_read_only:
+            self.lineEdit_graph_width_seconds.setDisabled(True)
 
     def __addXSensorCheckboxes(self):
         """
@@ -285,8 +308,9 @@ class PlotSettingsDialogMDG(QtWidgets.QDialog, uiSettingsDialogMDG):
                     self.checked_x_key = key
 
     def __loadSettings(self):
-        self.lineEdit_graph_width_seconds.setText(str(
-            self.parent.graph_width / self.parent.samplingFreq))
+        self.lineEdit_graph_width_seconds.setText(
+            str(self.new_seconds_range) if self.new_seconds_range
+            else str(self.parent.seconds_in_view))
         self.lineEdit_yMin.setText(self.configFile.value("yMin"))
         self.lineEdit_yMax.setText(self.configFile.value("yMax"))
 
@@ -294,7 +318,7 @@ class PlotSettingsDialogMDG(QtWidgets.QDialog, uiSettingsDialogMDG):
         self.__saveSettings()
         self.parent.set_yMinMax(self.configFile.value("yMin"),
                                 self.configFile.value("yMax"))
-        self.parent.set_graphWidth(self.configFile.value("graph_width"))
+        self.parent.set_graphWidth(self.configFile.value("seconds_in_view"))
         self.lineEdit_yMin.setText(self.configFile.value("yMin"))
         self.lineEdit_yMax.setText(self.configFile.value("yMax"))
         self.parent.update_plot_type(self.pending_plot_type_is_line)
@@ -322,10 +346,26 @@ class PlotSettingsDialogMDG(QtWidgets.QDialog, uiSettingsDialogMDG):
                                           self.checked_y_keys)
 
     def __saveSettings(self):
-        self.configFile.setValue("graph_width",
-                                 self.lineEdit_graph_width_seconds.text())
-        self.configFile.setValue("yMin", self.lineEdit_yMin.text())
-        self.configFile.setValue("yMax", self.lineEdit_yMax.text())
+        def is_float_or_auto(string) -> bool:
+            try:
+                float(string)
+                return True
+            except ValueError:
+                return string == "auto"
+
+        input_width_seconds = self.lineEdit_graph_width_seconds.text()
+        input_yMin = self.lineEdit_yMin.text()
+        input_yMax = self.lineEdit_yMax.text()
+
+        if not (is_float_or_auto(input_width_seconds) and
+                is_float_or_auto(input_yMin) and
+                is_float_or_auto(input_yMax)):
+            GenericPopup("Value inputs must be floats or 'auto'")
+            return
+
+        self.configFile.setValue("seconds_in_view", input_width_seconds)
+        self.configFile.setValue("yMin", input_yMin)
+        self.configFile.setValue("yMax", input_yMax)
 
     def __sendMoveSignal(self, direction):
         # direction can be 'up','left','right','down'
@@ -402,8 +442,6 @@ class PlotSettingsDialogMDG(QtWidgets.QDialog, uiSettingsDialogMDG):
 
         self.button_resetYMax.clicked.connect(self.__resetYMax)
         self.button_resetYMin.clicked.connect(self.__resetYMin)
-
-        # for key in self.x_radio_objects:
 
     def closeEvent(self, e):
         self.parent.setStyleSheet(self.parent.stylesheetDefault)

@@ -2,7 +2,6 @@ from abc import ABCMeta, abstractmethod, abstractproperty
 import logging
 import math
 
-
 logger = logging.getLogger("DataAcquisition")
 
 
@@ -13,7 +12,8 @@ class DerivedSensor(metaclass=ABCMeta):
         self.unit = kwargs.get('unit')
         self.unit_short = kwargs.get('unit_short')
         self.is_plottable = kwargs.get('is_plottable', True)
-        self.is_external = kwargs.get('is_external', True)  # If it relies on external sensors consider it external
+        self.is_external = kwargs.get('is_external',
+                                      True)  # If it relies on external sensors consider it external
         self.is_derived = True
 
     @abstractmethod
@@ -66,7 +66,7 @@ derived_sensors = {
         'object': 'Torque',
         'sensors': ['force_enginedyno_lbs'],
         'display_name': "Dyno Torque",
-        'transfer_function': 8/12  # Since the lever arm is 8" away
+        'transfer_function': 8 / 12  # Since the lever arm is 8" away
     },
     'power_engine_horsepower': {
         'object': 'MechanicalPower',
@@ -76,7 +76,8 @@ derived_sensors = {
     'ratio_dyno_cvt': {
         'object': 'Ratio',
         'sensors': ['dyno_engine_speed', 'dyno_secondary_speed'],
-        'display_name': "Dyno CVT Ratio"  # dyno_engine_speed / dyno_secondary_speed
+        'display_name': "Dyno CVT Ratio"
+        # dyno_engine_speed / dyno_secondary_speed
     }
 }
 
@@ -94,7 +95,8 @@ class WheelSpeed(DerivedSensor):
         return self.secondary_speed.get_value(index) * self.gearbox_ratio
 
     def get_values(self, index, num_values):
-        return [value * self.gearbox_ratio for value in self.secondary_speed.get_values(index, num_values)]
+        return [value * self.gearbox_ratio for value in
+                self.secondary_speed.get_values(index, num_values)]
 
     @property
     def is_connected(self):
@@ -118,7 +120,8 @@ class CarSpeed(DerivedSensor):
         return self.secondary_speed.get_value(index) * self.transfer_function
 
     def get_values(self, index, num_values):
-        return [value * self.transfer_function for value in self.secondary_speed.get_values(index, num_values)]
+        return [value * self.transfer_function for value in
+                self.secondary_speed.get_values(index, num_values)]
 
     @property
     def is_connected(self):
@@ -142,7 +145,8 @@ class Torque(DerivedSensor):
         return self.force_lbs.get_value(index) * self.transfer_function
 
     def get_values(self, index, num_values):
-        return [value * self.transfer_function for value in self.force_lbs.get_values(index, num_values)]
+        return [value * self.transfer_function for value in
+                self.force_lbs.get_values(index, num_values)]
 
     @property
     def is_connected(self):
@@ -161,14 +165,17 @@ class MechanicalPower(DerivedSensor):
         self.unit_short = kwargs.get('unit', 'HP')
         self.torque_ftlbs = torque_ftlbs
         self.speed_rpm = speed_rpm
-        self.transfer_function = kwargs.get('transfer_function', 1/5252)  # HP = RPM * Torque / 5252
+        self.transfer_function = kwargs.get('transfer_function',
+                                            1 / 5252)  # HP = RPM * Torque / 5252
 
     def get_value(self, index):
-        return self.torque_ftlbs.get_value(index) * self.speed_rpm.get_value(index) * self.transfer_function
+        return self.torque_ftlbs.get_value(index) * self.speed_rpm.get_value(
+            index) * self.transfer_function
 
     def get_values(self, index, num_values):
         return [force * rpm * self.transfer_function for force, rpm in
-                zip(self.torque_ftlbs.get_values(index, num_values), self.speed_rpm.get_values(index, num_values))]
+                zip(self.torque_ftlbs.get_values(index, num_values),
+                    self.speed_rpm.get_values(index, num_values))]
 
     @property
     def is_connected(self):
@@ -194,16 +201,20 @@ class Ratio(DerivedSensor):
     def get_value(self, index):
         if self.output_speed_rpm.get_value(index) == 0:
             return self.DEFAULT_INF_VALUE
-        return self.input_speed_rpm.get_value(index) / self.output_speed_rpm.get_value(index) * self.transfer_function
+        return self.input_speed_rpm.get_value(
+            index) / self.output_speed_rpm.get_value(
+            index) * self.transfer_function
 
     def get_values(self, index, num_values):
         values = list()
-        for input_speed, output_speed in zip(self.input_speed_rpm.get_values(index, num_values),
-                                             self.output_speed_rpm.get_values(index, num_values)):
+        for input_speed, output_speed in zip(
+                self.input_speed_rpm.get_values(index, num_values),
+                self.output_speed_rpm.get_values(index, num_values)):
             if output_speed == 0:
                 values.append(10e6)
             else:
-                values.append(input_speed/output_speed * self.transfer_function)
+                values.append(
+                    input_speed / output_speed * self.transfer_function)
         return values
 
     @property
@@ -215,5 +226,3 @@ class Ratio(DerivedSensor):
         if self.output_speed_rpm.current_value == 0:
             return 10e6
         return self.input_speed_rpm.current_value / self.output_speed_rpm.current_value * self.transfer_function
-
-

@@ -20,16 +20,19 @@ uiPlotWidget, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__),
 
 
 class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
-    def __init__(self, sensor_name, parent=None,
+    def __init__(self, sensor_name: str, parent=None,
                  enable_scroll: Tuple[bool, bool] = (False, False),
-                 MDG_init_props: MDGInitProps = None, **kwargs):
+                 MDG_init_props: MDGInitProps = None,
+                 is_read_only: bool = False, **kwargs):
         super().__init__()
         self.setupUi(self)
         self.sensor_name = sensor_name
+        self.is_read_only = is_read_only
 
         pg.setConfigOption('foreground', 'w')
 
         self.enable_multi_plot = (MDG_init_props is not None)
+        self.setObjectName(str(sensor_name))
         if self.enable_multi_plot:
             self.__MDG_init_props: MDGInitProps = MDG_init_props
             self.setObjectName("MDG #" + str(sensor_name))
@@ -38,7 +41,7 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
             self.__mdg_x_sensor: str = MDG_init_props.x_sensor
             self.__mdg_y_sensors: List[str] = \
                 MDG_init_props.y_sensors if MDG_init_props.y_sensors[:] else []
-            if MDG_init_props.read_only:
+            if self.is_read_only:
                 self.INIT_SENSOR_VALUES: Dict[str, numpy.ndarray] = \
                     MDG_init_props.initial_data_values
                 # by default limits the max number of sensors plotted
@@ -76,10 +79,13 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
         self.plotWidget.showGrid(x=True, y=True, alpha=.2)
         self.plotWidget.setBackground("#343538")
 
-        # Number of value to show on the x_axis
-        self.samplingFreq = 200
-        self.graph_width = kwargs.get("graph_width_seconds", 10) \
-                           * self.samplingFreq
+        # aiming to get this as close to the real frequency
+        self.__seconds_in_view: float = kwargs.get("seconds_in_view", 10)
+
+        # Number of value to show on the x-axis
+        self.__sampling_freq = 57.9710144928  # Hz
+        self.__graph_width: int = int(
+            self.__seconds_in_view * self.__sampling_freq)
 
         # the layout object the plot is embedded within
         self.embedLayout = kwargs.get("layout", None)
@@ -92,21 +98,20 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
         self.rowSpan = kwargs.get("rowspan", 1)
         self.rowSpan = kwargs.get("columnspan", 1)
 
-        valueArray = numpy.zeros(self.graph_width)
+        valueArray = numpy.zeros(self.__graph_width)
 
+        self.plotWidget: pg.PlotWidget = self.plotWidget
         self.multi_plots: dict = dict()
         if self.enable_multi_plot:
             self.__create_multi_graphs()
         else:
-            self.plot = self.plotWidget.plot(valueArray,
-                                             name=data.get_display_name(
-                                                 self.sensor_name),
-                                             pen=pg.mkPen(color="#00ff00"),
-                                             width=1)
+            self.plot: pg.PlotDataItem = \
+                self.plotWidget.plot(valueArray, name=data.get_display_name(
+                    self.sensor_name), pen=pg.mkPen(color="#00ff00"), width=1)
 
         self.initialCounter = 0
 
-        self.configFile = QtCore.QSettings('DAATA_plot', self.sensor_name)
+        self.configFile = QtCore.QSettings('DAATA_plot', self.objectName())
         self.configFile.clear()
         self.loadStylesheet()
         self.loadSettings()
@@ -145,11 +150,14 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
         """
         self.setStyleSheet(self.stylesheetDefault)
 
-    def set_graphWidth(self, seconds):
+    def set_graphWidth(self, seconds: str):
         try:
-            self.graph_width = int(seconds) * self.samplingFreq
-        except Exception:
-            self.graph_width = 10 * self.samplingFreq
+            self.__seconds_in_view = float(seconds)
+            self.__graph_width = int(
+                self.__seconds_in_view * self.__sampling_freq)
+        except (ValueError, TypeError):
+            self.__graph_width = int(
+                self.__seconds_in_view * self.__sampling_freq)
 
     def set_yMinMax(self, yMin, yMax):
         self.plotWidget.setYRange(0, 100)
@@ -159,15 +167,18 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
             self.plotWidget.setLimits(yMax=int(yMax))
         if yMin != 'auto' and yMax == 'auto':
             self.plotWidget.setLimits(yMin=int(yMin))
-        if (yMin != 'auto') and (yMax != 'auto'):
+        if yMin != 'auto' and yMax != 'auto':
             # self.plotWidget.setLimits(yMin = int(yMin), yMax = int(yMax))
             # Set strict visible range
             self.plotWidget.setYRange(int(yMin), int(yMax), padding=0)
-        if (yMin == 'auto') and (yMax == 'auto'):
-            self.enable_autoRange(True)
+        if yMin == 'auto' and yMax == 'auto':
             self.plotWidget.setLimits(yMin=None, yMax=None)
+            self.enable_autoRange(True)
+            # self.plotWidget.enableAutoRange(axis='y')
+            # self.plotWidget.setAutoVisible(y=True)
 
     def enable_autoRange(self, enable=True):
+        self.plotWidget.setAutoVisible(y=True)
         self.plotWidget.enableAutoRange(enable)
 
     def set_height(self, height):
@@ -189,6 +200,10 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
                     self.INIT_SENSOR_VALUES[self.__mdg_x_sensor],
                     self.INIT_SENSOR_VALUES[sensor])
 
+    @property
+    def seconds_in_view(self) -> float:
+        return self.__seconds_in_view
+
     def update_graph(self):
         if self.enable_multi_plot:
             self.__update_multi_graphs()
@@ -197,9 +212,9 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
             index_sensor = data.get_most_recent_index(
                 sensor_name=self.sensor_name)
             valueArray = data.get_values(self.sensor_name, index_sensor,
-                                         self.graph_width)
+                                         self.__graph_width)
             timeArray = data.get_values("time_internal_seconds", index_time,
-                                        self.graph_width)
+                                        self.__graph_width)
             self.plot.setData(timeArray, valueArray)
 
     @staticmethod
@@ -230,6 +245,10 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
         else:
             return pg.mkBrush(color=COLORS[color_choice % len(COLORS)])
 
+    def update_graph_width(self, new_sampling_freq):
+        self.__sampling_freq = new_sampling_freq
+        self.__graph_width = int(self.__seconds_in_view * self.__sampling_freq)
+
     def __create_multi_graphs(self):
         # clears all plots listed made after x-y sensor selection changes
         self.multi_plots.clear()
@@ -239,7 +258,7 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
             bottom="Time (s)" if self.__mdg_x_sensor == TIME_OPTION else "",
             title=self.objectName())
 
-        valueArray = numpy.zeros(self.graph_width)
+        valueArray = numpy.zeros(self.__graph_width)
 
         if self.__mdg_is_line_graph:
             # creates the individual line plots on the graph and adds them to a
@@ -273,37 +292,36 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
                 index_time = data.get_most_recent_index()
                 index_sensor = data.get_most_recent_index(sensor_name=sensor)
                 valueArrayY = data.get_values(sensor, index_sensor,
-                                              self.graph_width)
+                                              self.__graph_width)
                 if self.__mdg_x_sensor == TIME_OPTION:
                     timeArray = data.get_values("time_internal_seconds",
-                                                index_time, self.graph_width)
+                                                index_time, self.__graph_width)
                     self.multi_plots[sensor].setData(timeArray, valueArrayY)
                 else:
                     index_sensorX = data.get_most_recent_index(
                         sensor_name=self.__mdg_x_sensor)
                     valueArrayX = data.get_values(self.__mdg_x_sensor,
                                                   index_sensorX,
-                                                  self.graph_width)
+                                                  self.__graph_width)
                     self.multi_plots[sensor].setData(valueArrayX, valueArrayY)
         else:
             for sensor_i, sensor in enumerate(self.__mdg_y_sensors):
                 index_time = data.get_most_recent_index()
                 index_sensor = data.get_most_recent_index(sensor_name=sensor)
                 valueArrayY = data.get_values(sensor, index_sensor,
-                                              self.graph_width)
+                                              self.__graph_width)
                 if self.__mdg_x_sensor == TIME_OPTION:
                     # get time values
                     timeArray = data.get_values("time_internal_seconds",
-                                                index_time, self.graph_width)
+                                                index_time, self.__graph_width)
                     # add points
-                    self.multi_plots[sensor].addPoints(timeArray,
-                                                       valueArrayY)
+                    self.multi_plots[sensor].setData(timeArray, valueArrayY)
                 else:
                     index_sensorX = data.get_most_recent_index(
                         sensor_name=self.__mdg_x_sensor)
                     valueArrayX = data.get_values(self.__mdg_x_sensor,
                                                   index_sensorX,
-                                                  self.graph_width)
+                                                  self.__graph_width)
                     self.multi_plots[sensor].addPoints(valueArrayX,
                                                        valueArrayY)
 
@@ -321,23 +339,28 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
         if y_sensors:
             self.__mdg_y_sensors = y_sensors
         self.__create_multi_graphs()
-        if self.__MDG_init_props.read_only:
+        if self.is_read_only:
             self.initialize_MDG_values()
 
     def open_SettingsWindow(self):
+        view_range_x = self.plotWidget.viewRange()[0]
+        new_seconds_range = round(view_range_x[1] - view_range_x[0], 3)
         if self.enable_multi_plot:
-            if self.__MDG_init_props.read_only:
-                available_sensors = self.__MDG_init_props.initial_data_values.keys()
+            if self.is_read_only:
+                available_sensors = list(self.__MDG_init_props.initial_data_values.keys())
             else:
                 available_sensors = data.get_sensors(is_plottable=True,
                                                      is_connected=True)
             PlotSettingsDialogMDG(self, self.embedLayout, self.__mdg_x_sensor,
                                   self.__mdg_y_sensors,
                                   self.__mdg_is_line_graph,
-                                  self.__MDG_init_props.read_only,
-                                  available_sensors)
+                                  self.is_read_only,
+                                  available_sensors,
+                                  new_seconds_range=new_seconds_range)
         else:
-            PlotSettingsDialog(self, self.embedLayout, self.sensor_name)
+            PlotSettingsDialog(self, self.embedLayout, self.sensor_name,
+                               new_seconds_range=new_seconds_range,
+                               is_read_only=self.is_read_only)
 
     def connectSignalSlots(self):
         self.button_settings.clicked.connect(
@@ -362,7 +385,12 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
         if yMax is None:
             self.configFile.setValue("yMax", "auto")
             yMax = "auto"
-        self.set_graphWidth(self.configFile.value("graph_width"))
+        saved_graph_seconds = self.configFile.value("seconds_in_view")
+        if saved_graph_seconds:
+            self.set_graphWidth(saved_graph_seconds)
+        else:
+            self.configFile.setValue("seconds_in_view",
+                                     str(self.__seconds_in_view))
 
         self.set_yMinMax(yMin, yMax)
 
