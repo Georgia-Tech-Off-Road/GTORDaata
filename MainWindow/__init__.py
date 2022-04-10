@@ -56,8 +56,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             target=DataAcquisition.read_data)
 
         # Attach the internal timer
-        data_import.attach_internal_sensor(101)
-        data_import.attach_output_sensor(9)        
+        data_import.attach_internal_sensor(101)  # Time
+        data_import.attach_output_sensor(9)      # SD Card write command
 
         # Set up all the elements of the UI
         self.setupUi(self)
