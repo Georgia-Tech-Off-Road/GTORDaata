@@ -212,7 +212,7 @@
            <string notr="true"/>
           </property>
           <property name="text">
-           <string>Start Displaying Data</string>
+           <string>Start Collecting Data</string>
           </property>
           <property name="checkable">
            <bool>true</bool>
