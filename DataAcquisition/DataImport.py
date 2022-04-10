@@ -26,10 +26,11 @@ class DataImport:
     to the Teensy.
     """
 
-    def __init__(self, data, lock, is_data_collecting):
+    def __init__(self, data, lock, is_data_collecting, stop_thread):
         self.data = data
         self.lock = lock
         self.is_data_collecting = is_data_collecting
+        self.stop_thread = stop_thread
         self.input_mode = ""
         self.data_file = None
 
@@ -120,7 +121,10 @@ class DataImport:
         """
 
         while self.teensy_ser != None or self.data_file != None:  # if there are bytes waiting in input buffer
-            if self.teensy_found:
+            if self.stop_thread.is_set():
+                # Application has been told to close
+                break
+            elif self.teensy_found:
                 try:
                     assert self.teensy_ser.in_waiting != 0
                     self.current_packet.append(self.teensy_ser.read(1))  # read in a single byte from COM

@@ -486,6 +486,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         :return: None
         """
 
+        if "COM" or "dev" in data_import.input_mode:            
+            data_import.teensy_ser.close()
+
         stop_thread.set()
         if self.data_sending_thread.isActive():
             self.data_sending_thread.stop()

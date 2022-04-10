@@ -18,7 +18,7 @@ data = Data(data_collection_lock)
 data.set_current_value("command_auxdaq_sdwrite", False)
 
 # This is the object that controls importing data
-data_import = DataImport(data, data_collection_lock, is_data_collecting)
+data_import = DataImport(data, data_collection_lock, is_data_collecting, stop_thread)
 
 
 def read_data():
@@ -44,7 +44,7 @@ def read_data():
             data_was_collecting = False
 
         if stop_thread.is_set():
-            sys.exit()
+            break
 
         if data_import.input_mode == "FAKE":
             data_import.check_connected_fake()
