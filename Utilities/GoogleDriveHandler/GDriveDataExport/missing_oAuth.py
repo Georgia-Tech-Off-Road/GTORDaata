@@ -1,4 +1,5 @@
 from PyQt5 import QtWidgets, uic
+from Utilities import general_constants
 import os
 
 # loads the .ui file from QT Designer
@@ -10,14 +11,29 @@ class MissingOAuthFile(QtWidgets.QDialog, uiFile):
     def __init__(self):
         super().__init__()
         self.__save_offline = False
-
         self.setupUi(self)
+        self.__setup()
         self.__connectSlotsSignals()
         self.exec()
+
+    def __setup(self):
+        self.alt_option.hide()
+        alt_option_text = f"You may also download the oAuth file " \
+                          f"<a href='https://drive.google.com/file/d/117yhiyV2BAZNxityj4la6J50FECaEPJB/view?usp=sharing'>" \
+                          f"here</a> and place it at <br />" \
+                          f"{general_constants.GDRIVE_OAUTH2_SECRET}"
+        self.alt_option.setText(alt_option_text)
 
     def __connectSlotsSignals(self):
         self.cancel_button.clicked.connect(self.__cancel_save)
         self.yes_button.clicked.connect(self.__ok_save)
+        self.more_options_btn.clicked.connect(self.__hide_show_alt_options)
+
+    def __hide_show_alt_options(self):
+        if self.alt_option.isVisible():
+            self.alt_option.hide()
+        else:
+            self.alt_option.show()
 
     def __ok_save(self):
         self.__save_offline = True
@@ -32,7 +48,6 @@ class MissingOAuthFile(QtWidgets.QDialog, uiFile):
 
     def closeEvent(self, event):
         event.accept()
-
 
 # from PyQt5.QtWidgets import QApplication
 # import sys

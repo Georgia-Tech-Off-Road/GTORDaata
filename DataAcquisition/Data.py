@@ -97,6 +97,8 @@ class Data:
             self.__data[sensor_name] = Gyro(**param_dict)
         if object_type == "Temperature":
             self.__data[sensor_name] = Temperature(**param_dict)
+        if object_type == "GPS":
+            self.__data[sensor_name] = GPS(**param_dict)
 
         # Derived Sensors
         if object_type == "WheelSpeed":
@@ -271,7 +273,12 @@ class Data:
             for sensor in sensors:
                 self.__data[sensor].reset()
 
-    # ---------------------------- Below are functions to only be used by GDriveDataImport ----------------------------
+    def reset_hard(self):
+        with self.lock:
+            self.__data["time_internal_seconds"].reset()
+        self.reset()
+
+    # ---------------------------- Below are functions to only be used by DataImport ----------------------------
     def set_connected(self, sensor_id):
         try:
             self.__data[SensorId[sensor_id]["name"]].is_connected = True

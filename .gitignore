@@ -10,7 +10,8 @@ workspace.xml
 vcs.xml
 misc.xml
 daata_v1_0.iml
-
+.idea/**
+**/.idea
 
 
 # User-specific stuff
@@ -19,6 +20,7 @@ daata_v1_0.iml
 .idea/**/usage.statistics.xml
 .idea/**/dictionaries
 .idea/**/shelf
+secret_oAuth_key.json
 
 # Generated files
 .idea/**/contentModel.xml
