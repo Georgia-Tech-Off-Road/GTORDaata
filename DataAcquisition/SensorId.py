@@ -649,6 +649,13 @@ SensorId = {
         "num_bytes": 4,
         "is_float": True
     },
+    312: {
+        "name": "loadcell_chassisstiffness_lbs",
+        "display_name": "Chassis Stiffness Force",
+        "object": "Force",
+        "num_bytes": 4,
+        "is_float": True
+    },
 
     # 400 - LDS SENSORS
     400: {
