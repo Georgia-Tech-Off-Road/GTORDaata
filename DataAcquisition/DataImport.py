@@ -1,6 +1,7 @@
 import sys
 import csv
 import os
+from unicodedata import decimal
 import serial
 from serial.serialutil import EIGHTBITS
 from serial.tools import list_ports
@@ -36,6 +37,8 @@ class DataImport:
         # Connect to the Teensy
         self.teensy_found = False
         self.teensy_ser = None
+        self.connect_timer = time.time()
+        self.teensy_countdown = 0
 
         # Variables that are used for reading/parsing incoming packets
         self.end_code = [b'\xff', b'\xff', b'\xff', b'\xff', b'\xff', b'\xff', b'\xff', b'\xf0']
@@ -108,8 +111,13 @@ class DataImport:
         except Exception as e:
             self.teensy_found = False
             logger.debug(logger.findCaller(True))
-            logger.error("Looking for Teensy...")
-            time.sleep(1)
+            time_diff = decimal(time.time()) - decimal(self.connect_timer)
+            if time_diff > 1:
+                logger.info("Looking for Teensy...{}".format(str(10 - self.teensy_countdown)))
+                self.teensy_countdown += 1
+                if self.teensy_countdown > 10:
+                    self.input_mode = ""
+            self.connect_timer = time.time()
 
     def read_packet(self):
         """
