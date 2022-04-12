@@ -61,7 +61,6 @@ def read_data():
                 try:                    
                     assert data_import.teensy_found
                     assert data_import.check_connected()
-                    data_import.teensy_ser.flushInput()
                 except AttributeError:
                     logger.warning(
                         "Unable to flush Serial Buffer. No Serial object connected")

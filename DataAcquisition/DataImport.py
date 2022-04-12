@@ -7,12 +7,13 @@ from serial.serialutil import EIGHTBITS
 from serial.tools import list_ports
 from serial.serialutil import SerialException
 from DataAcquisition.ComPortUtil import ListPortsDialog
-import time
+from time import time
 from datetime import datetime
 import logging
 import random
 import math
 import struct
+from decimal import Decimal
 
 from DataAcquisition.Data import Data
 from DataAcquisition.SensorId import SensorId
@@ -37,7 +38,7 @@ class DataImport:
         # Connect to the Teensy
         self.teensy_found = False
         self.teensy_ser = None
-        self.connect_timer = time.time()
+        self.connect_timer = time()
         self.teensy_countdown = 0
 
         # Variables that are used for reading/parsing incoming packets
@@ -108,16 +109,17 @@ class DataImport:
             self.teensy_ser.flushInput
             self.teensy_ser.flushOutput
             self.teensy_found = True
+            self.teensy_countdown = 0
         except Exception as e:
             self.teensy_found = False
             logger.debug(logger.findCaller(True))
-            time_diff = decimal(time.time()) - decimal(self.connect_timer)
-            if time_diff > 1:
+            time_diff = Decimal(time()) - Decimal(self.connect_timer)
+            if time_diff > 1.0:
                 logger.info("Looking for Teensy...{}".format(str(10 - self.teensy_countdown)))
                 self.teensy_countdown += 1
                 if self.teensy_countdown > 10:
                     self.input_mode = ""
-            self.connect_timer = time.time()
+                self.connect_timer = time()
 
     def read_packet(self):
         """
@@ -126,41 +128,35 @@ class DataImport:
 
         :return: None
         """
-
-        while self.teensy_ser != None or self.data_file != None:  # if there are bytes waiting in input buffer
-            if self.teensy_found:
-                try:
-                    assert self.teensy_ser.in_waiting != 0
-                    self.current_packet.append(self.teensy_ser.read(1))  # read in a single byte from COM
-                except AssertionError:
-                    pass
-                    # logger.debug("Input buffer is empty")
-                except TypeError:
-                    logger.info("Teensy has been disconnected, closing and attempting reopen")
-                    self.teensy_ser.close()
-                    self.connect_serial()
-                except Exception:
-                    logger.debug(logger.findCaller(True))
-            elif self.data_file != None and self.data_file.readable():                
-                byte = self.data_file.read(1)
-                if not byte:
-                    logger.info("Finished BIN file parsing")
-                    self.input_mode = ""
-                    break                
-                self.current_packet.append(byte)   # read in a single byte from file                
-            elif not self.teensy_found:
+        
+        if self.teensy_ser and self.teensy_found:
+            try:
+                assert self.teensy_ser.in_waiting != 0
+                self.current_packet.append(self.teensy_ser.read(1))  # read in a single byte from COM
+            except AssertionError:
+                pass # logger.debug("Input buffer is empty")
+            except TypeError:
+                logger.info("Teensy has been disconnected, closing and attempting reopen")
+                self.teensy_ser.close()
                 self.connect_serial()
-            else:
-                # We break if teensy is disconnected or if input buffer is empty
-                break            
-            # If end code is found then unpacketize and clear packet
-            packet_length = len(self.current_packet)
-            if packet_length > 8 and self.current_packet[(packet_length - 8):(packet_length)] == self.end_code:  
-                self.packet_count += 1
-                logger.debug("Packet count: {}".format(self.packet_count))
-                self.current_packet = self.current_packet[0:(packet_length - 8)]                    
-                self.unpacketize()
-                self.current_packet.clear()                    
+            except Exception:
+                logger.debug(logger.findCaller(True))
+        elif self.data_file and self.data_file.readable():                
+            byte = self.data_file.read(1)
+            if not byte:
+                logger.info("Finished BIN file parsing")
+                self.input_mode = ""                                    
+            self.current_packet.append(byte)   # read in a single byte from file                
+        elif not self.teensy_found:
+            self.connect_serial()           
+        # If end code is found then unpacketize and clear packet
+        packet_length = len(self.current_packet)
+        if packet_length > 8 and self.current_packet[(packet_length - 8):(packet_length)] == self.end_code:  
+            self.packet_count += 1
+            logger.debug("Packet count: {}".format(self.packet_count))
+            self.current_packet = self.current_packet[0:(packet_length - 8)]                    
+            self.unpacketize()
+            self.current_packet.clear()                    
     
     def open_bin_file(self, dir):
         """
