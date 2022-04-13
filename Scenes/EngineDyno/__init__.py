@@ -89,12 +89,14 @@ class EngineDyno(DAATAScene, uiFile):
             self.collection_start_time = datetime.now()
             self.indicator_onOrOff.setText("On")
             self.indicator_onOrOff.setStyleSheet("color: green;")
+            self.button_display.setStyleSheet("background-color: '#32CD32';")
             self.button_display.setText("Stop Collecting Data")
             self.is_data_collecting.set()
         else:
             self.indicator_onOrOff.setText("Off")
             self.indicator_onOrOff.setStyleSheet("color: red;")
             self.button_display.setText("Start Collecting Data")
+            self.button_display.setStyleSheet("background-color: red;")
             self.is_data_collecting.clear()
             self.popup_dataSaveLocation("EngineDynoTest",
                                         self.collection_start_time)

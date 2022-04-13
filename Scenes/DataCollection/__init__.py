@@ -198,12 +198,14 @@ class DataCollection(DAATAScene, uiFile):
             self.indicator_onOrOff.setText("On")
             self.indicator_onOrOff.setStyleSheet("color: green;")
             self.button_display.setText("Stop Collecting Data")
+            self.button_display.setStyleSheet("background-color: '#32CD32';")
             self.is_data_collecting.set()
         else:
             self.indicator_onOrOff.setText("Off")
             self.indicator_onOrOff.setStyleSheet("color: red;")
             self.button_display.setText("Start Collecting Data")
             self.is_data_collecting.clear()
+            self.button_display.setStyleSheet("background-color:red;")
             self.popup_dataSaveLocation("DataCollection",
                                         self.collection_start_time)
             self.is_data_collecting.set()
