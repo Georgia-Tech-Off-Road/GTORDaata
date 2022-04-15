@@ -39,6 +39,7 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
             self.__mdg_x_sensor: str = ""
             self.__mdg_y_sensors: List[str] = []
             self.__INIT_SENSOR_VALUES: Dict[str, numpy.ndarray] = dict()
+            self.__mdg_is_line_graph: bool = True
 
         # aiming to get this as close to the real frequency
         self.__seconds_in_view: float = kwargs.get("seconds_in_view", 10)
@@ -55,7 +56,7 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
         self.__rowSpan = kwargs.get("rowspan", 1)
         self.__rowSpan = kwargs.get("columnspan", 1)
         # self.plotWidget used in plot_settings.py
-        self.plotWidget: pg.PlotDataItem = self.plotWidget
+        self.plotWidget: pg.PlotWidget = self.plotWidget
         self.__multi_plots: dict = dict()
 
         self.__setup(sensor_name, enable_scroll, MDG_init_props)
@@ -242,7 +243,7 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
         the color_choice input integer. Colors should be colorblind-friendly
         :param color_choice: an integer to choose which color, value will be
         reduced modulated (%) to the number of possible colors
-        :param create_pen: True if you want to return a pen object, False if
+        :param create_pen: True if you want to return a pen object, False if you
         want a brush
         :return: A brush or a pen depending on create_pen.
         """
@@ -384,6 +385,17 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
 
     def toggle_pause_state(self):
         self.__is_paused = not self.__is_paused
+        if self.__is_paused:
+            self.plotWidget.setLimits(xMin=None, xMax=None)
+        else:
+            if self.__enable_multi_plot:
+                last_index = data.get_most_recent_index(self.__mdg_x_sensor)
+                last_x = data.get_value(self.__mdg_x_sensor, last_index)
+            else:
+                last_index = data.get_most_recent_index()
+                last_x = data.get_value("time_internal_seconds", last_index)
+            self.plotWidget.setLimits(xMin=last_x - self.__seconds_in_view,
+                                      xMax=last_x)
 
     def connectSignalSlots(self):
         self.button_settings.clicked.connect(
