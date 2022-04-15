@@ -26,44 +26,61 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
                  is_read_only: bool = False, **kwargs):
         super().__init__()
         self.setupUi(self)
+
+        # local variables instantiation
         self.sensor_name = sensor_name
-        self.is_read_only = is_read_only
+        self.__is_read_only = is_read_only
+        self.__enable_multi_plot = (MDG_init_props is not None)
 
+        # MDG-only props
+        self.__MDG_init_props: MDGInitProps = None
+        self.__mdg_x_sensor: str = ""
+        self.__mdg_y_sensors: List[str] = []
+        self.__INIT_SENSOR_VALUES: Dict[str, numpy.ndarray] = dict()
+
+        # aiming to get this as close to the real frequency
+        self.__seconds_in_view: float = kwargs.get("seconds_in_view", 10)
+        # Number of value to show on the x-axis
+        self.__sampling_freq = 57.9710144928  # Hz, updated passively
+        self.__graph_width: int = int(
+            self.__seconds_in_view * self.__sampling_freq)
+        # the layout object the plot is embedded within
+        self.embedLayout = kwargs.get("layout", None)
+        # Frequency of values to show (if set to 5 will show every 5th value
+        # collected)
+        self.__show_width = kwargs.get("show_width", 5)
+        # Row and column span of plot on the grid
+        self.__rowSpan = kwargs.get("rowspan", 1)
+        self.__rowSpan = kwargs.get("columnspan", 1)
+        self.plotWidget: pg.PlotDataItem = self.plotWidget
+        self.__multi_plots: dict = dict()
+
+        self.__setup(sensor_name, enable_scroll, MDG_init_props)
+
+        self.configFile = QtCore.QSettings('DAATA_plot', self.objectName())
+        self.configFile.clear()
+        self.loadStylesheet()
+        self.loadSettings()
+
+    def __setup(self, sensor_name: str,
+                enable_scroll: Tuple[bool, bool] = (False, False),
+                MDG_init_props: MDGInitProps = None):
         pg.setConfigOption('foreground', 'w')
-
-        self.enable_multi_plot = (MDG_init_props is not None)
         self.setObjectName(str(sensor_name))
-        if self.enable_multi_plot:
-            self.__MDG_init_props: MDGInitProps = MDG_init_props
+
+        if self.__enable_multi_plot:
+            self.__MDG_init_props = MDG_init_props
             self.setObjectName("MDG #" + str(sensor_name))
             self.__mdg_is_line_graph = MDG_init_props.is_line_graph
             # sets the current x and y sensors plotted on the graph
             self.__mdg_x_sensor: str = MDG_init_props.x_sensor
             self.__mdg_y_sensors: List[str] = \
                 MDG_init_props.y_sensors if MDG_init_props.y_sensors[:] else []
-            if self.is_read_only:
-                self.INIT_SENSOR_VALUES: Dict[str, numpy.ndarray] = \
+            if self.__is_read_only:
+                self.__INIT_SENSOR_VALUES: Dict[str, numpy.ndarray] = \
                     MDG_init_props.initial_data_values
                 # by default limits the max number of sensors plotted
                 self.__mdg_y_sensors = self.__mdg_y_sensors[:5]
-
-        self.setMinimumSize(QtCore.QSize(200, 200))
-        self.setMaximumSize(QtCore.QSize(16777215, 400))
-
-        sizePolicy = QtWidgets.QSizePolicy(
-            QtWidgets.QSizePolicy.MinimumExpanding,
-            QtWidgets.QSizePolicy.MinimumExpanding)
-        sizePolicy.setVerticalStretch(4)
-        sizePolicy.setHorizontalStretch(4)
-        self.setSizePolicy(sizePolicy)
-
-        # disable mouse-scroll zooming on the graph
-        self.plotWidget.setMouseEnabled(enable_scroll[0], enable_scroll[1])
-
-        # adds a legend describing what each line represents based on the 'name'
-        self.plotWidget.addLegend()
-
-        if self.enable_multi_plot:
             # set title and axes
             self.plotWidget.setLabels(
                 bottom="Time (s)" if self.__mdg_x_sensor == TIME_OPTION else "",
@@ -76,45 +93,31 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
                 bottom="Time (s)",
                 title=f"{str(data.get_display_name(sensor_name))} Graph")
 
+        self.setMinimumSize(QtCore.QSize(200, 200))
+        self.setMaximumSize(QtCore.QSize(16777215, 400))
+
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.MinimumExpanding,
+            QtWidgets.QSizePolicy.MinimumExpanding)
+        sizePolicy.setVerticalStretch(4)
+        sizePolicy.setHorizontalStretch(4)
+        self.setSizePolicy(sizePolicy)
+
+        self.plotWidget.setMouseEnabled(enable_scroll[0], enable_scroll[1])
+
+        # adds a legend describing what each line represents based on the 'name'
+        self.plotWidget.addLegend()
+
         self.plotWidget.showGrid(x=True, y=True, alpha=.2)
-        self.plotWidget.setBackground("#343538")
+        self.plotWidget.setBackground("#343538")  # dark gray
 
-        # aiming to get this as close to the real frequency
-        self.__seconds_in_view: float = kwargs.get("seconds_in_view", 10)
-
-        # Number of value to show on the x-axis
-        self.__sampling_freq = 57.9710144928  # Hz
-        self.__graph_width: int = int(
-            self.__seconds_in_view * self.__sampling_freq)
-
-        # the layout object the plot is embedded within
-        self.embedLayout = kwargs.get("layout", None)
-
-        # Frequency of values to show (if set to 5 will show every 5th value
-        # collected)
-        self.show_width = kwargs.get("show_width", 5)
-
-        # Row and column span of plot on the grid
-        self.rowSpan = kwargs.get("rowspan", 1)
-        self.rowSpan = kwargs.get("columnspan", 1)
-
-        valueArray = numpy.zeros(self.__graph_width)
-
-        self.plotWidget: pg.PlotDataItem = self.plotWidget
-        self.multi_plots: dict = dict()
-        if self.enable_multi_plot:
+        if self.__enable_multi_plot:
             self.__create_multi_graphs()
         else:
+            valueArray = numpy.zeros(self.__graph_width)
             self.plot: pg.PlotDataItem = \
                 self.plotWidget.plot(valueArray, name=data.get_display_name(
                     self.sensor_name), pen=pg.mkPen(color="#00ff00"), width=1)
-
-        self.initialCounter = 0
-
-        self.configFile = QtCore.QSettings('DAATA_plot', self.objectName())
-        self.configFile.clear()
-        self.loadStylesheet()
-        self.loadSettings()
 
     def loadStylesheet(self):
         self.stylesheetDefault = """
@@ -191,14 +194,14 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
     def initialize_MDG_values(self):
         if self.__mdg_is_line_graph:
             for sensor in self.__mdg_y_sensors:
-                self.multi_plots[sensor].setData(
-                    self.INIT_SENSOR_VALUES[self.__mdg_x_sensor],
-                    self.INIT_SENSOR_VALUES[sensor])
+                self.__multi_plots[sensor].setData(
+                    self.__INIT_SENSOR_VALUES[self.__mdg_x_sensor],
+                    self.__INIT_SENSOR_VALUES[sensor])
         else:
             for sensor in self.__mdg_y_sensors:
-                self.multi_plots[sensor].addPoints(
-                    self.INIT_SENSOR_VALUES[self.__mdg_x_sensor],
-                    self.INIT_SENSOR_VALUES[sensor])
+                self.__multi_plots[sensor].addPoints(
+                    self.__INIT_SENSOR_VALUES[self.__mdg_x_sensor],
+                    self.__INIT_SENSOR_VALUES[sensor])
 
     @property
     def seconds_in_view(self) -> float:
@@ -206,7 +209,7 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
         return self.__seconds_in_view
 
     def update_graph(self):
-        if self.enable_multi_plot:
+        if self.__enable_multi_plot:
             self.__update_multi_graphs()
         else:
             index_time = data.get_most_recent_index()
@@ -218,7 +221,8 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
             timeArray = data.get_values("time_internal_seconds", index_time,
                                         index_time + 1)
             self.plot.setData(timeArray, valueArray)
-            self.plotWidget.setLimits(xMin=timeArray[-1] - self.__seconds_in_view, xMax=timeArray[-1])
+            self.plotWidget.setLimits(
+                xMin=timeArray[-1] - self.__seconds_in_view, xMax=timeArray[-1])
 
     @staticmethod
     def __create_pen_brush(color_choice=0, create_pen=True):
@@ -254,7 +258,7 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
 
     def __create_multi_graphs(self):
         # clears all plots listed made after x-y sensor selection changes
-        self.multi_plots.clear()
+        self.__multi_plots.clear()
 
         # set title and axes
         self.plotWidget.setLabels(
@@ -272,7 +276,7 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
                                             name=data.get_display_name(sensor),
                                             pen=pen,
                                             width=1)
-                self.multi_plots[sensor] = plot
+                self.__multi_plots[sensor] = plot
         else:
             # creates the individual line plots on the graph and adds them to a
             # list
@@ -282,11 +286,11 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
                                              name=data.get_display_name(sensor),
                                              brush=brush)
                 self.plotWidget.addItem(scatter)
-                self.multi_plots[sensor] = scatter
+                self.__multi_plots[sensor] = scatter
 
     def __update_multi_graphs(self) -> None:
         """
-        Updates all line plots contained in list self.multi_plots according to
+        Updates all line plots contained in list self.__multi_plots according to
         which x-y sensors are selected
         :return: None
         """
@@ -299,14 +303,14 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
                 if self.__mdg_x_sensor == TIME_OPTION:
                     timeArray = data.get_values("time_internal_seconds",
                                                 index_time, self.__graph_width)
-                    self.multi_plots[sensor].setData(timeArray, valueArrayY)
+                    self.__multi_plots[sensor].setData(timeArray, valueArrayY)
                 else:
                     index_sensorX = data.get_most_recent_index(
                         sensor_name=self.__mdg_x_sensor)
                     valueArrayX = data.get_values(self.__mdg_x_sensor,
                                                   index_sensorX,
                                                   self.__graph_width)
-                    self.multi_plots[sensor].setData(valueArrayX, valueArrayY)
+                    self.__multi_plots[sensor].setData(valueArrayX, valueArrayY)
         else:
             for sensor_i, sensor in enumerate(self.__mdg_y_sensors):
                 index_time = data.get_most_recent_index()
@@ -318,15 +322,15 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
                     timeArray = data.get_values("time_internal_seconds",
                                                 index_time, self.__graph_width)
                     # add points
-                    self.multi_plots[sensor].setData(timeArray, valueArrayY)
+                    self.__multi_plots[sensor].setData(timeArray, valueArrayY)
                 else:
                     index_sensorX = data.get_most_recent_index(
                         sensor_name=self.__mdg_x_sensor)
                     valueArrayX = data.get_values(self.__mdg_x_sensor,
                                                   index_sensorX,
                                                   self.__graph_width)
-                    self.multi_plots[sensor].addPoints(valueArrayX,
-                                                       valueArrayY)
+                    self.__multi_plots[sensor].addPoints(valueArrayX,
+                                                         valueArrayY)
 
     def update_xy_sensors(self, x_sensor: str = "",
                           y_sensors: List[str] = None) -> None:
@@ -342,14 +346,14 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
         if y_sensors:
             self.__mdg_y_sensors = y_sensors
         self.__create_multi_graphs()
-        if self.is_read_only:
+        if self.__is_read_only:
             self.initialize_MDG_values()
 
     def open_SettingsWindow(self):
         view_range_x = self.plotWidget.viewRange()[0]
         new_seconds_range = round(view_range_x[1] - view_range_x[0], 3)
-        if self.enable_multi_plot:
-            if self.is_read_only:
+        if self.__enable_multi_plot:
+            if self.__is_read_only:
                 available_sensors = list(
                     self.__MDG_init_props.initial_data_values.keys())
             else:
@@ -358,13 +362,17 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
             PlotSettingsDialogMDG(self, self.embedLayout, self.__mdg_x_sensor,
                                   self.__mdg_y_sensors,
                                   self.__mdg_is_line_graph,
-                                  self.is_read_only,
+                                  self.__is_read_only,
                                   available_sensors,
                                   new_seconds_range=new_seconds_range)
         else:
             PlotSettingsDialog(self, self.embedLayout, self.sensor_name,
                                new_seconds_range=new_seconds_range,
-                               is_read_only=self.is_read_only)
+                               is_read_only=self.__is_read_only)
+
+    def __freeze_graph(self):
+
+        raise NotImplementedError
 
     def connectSignalSlots(self):
         self.button_settings.clicked.connect(
