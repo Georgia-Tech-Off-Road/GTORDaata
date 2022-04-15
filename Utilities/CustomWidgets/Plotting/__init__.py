@@ -31,12 +31,14 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
         self.sensor_name = sensor_name
         self.__is_read_only = is_read_only
         self.__enable_multi_plot = (MDG_init_props is not None)
+        self.__is_paused: bool = False
 
         # MDG-only props
-        self.__MDG_init_props: MDGInitProps = None
-        self.__mdg_x_sensor: str = ""
-        self.__mdg_y_sensors: List[str] = []
-        self.__INIT_SENSOR_VALUES: Dict[str, numpy.ndarray] = dict()
+        if self.__enable_multi_plot:
+            self.__MDG_init_props: MDGInitProps = MDGInitProps()
+            self.__mdg_x_sensor: str = ""
+            self.__mdg_y_sensors: List[str] = []
+            self.__INIT_SENSOR_VALUES: Dict[str, numpy.ndarray] = dict()
 
         # aiming to get this as close to the real frequency
         self.__seconds_in_view: float = kwargs.get("seconds_in_view", 10)
@@ -52,6 +54,7 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
         # Row and column span of plot on the grid
         self.__rowSpan = kwargs.get("rowspan", 1)
         self.__rowSpan = kwargs.get("columnspan", 1)
+        # self.plotWidget used in plot_settings.py
         self.plotWidget: pg.PlotDataItem = self.plotWidget
         self.__multi_plots: dict = dict()
 
@@ -59,8 +62,8 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
 
         self.configFile = QtCore.QSettings('DAATA_plot', self.objectName())
         self.configFile.clear()
-        self.loadStylesheet()
-        self.loadSettings()
+        self.__loadStylesheet()
+        self.__loadSettings()
 
     def __setup(self, sensor_name: str,
                 enable_scroll: Tuple[bool, bool] = (False, False),
@@ -119,7 +122,12 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
                 self.plotWidget.plot(valueArray, name=data.get_display_name(
                     self.sensor_name), pen=pg.mkPen(color="#00ff00"), width=1)
 
-    def loadStylesheet(self):
+        self.plotWidget.getAxis('left').setTextPen('w')
+        self.plotWidget.getAxis('left').setPen('w')
+        self.plotWidget.getAxis('bottom').setTextPen('w')
+        self.plotWidget.getAxis('bottom').setPen('w')
+
+    def __loadStylesheet(self):
         self.stylesheetDefault = """
         CustomPlotWidget {
         background-color: #343538;
@@ -154,6 +162,7 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
         self.setStyleSheet(self.stylesheetDefault)
 
     def set_graphWidth(self, seconds: str):
+        # used in plot_settings.py
         try:
             self.__seconds_in_view = float(seconds)
             self.__graph_width = int(
@@ -163,6 +172,7 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
                 self.__seconds_in_view * self.__sampling_freq)
 
     def set_yMinMax(self, yMin, yMax):
+        # used in plot_settings.py
         self.plotWidget.setYRange(0, 100)
         self.enable_autoRange(True)
         self.plotWidget.setLimits(yMin=None, yMax=None)
@@ -181,6 +191,7 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
             # self.plotWidget.setAutoVisible(y=True)
 
     def enable_autoRange(self, enable=True):
+        # used in plot_settings.py
         self.plotWidget.setAutoVisible(y=True)
         self.plotWidget.enableAutoRange(enable)
 
@@ -341,6 +352,7 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
         :param y_sensors: y-sensors to be plotted together
         :return: None
         """
+        # used in plot_settings.py
         if x_sensor:
             self.__mdg_x_sensor = x_sensor
         if y_sensors:
@@ -370,9 +382,8 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
                                new_seconds_range=new_seconds_range,
                                is_read_only=self.__is_read_only)
 
-    def __freeze_graph(self):
-
-        raise NotImplementedError
+    def freeze_graph(self):
+        self.__is_paused = True
 
     def connectSignalSlots(self):
         self.button_settings.clicked.connect(
@@ -380,15 +391,21 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
 
     @property
     def mdg_is_line_graph(self) -> bool:
+        # used in plot_settings.py
         return self.__mdg_is_line_graph
 
+    @property
+    def is_paused(self) -> bool:
+        return self.__is_paused
+
     def update_plot_type(self, is_line_plot: bool):
+        # used in plot_settings.py
         self.__mdg_is_line_graph = is_line_plot
 
-    def saveSettings(self):
+    def __saveSettings(self):
         pass
 
-    def loadSettings(self):
+    def __loadSettings(self):
         yMin = self.configFile.value("yMin")
         yMax = self.configFile.value("yMax")
         if yMin is None:

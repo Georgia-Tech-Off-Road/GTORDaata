@@ -174,15 +174,11 @@ class DataCollection(DAATAScene, uiFile):
                              layout=self.gridPlotLayout,
                              graph_width_seconds=8,
                              enable_scroll=(True, False))
-        self.graph_objects[key].plotWidget.getAxis('left').setTextPen('w')
-        self.graph_objects[key].plotWidget.getAxis('left').setPen('w')
-        self.graph_objects[key].plotWidget.getAxis('bottom').setTextPen('w')
-        self.graph_objects[key].plotWidget.getAxis('bottom').setPen('w')
 
         # connections to GridPlotLayout
-        widget = self.graph_objects[key]
-        widget.button_settings.clicked.connect(
-            partial(self.graph_objects[key].open_SettingsWindow))
+        graph = self.graph_objects[key]
+        graph.button_settings.clicked.connect(graph.open_SettingsWindow)
+        graph.pause_button.clicked.connect(graph.freeze_graph)
 
     def __slot_data_collecting_state_change(self):
         """
@@ -282,7 +278,7 @@ class DataCollection(DAATAScene, uiFile):
         :return: None
         """
         for graph in self.graph_objects.values():
-            if graph.isVisible():
+            if graph.isVisible() and not graph.is_paused:
                 graph.update_graph()
 
     def __update_time_elapsed(self):

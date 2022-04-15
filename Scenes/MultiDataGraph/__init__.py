@@ -128,10 +128,6 @@ class MultiDataGraph(DAATAScene, uiFile):
                                                    graph_width_seconds=8,
                                                    enable_scroll=(True, False),
                                                    MDG_init_props=MDG_initial_props)
-        self.graph_objects[key].plotWidget.getAxis('left').setTextPen('w')
-        self.graph_objects[key].plotWidget.getAxis('left').setPen('w')
-        self.graph_objects[key].plotWidget.getAxis('bottom').setTextPen('w')
-        self.graph_objects[key].plotWidget.getAxis('bottom').setPen('w')
         # activate settings button
         widget = self.graph_objects[key]
         widget.button_settings.clicked.connect(
