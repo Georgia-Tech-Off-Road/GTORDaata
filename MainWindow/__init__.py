@@ -300,6 +300,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         new_ports = self.enumerate_serial_ports()
         prev_ports = list(self.dict_ports.keys())
         if prev_ports != new_ports:
+            self.dict_ports.clear()
             for portName in new_ports:
                 self.dict_ports[portName] = None
             self.update_comMenu()

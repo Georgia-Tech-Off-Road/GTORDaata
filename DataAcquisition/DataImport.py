@@ -103,6 +103,7 @@ class DataImport:
             self.is_receiving_data = False
             self.is_sending_data = False
             self.teensy_port = self.input_mode
+            print(self.input_mode)
             self.teensy_ser = serial.Serial(baudrate=230400, port=self.teensy_port, timeout=2,
                                             write_timeout=1)
             logger.info("Teensy found on port {}".format(self.teensy_ser.port))            
@@ -139,6 +140,7 @@ class DataImport:
                 logger.info("Teensy has been disconnected, closing and attempting reopen")
                 self.teensy_ser.close()
                 self.connect_serial()
+                print("HELLO")
             except Exception:
                 logger.debug(logger.findCaller(True))
         elif self.data_file and self.data_file.readable():                
