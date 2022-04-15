@@ -158,10 +158,10 @@
      <widget class="QPushButton" name="button_settings">
       <property name="geometry">
        <rect>
-        <x>2</x>
+        <x>0</x>
         <y>0</y>
-        <width>20</width>
-        <height>20</height>
+        <width>30</width>
+        <height>30</height>
        </rect>
       </property>
       <property name="sizePolicy">
@@ -179,8 +179,8 @@
       </property>
       <property name="iconSize">
        <size>
-        <width>20</width>
-        <height>20</height>
+        <width>30</width>
+        <height>30</height>
        </size>
       </property>
       <property name="flat">
@@ -190,10 +190,10 @@
      <widget class="QPushButton" name="pause_button">
       <property name="geometry">
        <rect>
-        <x>490</x>
+        <x>40</x>
         <y>0</y>
-        <width>20</width>
-        <height>20</height>
+        <width>30</width>
+        <height>30</height>
        </rect>
       </property>
       <property name="sizePolicy">
@@ -211,8 +211,8 @@
       </property>
       <property name="iconSize">
        <size>
-        <width>20</width>
-        <height>20</height>
+        <width>30</width>
+        <height>30</height>
        </size>
       </property>
       <property name="flat">

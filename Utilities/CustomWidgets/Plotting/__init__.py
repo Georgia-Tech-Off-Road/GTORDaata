@@ -60,8 +60,8 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
 
         self.__setup(sensor_name, enable_scroll, MDG_init_props)
 
-        self.configFile = QtCore.QSettings('DAATA_plot', self.objectName())
-        self.configFile.clear()
+        self.__configFile = QtCore.QSettings('DAATA_plot', self.objectName())
+        self.__configFile.clear()
         self.__loadStylesheet()
         self.__loadSettings()
 
@@ -382,8 +382,8 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
                                new_seconds_range=new_seconds_range,
                                is_read_only=self.__is_read_only)
 
-    def freeze_graph(self):
-        self.__is_paused = True
+    def toggle_pause_state(self):
+        self.__is_paused = not self.__is_paused
 
     def connectSignalSlots(self):
         self.button_settings.clicked.connect(
@@ -406,20 +406,20 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
         pass
 
     def __loadSettings(self):
-        yMin = self.configFile.value("yMin")
-        yMax = self.configFile.value("yMax")
+        yMin = self.__configFile.value("yMin")
+        yMax = self.__configFile.value("yMax")
         if yMin is None:
-            self.configFile.setValue("yMin", "auto")
+            self.__configFile.setValue("yMin", "auto")
             yMin = "auto"
         if yMax is None:
-            self.configFile.setValue("yMax", "auto")
+            self.__configFile.setValue("yMax", "auto")
             yMax = "auto"
-        saved_graph_seconds = self.configFile.value("seconds_in_view")
+        saved_graph_seconds = self.__configFile.value("seconds_in_view")
         if saved_graph_seconds:
             self.set_graphWidth(saved_graph_seconds)
         else:
-            self.configFile.setValue("seconds_in_view",
-                                     str(self.__seconds_in_view))
+            self.__configFile.setValue("seconds_in_view",
+                                       str(self.__seconds_in_view))
 
         self.set_yMinMax(yMin, yMax)
 

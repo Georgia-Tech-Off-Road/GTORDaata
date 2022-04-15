@@ -178,7 +178,7 @@ class DataCollection(DAATAScene, uiFile):
         # connections to GridPlotLayout
         graph = self.graph_objects[key]
         graph.button_settings.clicked.connect(graph.open_SettingsWindow)
-        graph.pause_button.clicked.connect(graph.freeze_graph)
+        graph.pause_button.clicked.connect(graph.toggle_pause_state)
 
     def __slot_data_collecting_state_change(self):
         """
