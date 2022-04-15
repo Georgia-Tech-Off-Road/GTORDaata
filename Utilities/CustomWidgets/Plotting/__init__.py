@@ -57,7 +57,7 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
         self.__rowSpan = kwargs.get("columnspan", 1)
         # self.plotWidget used in plot_settings.py
         self.plotWidget: pg.PlotWidget = self.plotWidget
-        self.__multi_plots: dict = dict()
+        self.__multi_plots: dict[str: pg.PlotDataItem] = dict()
 
         self.__setup(sensor_name, enable_scroll, MDG_init_props)
 
@@ -349,10 +349,11 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
         """
         Updates the current plotted x- and y-sensors, if provided. Then, clears
         all current plots for new data collection.
-        :param x_sensor: x-sensor to be plotted
-        :param y_sensors: y-sensors to be plotted together
+        :param: x_sensor: x-sensor to be plotted
+        :param: y_sensors: y-sensors to be plotted together
         :return: None
         """
+
         # used in plot_settings.py
         if x_sensor:
             self.__mdg_x_sensor = x_sensor
