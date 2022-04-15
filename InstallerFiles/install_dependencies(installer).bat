@@ -1,17 +1,17 @@
-pip install --upgrade pip
-pip install PyQt5
-pip install pyqtgraph
-pip install pywin32
-pip install pyserial
-pip install scipy
-pip install datetime
-pip install xlwt
-pip install PySerial
-pip install matplotlib
-pip install pywin32
-pip install func_timeout
-pip install typing_extensions
-pip install --upgrade google-api-python-client google-auth-httplib2 google-auth-oauthlib
-pip install requests
-pip install dataclasses
-pip install pandas
+py -3 -m pip install --upgrade pip
+py -3 -m pip install PyQt5
+py -3 -m pip install pyqtgraph
+py -3 -m pip install pywin32
+py -3 -m pip install pyserial
+py -3 -m pip install scipy
+py -3 -m pip install datetime
+py -3 -m pip install xlwt
+py -3 -m pip install PySerial
+py -3 -m pip install matplotlib
+py -3 -m pip install pywin32
+py -3 -m pip install func_timeout
+py -3 -m pip install typing_extensions
+py -3 -m pip install --upgrade google-api-python-client google-auth-httplib2 google-auth-oauthlib
+py -3 -m pip install requests
+py -3 -m pip install dataclasses
+py -3 -m pip install pandas
