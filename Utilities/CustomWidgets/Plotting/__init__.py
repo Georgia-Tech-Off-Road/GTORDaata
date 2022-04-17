@@ -128,6 +128,9 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
         self.plotWidget.getAxis('bottom').setTextPen('w')
         self.plotWidget.getAxis('bottom').setPen('w')
 
+        self.__connectSignalSlots()
+        self.play_button.hide()
+
     def __loadStylesheet(self):
         self.stylesheetDefault = """
         CustomPlotWidget {
@@ -387,8 +390,12 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
     def toggle_pause_state(self):
         self.__is_paused = not self.__is_paused
         if self.__is_paused:
+            self.pause_button.hide()
+            self.play_button.show()
             self.plotWidget.setLimits(xMin=None, xMax=None)
         else:
+            self.pause_button.show()
+            self.play_button.hide()
             if self.__enable_multi_plot:
                 last_index = data.get_most_recent_index(self.__mdg_x_sensor)
                 last_x = data.get_value(self.__mdg_x_sensor, last_index)
@@ -398,9 +405,10 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
             self.plotWidget.setLimits(xMin=last_x - self.__seconds_in_view,
                                       xMax=last_x)
 
-    def connectSignalSlots(self):
-        self.button_settings.clicked.connect(
-            partial(self.open_SettingsWindow, self))
+    def __connectSignalSlots(self):
+        self.button_settings.clicked.connect(self.open_SettingsWindow)
+        self.pause_button.clicked.connect(self.toggle_pause_state)
+        self.play_button.clicked.connect(self.toggle_pause_state)
 
     @property
     def mdg_is_line_graph(self) -> bool:

@@ -175,11 +175,6 @@ class DataCollection(DAATAScene, uiFile):
                              graph_width_seconds=8,
                              enable_scroll=(True, False))
 
-        # connections to GridPlotLayout
-        graph = self.graph_objects[key]
-        graph.button_settings.clicked.connect(graph.open_SettingsWindow)
-        graph.pause_button.clicked.connect(graph.toggle_pause_state)
-
     def __slot_data_collecting_state_change(self):
         """
         Handles toggling data collecting button and changes values and
