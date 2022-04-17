@@ -21,7 +21,6 @@ uiPlotWidget, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__),
 
 class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
     def __init__(self, sensor_name: str, parent=None,
-                 enable_scroll: Tuple[bool, bool] = (False, False),
                  MDG_init_props: MDGInitProps = None,
                  is_read_only: bool = False, **kwargs):
         super().__init__()
@@ -59,16 +58,14 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
         self.plotWidget: pg.PlotWidget = self.plotWidget
         self.__multi_plots: dict[str: pg.PlotDataItem] = dict()
 
-        self.__setup(sensor_name, enable_scroll, MDG_init_props)
+        self.__setup(sensor_name, MDG_init_props)
 
         self.__configFile = QtCore.QSettings('DAATA_plot', self.objectName())
         self.__configFile.clear()
         self.__loadStylesheet()
         self.__loadSettings()
 
-    def __setup(self, sensor_name: str,
-                enable_scroll: Tuple[bool, bool] = (False, False),
-                MDG_init_props: MDGInitProps = None):
+    def __setup(self, sensor_name: str, MDG_init_props: MDGInitProps = None):
         pg.setConfigOption('foreground', 'w')
         self.setObjectName(str(sensor_name))
 
@@ -224,6 +221,9 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
         return self.__seconds_in_view
 
     def update_graph(self):
+        if self.__is_paused:
+            return
+
         if self.__enable_multi_plot:
             self.__update_multi_graphs()
         else:
@@ -310,42 +310,44 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
         :return: None
         """
         if self.__mdg_is_line_graph:
-            for sensor_i, sensor in enumerate(self.__mdg_y_sensors):
-                index_time = data.get_most_recent_index()
+            for sensor in self.__mdg_y_sensors:
                 index_sensor = data.get_most_recent_index(sensor_name=sensor)
                 valueArrayY = data.get_values(sensor, index_sensor,
-                                              self.__graph_width)
+                                              index_sensor + 1)
+
                 if self.__mdg_x_sensor == TIME_OPTION:
-                    timeArray = data.get_values("time_internal_seconds",
-                                                index_time, self.__graph_width)
-                    self.__multi_plots[sensor].setData(timeArray, valueArrayY)
+                    index_sensorX = data.get_most_recent_index()
                 else:
                     index_sensorX = data.get_most_recent_index(
                         sensor_name=self.__mdg_x_sensor)
-                    valueArrayX = data.get_values(self.__mdg_x_sensor,
-                                                  index_sensorX,
-                                                  self.__graph_width)
-                    self.__multi_plots[sensor].setData(valueArrayX, valueArrayY)
+                valueArrayX = data.get_values(self.__mdg_x_sensor,
+                                              index_sensorX,
+                                              index_sensorX + 1)
+
+                self.__multi_plots[sensor].setData(valueArrayX, valueArrayY)
+                self.plotWidget.setLimits(
+                    xMin=valueArrayX[-1] - self.__seconds_in_view,
+                    xMax=valueArrayX[-1])
         else:
-            for sensor_i, sensor in enumerate(self.__mdg_y_sensors):
-                index_time = data.get_most_recent_index()
+            for sensor in self.__mdg_y_sensors:
                 index_sensor = data.get_most_recent_index(sensor_name=sensor)
                 valueArrayY = data.get_values(sensor, index_sensor,
-                                              self.__graph_width)
+                                              index_sensor + 1)
+
                 if self.__mdg_x_sensor == TIME_OPTION:
                     # get time values
-                    timeArray = data.get_values("time_internal_seconds",
-                                                index_time, self.__graph_width)
-                    # add points
-                    self.__multi_plots[sensor].setData(timeArray, valueArrayY)
+                    index_sensorX = data.get_most_recent_index()
                 else:
                     index_sensorX = data.get_most_recent_index(
                         sensor_name=self.__mdg_x_sensor)
-                    valueArrayX = data.get_values(self.__mdg_x_sensor,
-                                                  index_sensorX,
-                                                  self.__graph_width)
-                    self.__multi_plots[sensor].addPoints(valueArrayX,
-                                                         valueArrayY)
+                valueArrayX = data.get_values(self.__mdg_x_sensor,
+                                              index_sensorX,
+                                              self.__graph_width)
+
+                self.__multi_plots[sensor].addPoints(valueArrayX, valueArrayY)
+                self.plotWidget.setLimits(
+                    xMin=valueArrayX[-1] - self.__seconds_in_view,
+                    xMax=valueArrayX[-1])
 
     def update_xy_sensors(self, x_sensor: str = "",
                           y_sensors: List[str] = None) -> None:

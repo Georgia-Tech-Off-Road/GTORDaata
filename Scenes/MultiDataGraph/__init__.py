@@ -126,12 +126,7 @@ class MultiDataGraph(DAATAScene, uiFile):
                                                    parent=self.scrollAreaWidgetContents,
                                                    layout=self.gridPlotLayout,
                                                    graph_width_seconds=8,
-                                                   enable_scroll=(True, False),
                                                    MDG_init_props=MDG_initial_props)
-        # activate settings button
-        widget = self.graph_objects[key]
-        widget.button_settings.clicked.connect(
-            partial(self.graph_objects[key].open_SettingsWindow))
 
         self.graph_objects[key].show()
         self.__create_grid_plot_layout()

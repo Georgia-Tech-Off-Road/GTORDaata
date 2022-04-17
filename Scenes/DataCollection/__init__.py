@@ -172,8 +172,7 @@ class DataCollection(DAATAScene, uiFile):
         self.graph_objects[key] = \
             CustomPlotWidget(key, parent=self.scrollAreaWidgetContents,
                              layout=self.gridPlotLayout,
-                             graph_width_seconds=8,
-                             enable_scroll=(True, False))
+                             graph_width_seconds=8)
 
     def __slot_data_collecting_state_change(self):
         """
@@ -273,7 +272,7 @@ class DataCollection(DAATAScene, uiFile):
         :return: None
         """
         for graph in self.graph_objects.values():
-            if graph.isVisible() and not graph.is_paused:
+            if graph.isVisible():
                 graph.update_graph()
 
     def __update_time_elapsed(self):
