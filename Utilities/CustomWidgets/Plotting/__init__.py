@@ -107,7 +107,7 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
         sizePolicy.setHorizontalStretch(4)
         self.setSizePolicy(sizePolicy)
 
-        self.plotWidget.setMouseEnabled(enable_scroll[0], enable_scroll[1])
+        self.plotWidget.setMouseEnabled(False, False)
 
         # adds a legend describing what each line represents based on the 'name'
         self.plotWidget.addLegend()
@@ -392,18 +392,12 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
         if self.__is_paused:
             self.pause_button.hide()
             self.play_button.show()
+            self.plotWidget.setMouseEnabled(True, False)
             self.plotWidget.setLimits(xMin=None, xMax=None)
         else:
             self.pause_button.show()
             self.play_button.hide()
-            if self.__enable_multi_plot:
-                last_index = data.get_most_recent_index(self.__mdg_x_sensor)
-                last_x = data.get_value(self.__mdg_x_sensor, last_index)
-            else:
-                last_index = data.get_most_recent_index()
-                last_x = data.get_value("time_internal_seconds", last_index)
-            self.plotWidget.setLimits(xMin=last_x - self.__seconds_in_view,
-                                      xMax=last_x)
+            self.plotWidget.setMouseEnabled(False, False)
 
     def __connectSignalSlots(self):
         self.button_settings.clicked.connect(self.open_SettingsWindow)
