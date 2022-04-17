@@ -165,7 +165,6 @@ class MultiDataGraphPreview(DAATAScene, uiFile):
                                                    parent=self.scrollAreaWidgetContents,
                                                    layout=self.gridPlotLayout,
                                                    graph_width_seconds=8,
-                                                   enable_scroll=(True, False),
                                                    MDG_init_props=MDG_init_props,
                                                    is_read_only=True)
         # activate settings button

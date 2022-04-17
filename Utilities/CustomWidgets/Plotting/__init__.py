@@ -58,14 +58,15 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
         self.plotWidget: pg.PlotWidget = self.plotWidget
         self.__multi_plots: dict[str: pg.PlotDataItem] = dict()
 
-        self.__setup(sensor_name, MDG_init_props)
+        self.__setup(sensor_name, is_read_only, MDG_init_props)
 
         self.__configFile = QtCore.QSettings('DAATA_plot', self.objectName())
         self.__configFile.clear()
         self.__loadStylesheet()
         self.__loadSettings()
 
-    def __setup(self, sensor_name: str, MDG_init_props: MDGInitProps = None):
+    def __setup(self, sensor_name: str, is_read_only: bool = False,
+                MDG_init_props: MDGInitProps = None):
         pg.setConfigOption('foreground', 'w')
         self.setObjectName(str(sensor_name))
 
@@ -104,7 +105,10 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
         sizePolicy.setHorizontalStretch(4)
         self.setSizePolicy(sizePolicy)
 
-        self.plotWidget.setMouseEnabled(False, False)
+        if is_read_only:
+            self.plotWidget.setMouseEnabled(True, False)
+        else:
+            self.plotWidget.setMouseEnabled(False, False)
 
         # adds a legend describing what each line represents based on the 'name'
         self.plotWidget.addLegend()
