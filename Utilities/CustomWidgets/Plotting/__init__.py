@@ -5,12 +5,12 @@ from Scenes.MultiDataGraph.MDG_init_props import MDGInitProps
 from Utilities.CustomWidgets.Plotting.plot_settings import PlotSettingsDialog, \
     PlotSettingsDialogMDG
 from Utilities.general_constants import TIME_OPTION
-from functools import partial
-from typing import List, Dict, Tuple
+from typing import List, Dict
 import logging
 import numpy
 import os
 import pyqtgraph as pg
+from scipy.signal import savgol_filter
 
 logger = logging.getLogger("Plotting")
 
@@ -57,6 +57,8 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
         # self.plotWidget used in plot_settings.py
         self.plotWidget: pg.PlotWidget = self.plotWidget
         self.__multi_plots: dict[str: pg.PlotDataItem] = dict()
+        self.__savgol_poly_order = 5  # more is smoother
+        self.__savgol_window_size = 21  # more is smoother
 
         self.__setup(sensor_name, is_read_only, MDG_init_props)
 
@@ -128,6 +130,10 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
         self.plotWidget.getAxis('left').setPen('w')
         self.plotWidget.getAxis('bottom').setTextPen('w')
         self.plotWidget.getAxis('bottom').setPen('w')
+
+        self.horizontalSlider.setMinimum(0)
+        self.horizontalSlider.setMaximum(100)
+        self.horizontalSlider.setValue(self.__savgol_window_size)
 
         self.__connectSignalSlots()
         self.play_button.hide()
@@ -204,6 +210,12 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
         self.setMinimumSize(QtCore.QSize(200, height))
         self.setMaximumSize(QtCore.QSize(16777215, height))
 
+    def __value_change_slider(self):
+        new_value = self.horizontalSlider.value()
+        fixed_new_value = new_value if new_value % 2 != 0 else new_value + 1
+        self.__savgol_poly_order = 5 if fixed_new_value > 5 else 0
+        self.__savgol_window_size = fixed_new_value
+
     def initialize_values(self, timeArray: list, valueArray: list):
         self.plot.setData(timeArray, valueArray)
 
@@ -237,6 +249,10 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
             # collects all value and time data from time 0 to present
             valueArray = data.get_values(self.sensor_name, index_sensor,
                                          index_sensor + 1)
+            if self.__savgol_window_size < len(valueArray):
+                valueArray = savgol_filter(valueArray,
+                                           self.__savgol_window_size,
+                                           self.__savgol_poly_order)
             timeArray = data.get_values("time_internal_seconds", index_time,
                                         index_time + 1)
             self.plot.setData(timeArray, valueArray)
@@ -406,9 +422,15 @@ class CustomPlotWidget(QtWidgets.QWidget, uiPlotWidget):
             self.plotWidget.setMouseEnabled(False, False)
 
     def __connectSignalSlots(self):
+        self.button_settings: QtWidgets.QPushButton = self.button_settings
         self.button_settings.clicked.connect(self.open_SettingsWindow)
+        self.pause_button: QtWidgets.QPushButton = self.pause_button
         self.pause_button.clicked.connect(self.toggle_pause_state)
+        self.play_button: QtWidgets.QPushButton = self.play_button
         self.play_button.clicked.connect(self.toggle_pause_state)
+
+        self.horizontalSlider: QtWidgets.QSlider = self.horizontalSlider
+        self.horizontalSlider.valueChanged.connect(self.__value_change_slider)
 
     @property
     def mdg_is_line_graph(self) -> bool:

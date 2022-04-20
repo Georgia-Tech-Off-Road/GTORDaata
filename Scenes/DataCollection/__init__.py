@@ -1,16 +1,16 @@
 from PyQt5 import QtWidgets, uic, QtGui
 from PyQt5.QtCore import QSettings
 from datetime import datetime
-from functools import partial
 from typing import List, Dict
 import os
+import logging
+import pyqtgraph as pg
 
 from DataAcquisition import data
 from Scenes import DAATAScene
 from Utilities.CustomWidgets.Plotting import CustomPlotWidget, GridPlotLayout
-import DataAcquisition
-import logging
-import pyqtgraph as pg
+
+from scipy.signal import savgol_filter
 
 # Default plot configuration for pyqtgraph
 pg.setConfigOption('background', 'w')  # white
@@ -284,9 +284,8 @@ class DataCollection(DAATAScene, uiFile):
         """
 
         try:
-            seconds_elapsed = DataAcquisition.data.get_value(
-                "time_internal_seconds",
-                DataAcquisition.data.get_most_recent_index())
+            seconds_elapsed = data.get_value(
+                "time_internal_seconds", data.get_most_recent_index())
             seconds_elapsed_int = int(seconds_elapsed)
             hours_elapsed = int(seconds_elapsed_int / 3600)
             minutes_elapsed = int(
