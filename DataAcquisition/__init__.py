@@ -56,25 +56,15 @@ def read_data():
             except Exception as e:
                 logger.error(e)
                 logger.debug(logger.findCaller(True))
-        elif "COM" in data_import.input_mode and data_import.teensy_found:
-            try:
-                try:                    
-                    assert data_import.teensy_found
-                    assert data_import.check_connected()
-                except AttributeError:
-                    logger.warning(
-                        "Unable to flush Serial Buffer. No Serial object connected")
-                try:
-                    data_import.read_packet()
-                except AssertionError:
-                    logger.info("Serial port is not open, opening now")
-                    try:
-                        data_import.teensy_ser.open()
-                    except Exception as e:
-                        logger.error(e)
-                        logger.debug(logger.findCaller(True))
+        elif "COM" in data_import.input_mode:
+            try:                
+                assert data_import.teensy_found
+                assert data_import.check_connected()
+                data_import.read_packet()                                            
             except AssertionError:
-                time.sleep(0)
+                data_import.connect_serial()    
+            except:
+                logger.info("Error in read_packet()")
         else:
             data_import.input_mode = ""
             pass

@@ -103,7 +103,6 @@ class DataImport:
             self.is_receiving_data = False
             self.is_sending_data = False
             self.teensy_port = self.input_mode
-            print(self.input_mode)
             self.teensy_ser = serial.Serial(baudrate=230400, port=self.teensy_port, timeout=2,
                                             write_timeout=1)
             logger.info("Teensy found on port {}".format(self.teensy_ser.port))            
@@ -111,7 +110,7 @@ class DataImport:
             self.teensy_ser.flushOutput
             self.teensy_found = True
             self.teensy_countdown = 0
-        except Exception as e:
+        except:            
             self.teensy_found = False
             logger.debug(logger.findCaller(True))
             time_diff = Decimal(time()) - Decimal(self.connect_timer)
@@ -120,6 +119,7 @@ class DataImport:
                 self.teensy_countdown += 1
                 if self.teensy_countdown > 10:
                     self.input_mode = ""
+                    self.teensy_countdown = 0
                 self.connect_timer = time()
 
     def read_packet(self):
@@ -139,8 +139,6 @@ class DataImport:
             except TypeError:
                 logger.info("Teensy has been disconnected, closing and attempting reopen")
                 self.teensy_ser.close()
-                self.connect_serial()
-                print("HELLO")
             except Exception:
                 logger.debug(logger.findCaller(True))
         elif self.data_file and self.data_file.readable():                
@@ -229,7 +227,6 @@ class DataImport:
             except:                
                 logger.info("Teensy has been disconnected, closing and attempting reopen")
                 self.teensy_ser.close()
-                self.teensy_found = False
 
     def packetize(self):
         """
