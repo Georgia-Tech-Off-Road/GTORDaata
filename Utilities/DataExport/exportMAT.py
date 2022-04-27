@@ -20,7 +20,9 @@ def saveMAT(filename, directory):
     lastIndex = data.get_most_recent_index()
 
     for sensor in sensorsList:
-        dataDict['collected_data'][sensor] = data.get_values(sensor, lastIndex, lastIndex+1).tolist()
+        #dataDict['collected_data'][sensor] = data.get_values(sensor, lastIndex, lastIndex+1).tolist()
+
+        dataDict['collected_data'][sensor] = data.get_values(sensor, lastIndex, lastIndex+1)
 
     sio.savemat(os.path.join(directory, filename), dataDict, appendmat=True, oned_as="column")
 
