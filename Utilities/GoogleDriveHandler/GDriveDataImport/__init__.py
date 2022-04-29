@@ -1,13 +1,12 @@
 from DataAcquisition import data
 from PyQt5 import QtWidgets, uic, QtCore
-from Utilities import general_constants
-from Utilities.GoogleDriveHandler import GoogleDriveHandler, DriveSearchQuery
+from Utilities.DataExport.dataFileExplorer import open_data_file
+from Utilities.GoogleDriveHandler import GoogleDriveHandler, DriveSearchQuery, gdrive_constants
 from Utilities.GoogleDriveHandler.GDriveDataImport import add_qDialogs
 from Utilities.Popups.generic_popup import GenericPopup
 from functools import partial
 import logging
 import os
-from typing import Tuple
 
 logger = logging.getLogger("ImportGoogleDrive")
 # loads the .ui file from QT Designer
@@ -16,9 +15,9 @@ uiFile, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__),
 
 
 class GDriveDataImport(QtWidgets.QDialog, uiFile):
-    DURATION_OPTIONS = general_constants.DURATION_OPTIONS
-    TEST_DATE_OPTIONS = general_constants.TEST_DATE_PERIOD_OPTIONS
-    DISPLAYABLE_SCENES = general_constants.DISPLAYABLE_IMPORTED_SCENES
+    DURATION_OPTIONS = gdrive_constants.DURATION_OPTIONS
+    TEST_DATE_OPTIONS = gdrive_constants.TEST_DATE_PERIOD_OPTIONS
+    DISPLAYABLE_SCENES = {"DataCollection", "EngineDyno"}
 
     def __init__(self, dict_scenes: dict):
         super().__init__()
@@ -27,7 +26,7 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
         self.checkbox_sensors = dict()
         self.custom_properties = dict()
         self.__selected_filepath: str = ""
-        self.__file_metadata: dict = dict()
+        self.__selected_file_scene: str = ""
         self.configFile = QtCore.QSettings('DAATA', 'GDriveDataImport')
 
         self.__setup()
@@ -41,9 +40,11 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
         self.__connectSlotsSignals()
 
     def __populate_fields(self):
+        self.sec_file.setPlainText(self.configFile.value("sec_file"))
+
         self.scene_input.addItem("All")
         for scene in self.dict_scenes_copy.keys():
-            scene_hidden = self.dict_scenes_copy[scene].is_preview_scene
+            scene_hidden = self.dict_scenes_copy[scene].get("disabled")
             if not scene_hidden:
                 self.scene_input.addItem(scene)
 
@@ -72,6 +73,12 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
         self.adv_options_button.clicked.connect(self.__hide_show_adv_options)
         self.add_field_button.clicked.connect(self.__addCustomPropsField)
         self.clearButton.clicked.connect(self.__clear_all)
+        self.selectFile.clicked.connect(self.__find_oAuth_file)
+
+    def __find_oAuth_file(self):
+        filepath = open_data_file(".json")
+        if filepath:
+            self.sec_file.setPlainText(filepath)
 
     def __hide_show_adv_options(self):
         if self.adv_options_widget.isVisible():
@@ -99,18 +106,23 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
 
     def __display_data(self):
         self.gridLayout_2.addWidget(QtWidgets.QLabel("Loading..."))
-        sec_file = general_constants.GDRIVE_OAUTH2_SECRET
+        sec_file = self.sec_file.toPlainText()
+        self.configFile.setValue("sec_file", sec_file)
 
         # generate search queries
-        file_name_query: str = self.file_name_input.toPlainText()
+        file_name_query = self.file_name_input.toPlainText()
+        file_name_query = file_name_query if file_name_query is not "" else None
 
-        year_query: str = self.year_input.toPlainText()
-        month_query: str = self.month_input.toPlainText()
-        day_query: str = self.day_input.toPlainText()
+        year_query = self.year_input.toPlainText() \
+            if self.year_input.toPlainText() != "" else None
+        month_query = self.month_input.toPlainText() \
+            if self.month_input.toPlainText() != "" else None
+        day_query = self.day_input.toPlainText() \
+            if self.day_input.toPlainText() != "" else None
 
-        if (year_query == "" or year_query.isdigit()) \
-                and (month_query == "" or month_query.isdigit()) \
-                and (day_query == "" or day_query.isdigit()):
+        if (year_query is None or year_query.isdigit()) \
+                and (month_query is None or month_query.isdigit()) \
+                and (day_query is None or day_query.isdigit()):
             # integer input validation passed
             pass
         else:
@@ -133,7 +145,7 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
         if scene_query != "All":
             try:
                 custom_prop_query["scene"] = \
-                    self.dict_scenes_copy[scene_query].formal_name
+                    self.dict_scenes_copy[scene_query]["formal_name"]
             except KeyError:
                 custom_prop_query["scene"] = scene_query
 
@@ -150,9 +162,9 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
             page_limit=page_limit,
             filename=file_name_query,
             only_csv_mat=True,
-            year=int(year_query) if year_query.isdigit() else 0,
-            month=int(month_query) if year_query.isdigit() else 0,
-            day=int(day_query) if year_query.isdigit() else 0,
+            year=year_query,
+            month=month_query,
+            day=day_query,
             custom_properties=custom_prop_query,
             test_date_period=test_date_query,
             duration=duration_query)
@@ -161,20 +173,12 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
             drive_handler = GoogleDriveHandler(sec_file)
         except GoogleDriveHandler.MissingOAuthFileError:
             self.__clear_found_files()
-            GenericPopup("Missing oAuth file",
-                         f"oAuth file not detected in {sec_file}. <br /> "
-                         f"<a href='https://drive.google.com/file/d/117yhiyV2BAZNxityj4la6J50FECaEPJB/view?usp=sharing'>"
-                         f"Download here</a>.")
+            GenericPopup("Missing oAuth file")
             return
         except GoogleDriveHandler.NoInternetError:
             self.__clear_found_files()
             GenericPopup("No Internet")
             return
-        # except GoogleDriveHandler.NoAccessError:
-        #     self.__clear_found_files()
-        #     GenericPopup("No Access", "You need to request access to the GTOR "
-        #                               "shared Google Drive")
-        #     return
         except ValueError:
             self.__clear_found_files()
             logger.error("Error in creating Google Drive Handler")
@@ -203,41 +207,38 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
             self.gridLayout_2.addWidget(found_file_metadata_btn, i, 1)
 
     def __download_and_display(self, drive_handler: GoogleDriveHandler,
-                               file_metadata: dict):
+                               found_file: dict):
         self.__selected_filepath = ""
-        self.__file_metadata = dict()
+        self.__selected_file_scene = ""
         self.progressBar.show()
 
-        if file_metadata.get("name")[-4:] != ".csv":
+        if found_file.get("name")[-4:] != ".csv":
             reason = "The selected file cannot be displayed (not a .csv). " \
                      "Proceed to download anyways?"
-            self.__download_unsupported_file(drive_handler, file_metadata,
-                                             reason, self.progressBar)
-            self.progressBar.hide()
+            self.__download_unsupported_file(drive_handler, found_file, reason,
+                                             self.progressBar)
             return
 
         try:
-            file_scene = file_metadata.get("properties").get("scene")
+            file_scene = found_file.get("properties").get("scene")
         except AttributeError:
             reason = "The selected file cannot be displayed (unknown scene). " \
                      "Proceed to download anyways?"
-            self.__download_unsupported_file(drive_handler, file_metadata,
-                                             reason,
+            self.__download_unsupported_file(drive_handler, found_file, reason,
                                              self.progressBar)
-            self.progressBar.hide()
             return
 
         if file_scene not in self.DISPLAYABLE_SCENES:
             reason = "The selected file cannot be displayed (scene not " \
                      "supported). Proceed to download anyways?"
-            self.__download_unsupported_file(drive_handler, file_metadata,
-                                             reason, self.progressBar)
-            self.progressBar.hide()
+            self.__download_unsupported_file(drive_handler, found_file, reason,
+                                             self.progressBar)
+            return
         else:
-            self.__file_metadata = file_metadata
+            self.__selected_file_scene = file_scene
             # self.__selected_filepath used in MainWindow to plot the file data
             self.__selected_filepath = \
-                drive_handler.download_and_close(file_metadata, self,
+                drive_handler.download_and_close(found_file, self,
                                                  self.progressBar)
 
     def __clear_found_files(self):
@@ -263,18 +264,17 @@ class GDriveDataImport(QtWidgets.QDialog, uiFile):
 
     @staticmethod
     def __download_unsupported_file(drive_handler: GoogleDriveHandler,
-                                    file_metadata: dict, reason: str,
-                                    progressBar=None) -> bool:
+                                    found_file: dict, reason: str,
+                                    progressBar=None):
         save_offline = \
             add_qDialogs.ConfirmDownloadNonSupported(reason).save_offline
         if save_offline:
-            filepath = drive_handler.download(file=file_metadata,
+            filepath = drive_handler.download(file=found_file,
                                               progressBar=progressBar)
             if filepath:
                 GenericPopup("File downloaded", filepath)
-                return True
-        return True
 
     @property
-    def selected_filepath_and_metadata(self) -> Tuple[str, dict]:
-        return self.__selected_filepath, self.__file_metadata
+    def selected_filepath_and_scene(self) -> tuple:
+        return self.__selected_filepath, self.__selected_file_scene
+

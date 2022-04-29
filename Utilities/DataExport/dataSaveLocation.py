@@ -5,10 +5,11 @@ import os
 
 # from Utilities.DataExport.GTORNetwork import get_GTORNetworkDrive#, generate_data_save_location
 from DataAcquisition import data
-from Utilities import general_constants
 from Utilities.DataExport.exportCSV import saveCSV
 from Utilities.DataExport.exportMAT import saveMAT
+from Utilities.GoogleDriveHandler import gdrive_constants
 from Utilities.GoogleDriveHandler.GDriveDataExport import CreateUploadJSON
+from Utilities.Popups.generic_popup import GenericPopup
 
 ''' "saveLocationDialog" configFile settings
 
@@ -19,7 +20,7 @@ logger = logging.getLogger("DataCollection")
 # loads the .ui file from QT Designer
 uiFile, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__),
                                         'saveLocationDialog.ui'))
-DEFAULT_UPLOAD_DIRECTORY = general_constants.DEFAULT_UPLOAD_DIRECTORY
+DEFAULT_UPLOAD_DIRECTORY = gdrive_constants.DEFAULT_UPLOAD_DIRECTORY
 
 
 class popup_dataSaveLocation(QtWidgets.QDialog, uiFile):
