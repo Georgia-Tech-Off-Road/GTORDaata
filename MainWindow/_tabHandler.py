@@ -8,48 +8,38 @@ from functools import partial
 def create_tab_widget(self):
     for index in range(self.tabWidget.count()):
         self.tabWidget.removeTab(0)
-    self.create_scene_tab(
-        'Data Collection')  # sets default tab that pops up in scenes
+    self.create_scene_tab('Data Collection')  # sets default tab that pops up in scenes
     self.tabWidget_central.setCurrentIndex(
-        self.tabWidget_central.indexOf(
-            self.tab_homepage))  # temporary measure to default to homepage on startup
+        self.tabWidget_central.indexOf(self.tab_homepage))  # temporary measure to default to homepage on startup
     self.tabWidget.setStyleSheet("""
 
     """)
 
 
-tabInstances = 0  # a counter for the number of tabs created in current session
+tabInstances = 0    # a counter for the number of tabs created in current session
 
 
-def create_scene_tab(self, key, preview_only: bool = False,
-                     initial_data_filepath: str = None,
-                     file_metadata: dict = None):
+def create_scene_tab(self, key, **kwargs):
     # from Utilities.Settings import settings_load, settings_save
     global tabInstances
 
-    if preview_only:
-        if initial_data_filepath:
-            tab = self.dict_scenes[key].create_scene(initial_data_filepath,
-                                                     file_metadata)
-        else:
-            return
+    filepath = kwargs.get("initial_data_filepath")
+    if filepath:
+        # only used in DataCollectionPreview scene
+        tab = self.dict_scenes[key]['create_scene'](filepath)
     else:
-        tab = self.dict_scenes[key].create_scene()
-    tab.setObjectName(key + " (instance " + str(
-        tabInstances) + ")")  # set object names for each tab's widget (allows duplicate widgets to have a functional parent/child relationship)
+        tab = self.dict_scenes[key]['create_scene']()
+    tab.setObjectName(key + " (instance " + str(tabInstances) + ")")  # set object names for each tab's widget (allows duplicate widgets to have a functional parent/child relationship)
     self.tabWidget.addTab(tab, key)
     self.tabWidget.setCurrentIndex(self.tabWidget.indexOf(tab))
-    self.tabWidget_central.setCurrentIndex(
-        self.tabWidget_central.indexOf(self.tab_scenes))
+    self.tabWidget_central.setCurrentIndex(self.tabWidget_central.indexOf(self.tab_scenes))
 
     tabInstances += 1
 
 
 def rename_tab(self, index):
-    text, okPressed = QtWidgets.QInputDialog.getText(self, "Rename Tab",
-                                                     "New Name:",
-                                                     QtWidgets.QLineEdit.Normal,
-                                                     "")
+    text, okPressed = QtWidgets.QInputDialog.getText(self, "Rename Tab", "New Name:",
+                                                     QtWidgets.QLineEdit.Normal, "")
     if okPressed and text != '':
         self.tabWidget.setTabText(index, text)
 

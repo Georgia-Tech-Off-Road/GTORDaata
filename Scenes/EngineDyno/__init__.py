@@ -79,8 +79,8 @@ class EngineDyno(DAATAScene, uiFile):
 
     def slot_data_collecting_state_change(self):
         if self.button_display.isChecked():
-            self.__reset_all()
-            self.collection_start_time = datetime.now()
+            if self.collection_start_time == datetime.min:
+                self.collection_start_time = datetime.now()
             self.indicator_onOrOff.setText("On")
             self.indicator_onOrOff.setStyleSheet("color: green;")
             self.button_display.setText("Stop Collecting Data")
@@ -92,12 +92,6 @@ class EngineDyno(DAATAScene, uiFile):
             self.is_data_collecting.clear()
             self.popup_dataSaveLocation("EngineDynoTest",
                                         self.collection_start_time)
-
-    def __reset_all(self):
-        # NOTE: If this Pyton file doesn't work, try commenting these two lines
-        # -Faris
-        data.reset_hard()
-        self.create_graphs()
 
     def slot_tare_load_cell(self):
         logger.info("Taring load cell")
