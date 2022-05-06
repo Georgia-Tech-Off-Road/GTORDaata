@@ -7,11 +7,7 @@ logging_objects = {
     "DataAcquisition": INFO,
     "DataCollection": INFO,
     "DataImport": INFO,
-<<<<<<< HEAD
     "DataExport": INFO,
-=======
-    "DataExport": DEBUG,
->>>>>>> parent of 756cc9f... Merge branch 'shockdyno' into dev
     "EngineDyno": DEBUG,
     "GDriveDataExport": DEBUG,
     "GDriveDataImport": DEBUG,
