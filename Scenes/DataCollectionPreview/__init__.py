@@ -2,6 +2,7 @@ from DataAcquisition import data
 from PyQt5 import QtWidgets, uic
 from Scenes import DAATAScene
 from Utilities.CustomWidgets.Plotting import CustomPlotWidget, GridPlotLayout
+from Utilities.GoogleDriveHandler import GoogleDriveHandler
 from Utilities.Popups.generic_popup import GenericPopup
 from datetime import time as datetime_time
 from functools import partial
@@ -21,7 +22,7 @@ logger = logging.getLogger("DataCollectionPreview")
 
 
 class DataCollectionPreview(DAATAScene, uiFile):
-    def __init__(self, initial_data_filepath: str = None):
+    def __init__(self, initial_data_filepath: str, file_metadata: dict = None):
         super().__init__()
 
         if not initial_data_filepath \
@@ -35,6 +36,7 @@ class DataCollectionPreview(DAATAScene, uiFile):
                          "Only .csv files supported")
             self.close()
             return
+
         self.setupUi(self)
         self.hide()
 
@@ -61,11 +63,8 @@ class DataCollectionPreview(DAATAScene, uiFile):
         self.is_data_collecting = is_data_collecting
 
         self.__connect_slots_and_signals()
-        # self.configFile = QSettings('DAATA', 'data_collection')
-        # self.configFile.clear()
-        # self.__load_settings()
 
-        self.__initialize_graphs(initial_data_filepath)
+        self.__initialize_graphs(initial_data_filepath, file_metadata)
         self.show()
 
     def update_passive(self):
@@ -74,7 +73,8 @@ class DataCollectionPreview(DAATAScene, uiFile):
     def update_active(self):
         pass
 
-    def __initialize_graphs(self, initial_data_filepath: str):
+    def __initialize_graphs(self, initial_data_filepath: str,
+                            file_metadata: dict = None):
         csv_data = pandas.read_csv(initial_data_filepath)
         time_array = csv_data.time_internal_seconds.values
 
@@ -86,9 +86,13 @@ class DataCollectionPreview(DAATAScene, uiFile):
                 time_array, sensor_array)
         self.__create_grid_plot_layout()
 
+        date_str = GoogleDriveHandler.get_start_date_str(file_metadata)
+        if not date_str:
+            date_str = "<i>No date available</i>"
+
         test_duration = csv_data.time_internal_seconds.values[-1]
         if test_duration > 86400:
-            self.label_timeElapsed.setText("> 1 day")
+            self.label_timeElapsed.setText(f"{date_str}<br>> 1 day")
         else:
             test_duration = datetime_time(
                 hour=int(test_duration % 86400 // 3600),
@@ -96,7 +100,7 @@ class DataCollectionPreview(DAATAScene, uiFile):
                 second=int(test_duration % 60 // 1),
                 microsecond=int(test_duration % 1 * 1e6))
             self.label_timeElapsed.setText(
-                test_duration.strftime("%H:%M:%S.%f"))
+                test_duration.strftime(f"{date_str}<br>%H h %M m %S.%f s"))
 
     def __create_sensor_checkboxes(self):
         # Create a checkbox for each sensor in dictionary in
@@ -178,7 +182,8 @@ class DataCollectionPreview(DAATAScene, uiFile):
         for key in self.currentKeys:
             self.graph_objects[key] = CustomPlotWidget(
                 key, parent=self.scrollAreaWidgetContents,
-                layout=self.gridPlotLayout, graph_width_seconds=8)
+                layout=self.gridPlotLayout, enable_scroll=(True, False),
+                graph_width_seconds=8)
             self.graph_objects[key].setObjectName(key)
             self.graph_objects[key].hide()
 
