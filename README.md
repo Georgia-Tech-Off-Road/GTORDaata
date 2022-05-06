@@ -12,18 +12,10 @@ Designed with/for [Python 3.6.8](https://www.python.org/downloads/release/python
 file).
 2. Run `daata.py`
 
-This app may be run with fake data (user may select `Fake Data` under `Input`) for 
-testing. 
-
-### Google Drive
-This app enables a user to download and upload collected data onto our shared Google Drive.
-Users must first have access to the 
+This app may be run with fake data (user may select Fake Data under Input) for 
+testing. Users must have access to the 
 [GTORDaata's shared Google Drive](https://drive.google.com/drive/u/0/folders/1OaMbG-wAqC6_Ad8u5FiNS9L8z2W7eB2i) 
-in order to upload or download testing data. Further, the secret API key 
-(`secret_oAuth_key.json`) must be downloaded [here](https://drive.google.com/file/d/117yhiyV2BAZNxityj4la6J50FECaEPJB/view?usp=sharing), 
-and put into the top-level directory of this repo, i.e. at the same level as this `README.md`. 
-
-Not acquiring this API key does not impede other aspects of this app's functionality.
+in order to upload or download testing data.  
 
 ## About
 
