@@ -3,7 +3,6 @@ from PyQt5 import uic, QtGui
 from PyQt5.QtCore import QSettings
 from Scenes import DAATAScene
 from Utilities.CustomWidgets.Plotting import CustomPlotWidget
-from Utilities.GoogleDriveHandler import GoogleDriveHandler
 from Utilities.Popups.generic_popup import GenericPopup
 from datetime import time as datetime_time, datetime
 import logging
@@ -12,8 +11,8 @@ import pandas
 import pyqtgraph as pg
 
 # Default plot configuration for pyqtgraph
-pg.setConfigOption('background', 'w')  # white
-pg.setConfigOption('foreground', 'k')  # black
+pg.setConfigOption('background', 'w')   # white
+pg.setConfigOption('foreground', 'k')   # black
 
 # load the .ui file from QT Designer
 uiFile, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__),
@@ -23,7 +22,7 @@ logger = logging.getLogger("EngineDynoPreview")
 
 
 class EngineDynoPreview(DAATAScene, uiFile):
-    def __init__(self, initial_data_filepath: str, file_metadata: dict = None):
+    def __init__(self, initial_data_filepath: str = None):
         super().__init__()
 
         if not initial_data_filepath \
@@ -41,8 +40,7 @@ class EngineDynoPreview(DAATAScene, uiFile):
         self.setupUi(self)
         self.hide()
 
-        # the tab updates every x*10 ms (ex. 3*10 = every 30 ms)
-        self.update_period = 3
+        self.update_period = 3  # the tab updates every x*10 ms (ex. 3*10 = every 30 ms)
 
         self.graph_objects = dict()
         # self.current_keys = ["rpm_vs_time", "torque_vs_time", "cvt_ratio_vs_time", "power_vs_rpm"]
@@ -57,7 +55,7 @@ class EngineDynoPreview(DAATAScene, uiFile):
         self.__connect_slots_and_signals()
         self.configFile = QSettings('DAATA', 'data_collection')
 
-        self.__initialize_graphs(initial_data_filepath, file_metadata)
+        self.__initialize_graphs(initial_data_filepath)
         self.show()
         # self.configFile.clear()
         # self.load_settings()
@@ -86,7 +84,6 @@ class EngineDynoPreview(DAATAScene, uiFile):
             self.graph_objects[key] = \
                 CustomPlotWidget(key, parent=self.graph_frame,
                                  layout=self.graph_layout,
-                                 enable_scroll=(True, False),
                                  graph_width_seconds=8)
             self.graph_objects[key].setObjectName(key)
             self.graph_layout.addWidget(self.graph_objects[key], row, col, 1, 1)
@@ -95,8 +92,7 @@ class EngineDynoPreview(DAATAScene, uiFile):
             if not col:
                 row = 1
 
-    def __initialize_graphs(self, initial_data_filepath: str,
-                            file_metadata: dict = None):
+    def __initialize_graphs(self, initial_data_filepath: str):
         csv_data = pandas.read_csv(initial_data_filepath)
         time_array = csv_data.time_internal_seconds.values
 
@@ -126,8 +122,7 @@ class EngineDynoPreview(DAATAScene, uiFile):
         # last derived values
         last_dyno_torque_ftlbs = \
             last_force_enginedyno_lbs \
-            * DerivedSensors.derived_sensors["dyno_torque_ftlbs"][
-                "transfer_function"]
+            * DerivedSensors.derived_sensors["dyno_torque_ftlbs"]["transfer_function"]
         power_engine_horsepower_transfer_func = 1 / 5252  # from DerivedSensors
         last_power_engine_horsepower = last_dyno_torque_ftlbs \
                                        * last_dyno_engine_speed \
@@ -141,12 +136,9 @@ class EngineDynoPreview(DAATAScene, uiFile):
         self.torque_lcd.display(last_dyno_torque_ftlbs)
         self.cvt_ratio_lcd.display(last_ratio_dyno_cvt)
 
-        date_str = GoogleDriveHandler.get_start_date_str(file_metadata)
-        if not date_str:
-            date_str = "<i>No date available</i>"
         test_duration = csv_data.time_internal_seconds.values[-1]
         if test_duration > 86400:
-            self.label_timeElapsed.setText(f"{date_str}<br>> 1 day")
+            self.label_timeElapsed.setText("> 1 day")
         else:
             test_duration = datetime_time(
                 hour=int(test_duration % 86400 // 3600),
@@ -154,7 +146,7 @@ class EngineDynoPreview(DAATAScene, uiFile):
                 second=int(test_duration % 60 // 1),
                 microsecond=int(test_duration % 1 * 1e6))
             self.label_timeElapsed.setText(
-                test_duration.strftime(f"{date_str}<br>%H h %M m %S.%f s"))
+                test_duration.strftime("%H:%M:%S.%f"))
 
     def update_active(self):
         pass
@@ -172,10 +164,8 @@ class EngineDynoPreview(DAATAScene, uiFile):
 
         :return: None
         """
-        self.configFile.setValue('graph_dimension',
-                                 self.comboBox_graphDimension.currentText())
-        self.configFile.setValue('scrollArea_graphs_height',
-                                 self.scrollArea_graphs.height())
+        self.configFile.setValue('graph_dimension', self.comboBox_graphDimension.currentText())
+        self.configFile.setValue('scrollArea_graphs_height', self.scrollArea_graphs.height())
 
         enabledSensors = []
         for key in self.graph_objects.keys():
@@ -200,15 +190,12 @@ class EngineDynoPreview(DAATAScene, uiFile):
                 self.graph_objects[key].show()
                 active_sensor_count = active_sensor_count + 1
                 self.label_active_sensor_count.setText(
-                    '(' + str(active_sensor_count) + '/' + str(
-                        len(self.graph_objects)) + ')')
+                    '(' + str(active_sensor_count) + '/' + str(len(self.graph_objects)) + ')')
         except TypeError or KeyError:
-            logger.error(
-                "Possibly invalid key in config. May need to clear config file using self.configFile.clear()")
+            logger.error("Possibly invalid key in config. May need to clear config file using self.configFile.clear()")
             pass
 
-        self.comboBox_graphDimension.setCurrentText(
-            self.configFile.value('graph_dimension'))
+        self.comboBox_graphDimension.setCurrentText(self.configFile.value('graph_dimension'))
         # self.slot_graphDimension()
         self.create_grid_plot_layout()
         logger.debug("Data Collection config files loaded")

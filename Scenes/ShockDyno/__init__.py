@@ -18,23 +18,25 @@ pg.setConfigOption('background', 'w')   # white
 pg.setConfigOption('foreground', 'k')   # black
 
 # load the .ui file from QT Designer
-uiFile, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'engine_dyno.ui'))
+uiFile, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'shock_dyno.ui'))
 
-logger = logging.getLogger("EngineDyno")
+logger = logging.getLogger("ShockDyno")
 
 
-class EngineDyno(DAATAScene, uiFile):
+class ShockDyno(DAATAScene, uiFile):
     def __init__(self):
         super().__init__()
         self.setupUi(self)
         self.hide()
 
+        self.motor_state = False
+        self.motor_speed = 0
+
         self.update_period = 3  # the tab updates every x*10 ms (ex. 3*10 = every 30 ms)
 
         self.graph_objects = dict()
-        # self.current_keys = ["rpm_vs_time", "torque_vs_time", "cvt_ratio_vs_time", "power_vs_rpm"]
-        self.current_keys = ["dyno_engine_speed", "dyno_secondary_speed", "dyno_torque_ftlbs", "ratio_dyno_cvt"]
-        self.collection_start_time = datetime.now()
+        self.current_keys = ["force_shockdyno_lbs", "lds_shockdyno_mm"]
+        self.collection_start_time: datetime = datetime.min
         self.create_graphs()
 
         from MainWindow import is_data_collecting
@@ -50,19 +52,7 @@ class EngineDyno(DAATAScene, uiFile):
 
     def create_graphs(self):
         """
-        This should make 4 graphs
-        1. RPM vs. Time scrolling graph, width as 15 seconds
-            - Should include both engine rpm and secondary rpm on same graph
-        2. Torque vs. Time scrolling graph, width as 15 seconds
-            - Should include torque output of engine
-        3. CVT Ratio vs. Time scrolling graph, width as 15 seconds
-            - Should include CVT ratio
-            - Y bounds should be [0, 5]
-        4. Power output vs. RPM
-            - Y axis is engine power
-            - X axis is engine rpm
-            - Probably default X bounds to [0, 4000], this will probably change
-
+        This should make 2 graphs
         :return: None
         """
         pass
@@ -98,9 +88,25 @@ class EngineDyno(DAATAScene, uiFile):
         data.set_current_value("command_tare_load_cell", 1)
         self.load_cell_taring = True
 
+    def slot_display_motor_speed(self, motor_speed):
+        self.motorspeed_lcd.display(motor_speed)
+
+    def slot_set_motor_speed(self):
+        logger.info("Setting motor speed")
+        data.set_current_value("command_motor_speed", self.motor_speed)
+
+    def slot_toggle_motor(self):
+        logger.info("Toggling motor")
+        self.motor_state = not self.motor_state
+        data.set_current_value("command_motor_enable", self.motor_state)
+        if self.motor_state is False:
+            self.kill_motor.setText("Toggle Motor On")
+        else:
+            self.kill_motor.setText("Toggle Motor Off")
+
     def slot_set_load_cell_scale(self):
         logger.info("Changing load cell scale")
-        data.set_sensor_scale("force_dyno_lbs", self.load_cell_scale.value())
+        data.set_sensor_scale("force_shockdyno_lbs", self.load_cell_scale.value())
 
     def update_graphs(self):
         for key in self.current_keys:
@@ -134,18 +140,11 @@ class EngineDyno(DAATAScene, uiFile):
 
         :return: None
         """
-        if self.engine_speed_lcd.isEnabled():
-            self.engine_speed_lcd.display(data.get_current_value("dyno_engine_speed"))
-        if self.secondary_speed_lcd.isEnabled():
-            self.secondary_speed_lcd.display(data.get_current_value("dyno_secondary_speed"))
+
         if self.force_lcd.isEnabled():
-            self.force_lcd.display(data.get_current_value("force_dyno_lbs"))
-        if self.torque_lcd.isEnabled():
-            self.torque_lcd.display(data.get_current_value("dyno_torque_ftlbs"))
-        if self.power_lcd.isEnabled():
-            self.power_lcd.display(data.get_current_value("power_engine_horsepower"))
-        if self.cvt_ratio_lcd.isEnabled():
-            self.cvt_ratio_lcd.display(data.get_current_value("ratio_dyno_cvt"))
+            self.force_lcd.display(data.get_current_value("force_shockdyno_lbs"))
+        if self.position_lcd.isEnabled():
+            self.position_lcd.display(data.get_current_value("lds_shockdyno_mm"))
 
         if self.is_data_collecting.is_set():
             if self.button_display.isChecked():
@@ -166,44 +165,34 @@ class EngineDyno(DAATAScene, uiFile):
 
     def update_passive(self):
         # Enable or disable the lcd displays based on what sensors are connected
-        if data.get_is_connected("dyno_engine_speed"):
-            self.engine_speed_lcd.setEnabled(True)
+        if data.get_is_connected("lds_shockdyno_mm"):
+            self.position_lcd.setEnabled(True)
         else:
-            self.engine_speed_lcd.setEnabled(False)
-
-        if data.get_is_connected("dyno_secondary_speed"):
-            self.secondary_speed_lcd.setEnabled(True)
-        else:
-            self.secondary_speed_lcd.setEnabled(False)
-
-        if data.get_is_connected("force_dyno_lbs"):
+            self.position_lcd.setEnabled(False)
+            
+        if data.get_is_connected("force_shockdyno_lbs"):
             self.force_lcd.setEnabled(True)
         else:
             self.force_lcd.setEnabled(False)
 
-        if data.get_is_connected("dyno_torque_ftlbs"):
-            self.torque_lcd.setEnabled(True)
+        if data.get_is_connected("command_motor_speed"):
+            self.motorspeed_lcd.setEnabled(True)
+            self.motor_speed = self.horizontalSlider.value()
         else:
-            self.torque_lcd.setEnabled(False)
-
-        if data.get_is_connected("power_engine_horsepower"):
-            self.power_lcd.setEnabled(True)
-        else:
-            self.power_lcd.setEnabled(False)
-
-        if data.get_is_connected("ratio_dyno_cvt"):
-            self.cvt_ratio_lcd.setEnabled(True)
-        else:
-            self.cvt_ratio_lcd.setEnabled(False)
+            self.motorspeed_lcd.setEnabled(False)
 
         # Attach or detach the load cell tare sensor based on if the tab is active
         if self.isVisible():
             if not self.is_sensors_attached:
                 data_import.attach_output_sensor(data.get_id("command_tare_load_cell"))
+                data_import.attach_output_sensor(data.get_id("command_motor_speed"))
+                data_import.attach_output_sensor(data.get_id("command_motor_enable"))
                 self.is_sensors_attached = True
         else:
             if self.is_sensors_attached:
                 data_import.detach_output_sensor(data.get_id("command_tare_load_cell"))
+                data_import.attach_output_sensor(data.get_id("command_motor_speed"))
+                data_import.attach_output_sensor(data.get_id("command_motor_enable"))
                 self.is_sensors_attached = False
 
         if self.load_cell_taring:
@@ -211,17 +200,31 @@ class EngineDyno(DAATAScene, uiFile):
         else:
             data.set_current_value("command_tare_load_cell", 0)
 
-
     def connect_slots_and_signals(self):
         self.button_display.clicked.connect(self.slot_data_collecting_state_change)
 
         self.load_cell_tare.clicked.connect(self.slot_tare_load_cell)
         self.load_cell_scale.valueChanged.connect(self.slot_set_load_cell_scale)
 
+        self.horizontalSlider.valueChanged.connect(self.slot_display_motor_speed)
+        self.kill_motor.clicked.connect(self.slot_toggle_motor) #toggle motor on and off
+        self.send_speed.clicked.connect(self.slot_set_motor_speed) #set speed to value from slider
+        self.sweep.clicked.connect(self.slot_sweep)
+
+
         # connections to GridPlotLayout
         # for key in self.graph_objects.keys():
         #     widget = self.graph_objects[key]
         #     settings = widget.button_settings.clicked.connect(partial(self.graph_objects[key].open_SettingsWindow))
+
+    def slot_sweep(self):
+        for i in range(100):
+            print(i)
+            #self.lcdNumber.display(i)
+            #logger.info("Setting motor speed")
+            #data.set_current_value("command_motor_speed", i)
+            #time.sleep(2)
+
 
     def save_settings(self):
         """
@@ -285,6 +288,7 @@ class EngineDyno(DAATAScene, uiFile):
         self.save_settings()
         self.window().setWindowTitle('closed tab')
 
+    '''
     def paintEvent(self, pe):
         """
         This method allows the color scheme of the class to be changed by CSS stylesheets
@@ -297,3 +301,4 @@ class EngineDyno(DAATAScene, uiFile):
         p = QtGui.QPainter(self)
         s = self.style()
         s.drawPrimitive(QtGui.QStyle.PE_Widget, opt, p, self)
+    '''

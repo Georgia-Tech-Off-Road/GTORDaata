@@ -116,9 +116,9 @@ class Time(Sensor):
 
 
 class Speed(Sensor):
-    def __init__(self, **kwargs):
+    def __init__(self, pulses_per_revolution, **kwargs):
         super().__init__(**kwargs)
-        self.ppr = kwargs.get("pulses_per_revolution", 1)
+        self.ppr = pulses_per_revolution
         self.unit = kwargs.get('unit', "Revolutions Per Minute")
         self.unit_short = kwargs.get('unit_short', "RPM")
 
@@ -183,26 +183,3 @@ class Temperature(Sensor):
         super().__init__(**kwargs)
         self.unit = kwargs.get('unit', "Degrees Farenheit")
         self.unit_short = kwargs.get('unit_short', "°F")
-
-
-class GPS(Sensor):
-    def __init__(self, orientation, **kwargs):
-        super().__init__(**kwargs)
-        self.orientation = orientation
-        self.unit = kwargs.get("unit", "Degrees")
-        self.unit_short = kwargs.get("unit_short", "°")        
-
-
-class Voltage(Sensor):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.unit = kwargs.get('unit', "Volts")
-        self.unit_short = kwargs.get('unit_short', "V")
-
-
-class Strain(Sensor):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.unit = kwargs.get('unit', "Strain")
-        self.unit_short = kwargs.get('unit_short', "%")
-        
