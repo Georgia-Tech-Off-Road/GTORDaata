@@ -16,17 +16,127 @@
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <layout class="QFormLayout" name="formLayout">
-     <item row="1" column="1">
-      <widget class="QPushButton" name="DefaultButton">
-       <property name="text">
-        <string>Default</string>
-       </property>
-      </widget>
-     </item>
      <item row="2" column="0">
       <widget class="QLabel" name="filepath_label">
        <property name="text">
         <string>File*</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1">
+      <widget class="QCheckBox" name="save_offline_only_option">
+       <property name="text">
+        <string>Save offline only (to be uploaded later)</string>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="0">
+      <widget class="QLabel" name="oAuth_label">
+       <property name="text">
+        <string>oAuth file</string>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="1">
+      <widget class="QWidget" name="oAuthFileEntry_info" native="true">
+       <layout class="QHBoxLayout" name="oAuthFileEntry_info_layout">
+        <property name="spacing">
+         <number>0</number>
+        </property>
+        <property name="leftMargin">
+         <number>0</number>
+        </property>
+        <property name="topMargin">
+         <number>0</number>
+        </property>
+        <property name="rightMargin">
+         <number>0</number>
+        </property>
+        <property name="bottomMargin">
+         <number>0</number>
+        </property>
+        <item>
+         <widget class="QLineEdit" name="oAuth_entry">
+          <property name="placeholderText">
+           <string>C:\Users\afari\Downloads\sec.json</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="verticalSpacer_3">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>40</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QPushButton" name="select_sec_file">
+          <property name="maximumSize">
+           <size>
+            <width>50</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>📁</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="verticalSpacer_2">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>19</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QPushButton" name="openSecGDInfoBtn">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>50</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>ⓘ</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item row="5" column="0">
+      <widget class="QLabel" name="label_UploadName">
+       <property name="text">
+        <string>File Name*</string>
+       </property>
+      </widget>
+     </item>
+     <item row="5" column="1">
+      <widget class="QLineEdit" name="Name">
+       <property name="text">
+        <string/>
+       </property>
+       <property name="placeholderText">
+        <string>DataCollection Test Today</string>
        </property>
       </widget>
      </item>
@@ -77,27 +187,10 @@
        </layout>
       </widget>
      </item>
-     <item row="3" column="1">
-      <widget class="QCheckBox" name="save_offline_only_option">
+     <item row="1" column="1">
+      <widget class="QPushButton" name="DefaultButton">
        <property name="text">
-        <string>Save offline only (to be uploaded later)</string>
-       </property>
-      </widget>
-     </item>
-     <item row="4" column="0">
-      <widget class="QLabel" name="label_UploadName">
-       <property name="text">
-        <string>File Name*</string>
-       </property>
-      </widget>
-     </item>
-     <item row="4" column="1">
-      <widget class="QLineEdit" name="Name">
-       <property name="text">
-        <string/>
-       </property>
-       <property name="placeholderText">
-        <string>DataCollection Test Today</string>
+        <string>Default</string>
        </property>
       </widget>
      </item>
