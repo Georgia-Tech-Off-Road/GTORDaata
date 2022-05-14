@@ -634,6 +634,19 @@ SensorId = {
             "is_float": True
         }
     },
+    311: {
+        "name": "force_straingauge_strain",
+        "object": "Strain",
+        "num_bytes": 4,
+        "is_float": True
+    },
+    312: {
+        "name": "loadcell_chassisstiffness_lbs",
+        "display_name": "Chassis Stiffness Force",
+        "object": "Force",
+        "num_bytes": 4,
+        "is_float": True
+    },
 
     # 400 - LDS SENSORS
     400: {
@@ -744,6 +757,13 @@ SensorId = {
         "object": "Temperature",
         "num_bytes": 4,
         "display_name": "Temperature",
+        "is_float": True
+    },
+    601: {
+        "name": "voltage",
+        "object": "Voltage",
+        "num_bytes": 4,
+        "display_name": "Voltage",
         "is_float": True
     }
 }

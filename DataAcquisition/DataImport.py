@@ -28,10 +28,11 @@ class DataImport:
     to the Teensy.
     """
 
-    def __init__(self, data, lock, is_data_collecting):
+    def __init__(self, data, lock, is_data_collecting, stop_thread):
         self.data = data
         self.lock = lock
         self.is_data_collecting = is_data_collecting
+        self.stop_thread = stop_thread
         self.input_mode = ""
         self.data_file = None
 
