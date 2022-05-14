@@ -67,6 +67,7 @@ def read_data():
                 logger.info("Error in read_packet()")
         else:
             data_import.input_mode = ""
+            time.sleep(0.01)
             pass
 
 

@@ -120,6 +120,7 @@ class DataImport:
                 if self.teensy_countdown > 10:
                     self.input_mode = ""
                     self.teensy_countdown = 0
+                    logger.info("Stopped looking for Teensy, must reselect it in input tab")
                 self.connect_timer = time()
 
     def read_packet(self):
