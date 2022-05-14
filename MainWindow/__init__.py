@@ -308,7 +308,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         result = []
         for port in ports:
             try:
-                s = serial.Serial(port)
+                s = serial.Serial(port, timeout=0.02)
                 s.close()
                 result.append(port)
             except (OSError, serial.SerialException):
