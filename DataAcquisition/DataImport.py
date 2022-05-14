@@ -107,8 +107,8 @@ class DataImport:
             self.teensy_ser = serial.Serial(baudrate=230400, port=self.teensy_port, timeout=2,
                                             write_timeout=1)
             logger.info("Teensy found on port {}".format(self.teensy_ser.port))            
-            self.teensy_ser.flushInput
-            self.teensy_ser.flushOutput
+            #self.teensy_ser.flushInput
+            #self.teensy_ser.flushOutput
             self.teensy_found = True
             self.teensy_countdown = 0
         except:            
