@@ -35,8 +35,7 @@ def read_data():
     while True:
         if is_data_collecting.is_set() and not data_was_collecting:
             logger.info("Starting data collection")
-            if "COM" in data_import.input_mode:
-                data.reset()
+            data.reset()
             data_was_collecting = True
 
         if not is_data_collecting.is_set() and data_was_collecting:
@@ -79,7 +78,8 @@ def send_data():
     :return: None
     """
 
-    if "COM" not in data_import.input_mode:
+    
+    if data_import.input_mode in ["CSV", "FAKE", "BIN"]:
         pass
     else:
         try:

@@ -127,13 +127,13 @@ class Homepage(DAATAScene, uiFile):
             self.connection_Label.setStyleSheet("background-color: #d60000; border: 1px solid black; color: white")
            
         # Check if GTOR network drive is connected
-        network_drive = self.GTORNetwork.get_GTORNetworkDrive()
-        if network_drive:
-            self.ind_connectionStatus.setText("Network Drive Connected" + " (" + network_drive + ")")
-            self.ind_connectionStatus.setCheckState(True)
-        else:
-            self.ind_connectionStatus.setText("Network Drive Disconnected")
-            self.ind_connectionStatus.setCheckState(False)
+        # network_drive = self.GTORNetwork.get_GTORNetworkDrive()
+        # if network_drive:
+        #     self.ind_connectionStatus.setText("Network Drive Connected" + " (" + network_drive + ")")
+        #     self.ind_connectionStatus.setCheckState(True)
+        # else:
+        #     self.ind_connectionStatus.setText("Network Drive Disconnected")
+        #     self.ind_connectionStatus.setCheckState(False)
 
         # Check if SD write is enabled
         sd_state = data.get_current_value("flag_auxdaq_sdwrite")
@@ -191,7 +191,7 @@ class Homepage(DAATAScene, uiFile):
 
     # --- imported methods --- #
     from Utilities.CustomWidgets.indicatorWidget import QIndicator
-    from Utilities.DataExport import GTORNetwork
+    # from Utilities.DataExport import GTORNetwork
 
     # --- Overridden event methods --- #
     
@@ -203,8 +203,8 @@ class Homepage(DAATAScene, uiFile):
         :return: None
         """
         
-        opt = QtGui.QStyleOption()
+        opt = QtWidgets.QStyleOption()
         opt.initFrom(self)
         p = QtGui.QPainter(self)
         s = self.style()
-        s.drawPrimitive(QtGui.QStyle.PE_Widget, opt, p, self)
+        s.drawPrimitive(QtWidgets.QStyle.PE_Widget, opt, p, self)
