@@ -18,7 +18,7 @@ pg.setConfigOption('foreground', 'k')  # black
 
 # load the .ui file from QT Designer
 uiFile, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__),
-                                        'MultiDataGraph.ui'))
+                                        'multiDataGraph.ui'))
 
 logger = logging.getLogger("MultiDataGraph")
 

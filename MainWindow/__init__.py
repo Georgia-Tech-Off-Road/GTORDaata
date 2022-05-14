@@ -39,11 +39,9 @@ from Utilities.GoogleDriveHandler.GDriveDataImport import \
 from Utilities import general_constants
 
 import re, itertools
-# import winreg as winreg
 # import breeze_resources
 
 import itertools
-import winreg as winreg
 
 logger = logging.getLogger("MainWindow")
 
