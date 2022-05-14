@@ -14,7 +14,6 @@ Required parameters:
 
 Optional parameters:
     - h_file_comment (not stored within Sensor)
-    - name_multi     (required if multiple sensors are contained within the same ID)
     - is_float       (defaults to None)
     - display_name   (defaults to None)
     - unit           (defaults to None)
@@ -68,6 +67,43 @@ SensorId = {
         "object": "Command",
         "num_bytes": 4,
         "is_float": True
+    },
+    8: {
+        "name": "gps_sensor",
+        "num_bytes": [4, 4, 4],
+        "h_file_comment": "Contains lattitude, longitude, and speed (knots)",
+        0: {
+            "name": "gps_lattitude",
+            "object": "GPS",
+            "display_name": "GPS Lattitude",
+            "orientation": "lattitude",
+            "is_float": False
+        },
+        1: {
+            "name": "gps_longitude",
+            "object": "GPS",
+            "display_name": "GPS Longitude",
+            "orientation": "longitude",
+            "is_float": False
+        },
+        2: {
+            "name": "gps_speed",
+            "object": "Speed",
+            "display_name": "GPS Speed",
+            "is_float": False
+        }
+    },
+    9: {
+        "name": "command_auxdaq_sdwrite",
+        "object": "Command",
+        "num_bytes": 1,
+        "is_float": False
+    },
+    10: {
+        "name": "flag_auxdaq_sdwrite",
+        "object": "Flag",
+        "num_bytes": 1,
+        "is_float": False
     },
     90: {
         "name": "test_sensor_0",
@@ -393,7 +429,7 @@ SensorId = {
     },
     212: {
         "name": "speed_dynoengine600_rpm",
-        "num_bytes": [4, 4],
+        "num_bytes": [4, 2],
         "h_file_comment": "Speed in RPM and position in ticks (600ppr sensor)",
         0: {
             "name": "dyno_engine_position",
@@ -410,7 +446,7 @@ SensorId = {
     },
     213: {
         "name": "speed_dynosecondary30_rpm",
-        "num_bytes": [4, 4],
+        "num_bytes": [4, 2],
         "h_file_comment": "Speed in RPM and position in ticks (600ppr sensor)",
         0: {
             "name": "dyno_secondary_position",
@@ -488,14 +524,14 @@ SensorId = {
     304: {
         "name": "pressure_frontbrake_psi",
         "object": "Pressure",
-        "num_bytes": 2,
-        "is_float": False
+        "num_bytes": 4,
+        "is_float": True
     },
     305: {
         "name": "pressure_rearbrake_psi",
         "object": "Pressure",
-        "num_bytes": 2,
-        "is_float": False
+        "num_bytes": 4,
+        "is_float": True
     },
     306: {
         "name": "force_enginedyno_lbs",
@@ -598,6 +634,19 @@ SensorId = {
             "is_float": True
         }
     },
+    311: {
+        "name": "force_straingauge_strain",
+        "object": "Strain",
+        "num_bytes": 4,
+        "is_float": True
+    },
+    312: {
+        "name": "loadcell_chassisstiffness_lbs",
+        "display_name": "Chassis Stiffness Force",
+        "object": "Force",
+        "num_bytes": 4,
+        "is_float": True
+    },
 
     # 400 - LDS SENSORS
     400: {
@@ -610,30 +659,30 @@ SensorId = {
     401: {
         "name": "lds_frontleftshock_mm",
         "object": "LDS",
-        "num_bytes": 1,
+        "num_bytes": 4,
         "stroke_length": 200,
-        "is_float": False
+        "is_float": True
     },
     402: {
         "name": "lds_frontrightshock_mm",
         "object": "LDS",
-        "num_bytes": 1,
+        "num_bytes": 4,
         "stroke_length": 200,
-        "is_float": False
+        "is_float": True
     },
     403: {
         "name": "lds_backleftshock_mm",
         "object": "LDS",
-        "num_bytes": 1,
+        "num_bytes": 4,
         "stroke_length": 225,
-        "is_float": False
+        "is_float": True
     },
     404: {
         "name": "lds_backrightshock_mm",
         "object": "LDS",
-        "num_bytes": 1,
+        "num_bytes": 4,
         "stroke_length": 225,
-        "is_float": False
+        "is_float": True
     },
     405: {
         "name": "lds_shockdyno_mm",
@@ -641,6 +690,16 @@ SensorId = {
         "num_bytes": 1,
         "stroke_length": 225,
         "is_float": False
+    },
+    406: {
+        "name": "lds_pedal_mm",
+        "display_name": "Pedal Position",
+        "h_file_comment": "This sensor probably only used for testing day 4/2/22",
+        "unit_short": "mm",
+        "object": "LDS",
+        "num_bytes": 4,
+        "stroke_length": 200,
+        "is_float": True
     },
 
     # 500 - IMU SENSORS
@@ -698,6 +757,13 @@ SensorId = {
         "object": "Temperature",
         "num_bytes": 4,
         "display_name": "Temperature",
+        "is_float": True
+    },
+    601: {
+        "name": "voltage",
+        "object": "Voltage",
+        "num_bytes": 4,
+        "display_name": "Voltage",
         "is_float": True
     }
 }

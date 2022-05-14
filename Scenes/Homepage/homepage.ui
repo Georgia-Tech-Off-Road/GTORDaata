@@ -197,6 +197,13 @@
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_connectionStatus">
       <item>
+       <widget class="QPushButton" name="SDWriteButton">
+        <property name="text">
+         <string>SD Card Write Toggle</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QLabel" name="connection_Label">
         <property name="minimumSize">
          <size>

@@ -1,17 +1,19 @@
 import sys
 import csv
 import os
+from unicodedata import decimal
 import serial
 from serial.serialutil import EIGHTBITS
 from serial.tools import list_ports
 from serial.serialutil import SerialException
 from DataAcquisition.ComPortUtil import ListPortsDialog
-import time
+from time import time
 from datetime import datetime
 import logging
 import random
 import math
 import struct
+from decimal import Decimal
 
 from DataAcquisition.Data import Data
 from DataAcquisition.SensorId import SensorId
@@ -26,16 +28,19 @@ class DataImport:
     to the Teensy.
     """
 
-    def __init__(self, data, lock, is_data_collecting):
+    def __init__(self, data, lock, is_data_collecting, stop_thread):
         self.data = data
         self.lock = lock
         self.is_data_collecting = is_data_collecting
+        self.stop_thread = stop_thread
         self.input_mode = ""
         self.data_file = None
 
         # Connect to the Teensy
         self.teensy_found = False
         self.teensy_ser = None
+        self.connect_timer = time()
+        self.teensy_countdown = 0
 
         # Variables that are used for reading/parsing incoming packets
         self.end_code = [b'\xff', b'\xff', b'\xff', b'\xff', b'\xff', b'\xff', b'\xff', b'\xf0']
@@ -99,17 +104,25 @@ class DataImport:
             self.is_receiving_data = False
             self.is_sending_data = False
             self.teensy_port = self.input_mode
-            self.teensy_ser = serial.Serial(baudrate=115200, port=self.teensy_port, timeout=2,
+            self.teensy_ser = serial.Serial(baudrate=230400, port=self.teensy_port, timeout=2,
                                             write_timeout=1)
             logger.info("Teensy found on port {}".format(self.teensy_ser.port))            
             self.teensy_ser.flushInput
             self.teensy_ser.flushOutput
             self.teensy_found = True
-        except Exception as e:
+            self.teensy_countdown = 0
+        except:            
             self.teensy_found = False
             logger.debug(logger.findCaller(True))
-            logger.error("Looking for Teensy...")
-            time.sleep(1)
+            time_diff = Decimal(time()) - Decimal(self.connect_timer)
+            if time_diff > 1.0:
+                logger.info("Looking for Teensy...{}".format(str(10 - self.teensy_countdown)))
+                self.teensy_countdown += 1
+                if self.teensy_countdown > 10:
+                    self.input_mode = ""
+                    self.teensy_countdown = 0
+                    logger.info("Stopped looking for Teensy, must reselect it in input tab")
+                self.connect_timer = time()
 
     def read_packet(self):
         """
@@ -118,47 +131,34 @@ class DataImport:
 
         :return: None
         """
-
-        while self.teensy_ser != None or self.data_file != None:  # if there are bytes waiting in input buffer
-            if self.teensy_found:
-                try:
-                    assert self.teensy_ser.in_waiting != 0
-                    self.current_packet.append(self.teensy_ser.read(1))  # read in a single byte from COM
-                except AssertionError:
-                    logger.debug("Input buffer is empty")
-                except TypeError:
-                    logger.info("Teensy has been disconnected, closing and attempting reopen")
-                    self.teensy_ser.close()
-                    self.connect_serial()
-                except Exception:
-                    logger.debug(logger.findCaller(True))
-            elif self.data_file != None and self.data_file.readable():                
-                byte = self.data_file.read(1)
-                if not byte:
-                    logger.info("Finished BIN file parsing")
-                    self.input_mode = ""
-                    break                
-                self.current_packet.append(byte)   # read in a single byte from file                
-            elif not self.teensy_found:
-                self.connect_serial()
-            else:
-                # We break if teensy is disconnected or if input buffer is empty
-                break
-            packet_length = len(self.current_packet)
-            if packet_length > 8:
-                # If end code is found then unpacketize and clear packet
-                end_code_match = False
-                if self.current_packet[(packet_length - 8):(packet_length)] == self.end_code:
-                    end_code_match = True
-                if end_code_match:     
-                    self.packet_count += 1
-                    logger.debug("Packet count: {}".format(self.packet_count))
-
-                    self.current_packet = self.current_packet[0:(packet_length - 8)]                    
-                    self.unpacketize()
-                    self.current_packet.clear()
-
-                    
+        
+        if self.teensy_ser and self.teensy_found:
+            try:
+                assert self.teensy_ser.in_waiting != 0
+                self.current_packet.append(self.teensy_ser.read(1))  # read in a single byte from COM
+            except AssertionError:
+                pass # logger.debug("Input buffer is empty")
+            except TypeError:
+                logger.info("Teensy has been disconnected, closing and attempting reopen")
+                self.teensy_ser.close()
+            except Exception:
+                logger.debug(logger.findCaller(True))
+        elif self.data_file and self.data_file.readable():                
+            byte = self.data_file.read(1)
+            if not byte:
+                logger.info("Finished BIN file parsing")
+                self.input_mode = ""                                    
+            self.current_packet.append(byte)   # read in a single byte from file                
+        elif not self.teensy_found:
+            self.connect_serial()           
+        # If end code is found then unpacketize and clear packet
+        packet_length = len(self.current_packet)
+        if packet_length > 8 and self.current_packet[(packet_length - 8):(packet_length)] == self.end_code:  
+            self.packet_count += 1
+            logger.debug("Packet count: {}".format(self.packet_count))
+            self.current_packet = self.current_packet[0:(packet_length - 8)]                    
+            self.unpacketize()
+            self.current_packet.clear()                    
     
     def open_bin_file(self, dir):
         """
@@ -229,7 +229,6 @@ class DataImport:
             except:                
                 logger.info("Teensy has been disconnected, closing and attempting reopen")
                 self.teensy_ser.close()
-                self.teensy_found = False
 
     def packetize(self):
         """

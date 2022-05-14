@@ -14,8 +14,11 @@ stop_thread = threading.Event()
 # This is the main variable that can be accessed from other areas of the code. Use 'DataAcquisition.data'
 data = Data(data_collection_lock)
 
+# Initializes SD write value
+data.set_current_value("command_auxdaq_sdwrite", False)
+
 # This is the object that controls importing data
-data_import = DataImport(data, data_collection_lock, is_data_collecting)
+data_import = DataImport(data, data_collection_lock, is_data_collecting, stop_thread)
 
 
 def read_data():
@@ -40,7 +43,7 @@ def read_data():
             data_was_collecting = False
 
         if stop_thread.is_set():
-            sys.exit()
+            break
 
         if data_import.input_mode == "FAKE":
             data_import.check_connected_fake()
@@ -52,28 +55,18 @@ def read_data():
             except Exception as e:
                 logger.error(e)
                 logger.debug(logger.findCaller(True))
-        elif "COM" in data_import.input_mode and data_import.teensy_found:
-            try:
-                try:                    
-                    assert data_import.teensy_found
-                    assert data_import.check_connected()
-                    data_import.teensy_ser.flushInput()
-                except AttributeError:
-                    logger.warning(
-                        "Unable to flush Serial Buffer. No Serial object connected")
-                try:
-                    data_import.read_packet()
-                except AssertionError:
-                    logger.info("Serial port is not open, opening now")
-                    try:
-                        data_import.teensy_ser.open()
-                    except Exception as e:
-                        logger.error(e)
-                        logger.debug(logger.findCaller(True))
+        elif "COM" in data_import.input_mode:
+            try:                
+                assert data_import.teensy_found
+                assert data_import.check_connected()
+                data_import.read_packet()                                            
             except AssertionError:
-                time.sleep(0)
+                data_import.connect_serial()    
+            except:
+                logger.info("Error in read_packet()")
         else:
             data_import.input_mode = ""
+            time.sleep(0.01)
             pass
 
 

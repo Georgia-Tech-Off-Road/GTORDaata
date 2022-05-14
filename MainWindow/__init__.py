@@ -10,6 +10,8 @@ import serial
 import glob
 import ctypes
 import threading
+import glob
+import serial
 
 from Scenes import DAATAScene, MultiDataGraphPreview
 from Scenes.BlinkLEDTest import BlinkLEDTest
@@ -61,7 +63,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             target=DataAcquisition.read_data)
 
         # Attach the internal timer
-        data_import.attach_internal_sensor(101)
+        data_import.attach_internal_sensor(101)  # Time
+        data_import.attach_output_sensor(9)      # SD Card write command
 
         # Set up all the elements of the UI
         self.setupUi(self)
@@ -129,6 +132,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         :return: None
         """
+
+        # Update and check for COM ports
+        self.import_coms()
+        self.com_input_mode()
 
         self.homepage.update_passive()
         for scene in self.tabWidget.findChildren(DAATAScene):
@@ -274,12 +281,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         }
 
     def enumerate_serial_ports(self):
-        """ Lists serial port names
+        """         
+        Uses the Win32 registry to return an iterator of serial (COM) ports
+        existing on this computer.
 
-            :raises EnvironmentError:
-                On unsupported or unknown platforms
-            :returns:
-                A list of the serial ports available on the system
+        :return: List of available COM ports
         """
         if sys.platform.startswith('win'):
             ports = ['COM%s' % (i + 1) for i in range(256)]
@@ -291,6 +297,14 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         else:
             raise EnvironmentError('Unsupported platform')
 
+        if sys.platform.startswith('win'):
+            ports = ['COM%s' % (i + 1) for i in range(256)]
+        elif sys.platform.startswith('linux') or sys.platform.startswith('cygwin'):
+            # this excludes your current terminal "/dev/tty"
+            ports = glob.glob('/dev/tty[A-Za-z]*')
+        else:
+            logger.error("Unsupported platform for COM ports")
+        
         result = []
         for port in ports:
             try:
@@ -308,10 +322,13 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         :return: None
         """
 
-        # adds the Auto option no matter what
-        self.dict_ports["Auto"] = None
-        for portName in self.enumerate_serial_ports():
-            self.dict_ports[portName] = None
+        new_ports = self.enumerate_serial_ports()
+        prev_ports = list(self.dict_ports.keys())
+        if prev_ports != new_ports:
+            self.dict_ports.clear()
+            for portName in new_ports:
+                self.dict_ports[portName] = None
+            self.update_comMenu()
 
     def create_homepage(self):
         """
@@ -320,13 +337,21 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         :return: None
         """
+
         self.homepage = Homepage()
         self.homepage.setObjectName("Homepage")
         self.gridLayout_tab_homepage.addWidget(self.homepage)
 
     def com_input_mode(self):
+        """
+        Based on the available COM ports that are listed, it sets the input mode
+        to whichever port is checked at the given time.
+        
+        return: None
+        """
+
         for key in self.dict_ports.keys():
-            if self.dict_ports[key].isChecked():
+            if self.dict_ports[key] and self.dict_ports[key].isChecked():
                 self.set_input_mode(key)
 
     def set_input_mode(self, input_mode):
@@ -354,19 +379,22 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                         "You must open a BIN file before changing to BIN input mode")
             except Exception as e:
                 logger.error(e)
-        elif data_import.input_mode == "CSV":        
-            try:
-                directory = open_data_file(".csv")
-                if directory != "":     
-                    is_data_collecting.set()               
-                    data_import.import_csv(directory)
-                else:                    
-                    logger.info("You must open a CSV file before changing to CSV input mode")
-            except Exception as e:
-                logger.error(e)
-            finally:
-                data_import.input_mode = ""
-        if data_import.input_mode is not "":
+                logger.debug(logger.findCaller(True))
+        # elif data_import.input_mode == "CSV":
+        #     try:
+        #         directory = open_data_file(".csv")
+        #         if directory != "":
+        #             is_data_collecting.set()
+        #             data_import.import_csv(directory)
+        #         else:
+        #             logger.info(
+        #                 "You must open a CSV file before changing to CSV input mode")
+        #     except Exception as e:
+        #         logger.error(e)
+        #         logger.debug(logger.findCaller(True))
+        #     finally:
+        #         data_import.input_mode = ""
+        if "COM" in data_import.input_mode:            
             data_import.connect_serial()
             if not self.data_sending_thread.isActive():
                 self.data_sending_thread.start(100)
@@ -483,7 +511,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     # --- Imported methods --- #
     from ._tabHandler import create_tab_widget, create_scene_tab, rename_tab, \
         close_tab
-    from ._menubarHandler import populate_menu
+    from ._menubarHandler import populate_menu, update_comMenu
     from Utilities.Settings.SettingsDialog import SettingsDialog
 
     # --- Overridden event methods --- #
@@ -494,6 +522,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         :return: None
         """
+
+        if data_import.teensy_found:            
+            data_import.teensy_ser.close()
 
         stop_thread.set()
         if self.data_sending_thread.isActive():
