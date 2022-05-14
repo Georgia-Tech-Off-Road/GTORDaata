@@ -15,7 +15,7 @@ logging_objects = {
     "GoogleDriveHandler": DEBUG,
     "Homepage": INFO,
     "Logging": DEBUG,
-    "MainWindow": DEBUG,
+    "MainWindow": INFO,
     "MultiDataGraph": INFO,
     "Plotting": INFO,
 }

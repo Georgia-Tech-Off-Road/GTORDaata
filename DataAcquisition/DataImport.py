@@ -141,6 +141,7 @@ class DataImport:
             except TypeError:
                 logger.info("Teensy has been disconnected, closing and attempting reopen")
                 self.teensy_ser.close()
+                self.teensy_found = False
             except Exception:
                 logger.debug(logger.findCaller(True))
         elif self.data_file and self.data_file.readable():                
@@ -370,7 +371,7 @@ class DataImport:
                         self.data.add_value(sensor_id, None)
 
                 except AssertionError:
-                    logger.warning("Packet size is different than expected")
+                    logger.warning("Packet size of {} is different than expected of {}".format(len(self.current_packet), self.expected_size))
                     self.is_receiving_data = False
                     if "COM" in self.input_mode:
                         self.teensy_ser.flushInput()

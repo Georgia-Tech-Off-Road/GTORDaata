@@ -14,4 +14,3 @@ pip3 install --upgrade google-api-python-client
 pip3 install google-cloud
 pip3 install google_auth_oauthlib
 pip3 install pandas
-pip3 install winreg
