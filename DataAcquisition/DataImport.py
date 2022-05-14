@@ -514,7 +514,6 @@ class DataImport:
 
         if self.is_data_collecting and not self.data.is_connected:
             self.data.set_connected(101)  # Time ID
-            self.start_time = datetime.now()
             if (datetime.now() - self.time_begin).total_seconds() > 0:
                 self.data.is_connected = True
                 self.data.set_connected(90)
@@ -538,7 +537,7 @@ class DataImport:
                 self.check_connected_fake()
             else:
                 if (datetime.now() - self.prev_time).total_seconds() * 1000 > 5:
-                    time = (datetime.now() - self.start_time).total_seconds()
+                    time = (datetime.now() - self.time_begin).total_seconds()
 
                     self.data.add_value(101, time)
 
