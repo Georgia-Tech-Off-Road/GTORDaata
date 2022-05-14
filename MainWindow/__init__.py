@@ -23,6 +23,7 @@ from Scenes.Homepage import Homepage
 from Scenes.Layout_Test import Widget_Test
 from Scenes.MultiDataGraph import MultiDataGraph
 from Scenes.MultiDataGraphPreview import MultiDataGraphPreview
+from Scenes.Viewer3D import Viewer3D
 
 from MainWindow._tabHandler import close_tab
 from Utilities.Popups.popups import popup_ParentChildrenTree
@@ -278,6 +279,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
             'Multi Data Graph Preview':
                 _Scene(MultiDataGraphPreview, "MultiDataGraphPreview", True),
+
+            'Viewer3D':  _Scene(Viewer3D, "3DViewer"),
         }
 
     def enumerate_serial_ports(self):
