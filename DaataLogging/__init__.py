@@ -18,6 +18,7 @@ logging_objects = {
     "MainWindow": INFO,
     "MultiDataGraph": INFO,
     "Plotting": INFO,
+    "Viewer3D": DEBUG
 }
 
 # Console output handler

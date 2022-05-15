@@ -205,4 +205,10 @@ class Strain(Sensor):
         super().__init__(**kwargs)
         self.unit = kwargs.get('unit', "Strain")
         self.unit_short = kwargs.get('unit_short', "%")
-        
+
+
+class Angle(Sensor):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.unit = kwargs.get('unit', "Degrees")
+        self.unit_short = kwargs.get('unit_short', "degrees")

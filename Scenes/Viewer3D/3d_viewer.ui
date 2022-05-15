@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>711</width>
+    <width>810</width>
     <height>599</height>
    </rect>
   </property>
@@ -162,7 +162,7 @@
                  </font>
                 </property>
                 <property name="text">
-                 <string>X</string>
+                 <string>Accel X</string>
                 </property>
                </widget>
               </item>
@@ -190,7 +190,7 @@
                  </font>
                 </property>
                 <property name="text">
-                 <string>Y</string>
+                 <string>Accel Y</string>
                 </property>
                </widget>
               </item>
@@ -221,7 +221,7 @@
               </font>
              </property>
              <property name="text">
-              <string>Z</string>
+              <string>Accel Z</string>
              </property>
             </widget>
            </item>
