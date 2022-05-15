@@ -105,6 +105,38 @@ SensorId = {
         "num_bytes": 1,
         "is_float": False
     },
+    11: {
+        "name": "dashboard_gps_sensor",
+        "num_bytes": [4, 4, 4],
+        "h_file_comment": "ECEF X, Y, Z (in cm)",
+        0: {
+            "name": "gps_ecef_x",
+            "object": "GPS",
+            "display_name": "GPS ECEF X",
+            "orientation": None,
+            "unit": "Centimeters",
+            "unit_short": "cm",
+            "is_float": True
+        },
+        1: {
+            "name": "gps_ecef_y",
+            "object": "GPS",
+            "display_name": "GPS ECEF Y",
+            "orientation": None,
+            "unit": "Centimeters",
+            "unit_short": "cm",
+            "is_float": True
+        },
+        2: {
+            "name": "gps_ecef_z",
+            "object": "GPS",
+            "display_name": "GPS ECEF Z",
+            "orientation": None,
+            "unit": "Centimeters",
+            "unit_short": "cm",
+            "is_float": True
+        }
+    },
     90: {
         "name": "test_sensor_0",
         "display_name": "Test Sensor 0",
@@ -747,6 +779,71 @@ SensorId = {
             "name": "imu_temperature",
             "object": "Temperature",
             "display_name": "IMU Temperature",
+            "is_float": True
+        }
+    },
+    501: {
+        "name": "dashboard_imu_wt901",
+        "num_bytes": [4, 4, 4, 4, 4, 4, 4, 4, 4, 4],
+        "h_file_comment": "Accel X, Y, Z; Roll, Pitch, Yaw; Quaternion 1, 2, 3, 4",
+        0: {
+            "name": "dashboard_accel_x",
+            "object": "Acceleration",
+            "display_name": "IMU X Acceleration",
+            "is_float": True
+        },
+        1: {
+            "name": "dashboard_accel_y",
+            "object": "Acceleration",
+            "display_name": "IMU Y Acceleration",
+            "is_float": True
+        },
+        2: {
+            "name": "dashboard_accel_z",
+            "object": "Acceleration",
+            "display_name": "IMU Z Acceleration",
+            "is_float": True
+        },
+        3: {
+            "name": "dashboard_roll",
+            "object": "Angle",
+            "display_name": "IMU Roll",
+            "is_float": True
+        },
+        4: {
+            "name": "dashboard_pitch",
+            "object": "Angle",
+            "display_name": "IMU Pitch",
+            "is_float": True
+        },
+        5: {
+            "name": "dashboard_yaw",
+            "object": "Angle",
+            "display_name": "IMU Yaw",
+            "is_float": True
+        },
+        6: {
+            "name": "dashboard_quaternion_1",
+            "object": "Angle",
+            "display_name": "IMU Quaternion 1",
+            "is_float": True
+        },
+        7: {
+            "name": "dashboard_quaternion_2",
+            "object": "Angle",
+            "display_name": "IMU Quaternion 2",
+            "is_float": True
+        },
+        8: {
+            "name": "dashboard_quaternion_3",
+            "object": "Angle",
+            "display_name": "IMU Quaternion 3",
+            "is_float": True
+        },
+        9: {
+            "name": "dashboard_quaternion_4",
+            "object": "Angle",
+            "display_name": "IMU Quaternion 4",
             "is_float": True
         }
     },
