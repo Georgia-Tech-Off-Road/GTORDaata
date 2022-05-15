@@ -7,6 +7,7 @@ import logging
 import os
 import sys
 import serial
+from serial.tools import list_ports
 import glob
 import ctypes
 import threading
@@ -72,6 +73,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         self.import_scenes()
         self.dict_ports = {}
+        self.bad_ports = list()  # Don't use Serial over Bluetooth ports because they hang on Windows
+        self.find_bad_ports()
         self.import_coms()
         self.create_tab_widget()
         self.populate_menu()
@@ -287,16 +290,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         """
         if sys.platform.startswith('win'):
             ports = ['COM%s' % (i + 1) for i in range(256)]
-        elif sys.platform.startswith('linux') or sys.platform.startswith('cygwin'):
-            # this excludes your current terminal "/dev/tty"
-            ports = glob.glob('/dev/tty[A-Za-z]*')
-        elif sys.platform.startswith('darwin'):
-            ports = glob.glob('/dev/tty.*')
-        else:
-            raise EnvironmentError('Unsupported platform')
-
-        if sys.platform.startswith('win'):
-            ports = ['COM%s' % (i + 1) for i in range(256)]
+            ports = [port for port in ports if port not in self.bad_ports]
         elif sys.platform.startswith('linux') or sys.platform.startswith('cygwin'):
             # this excludes your current terminal "/dev/tty"
             ports = glob.glob('/dev/tty[A-Za-z]*')
@@ -327,6 +321,13 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             for portName in new_ports:
                 self.dict_ports[portName] = None
             self.update_comMenu()
+
+    def find_bad_ports(self):
+        ports = list_ports.comports()
+        for port in ports:
+            if "Bluetooth" in port[1]:
+                self.bad_ports.append(port[0])
+
 
     def create_homepage(self):
         """
