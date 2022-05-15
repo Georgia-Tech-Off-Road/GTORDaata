@@ -108,27 +108,33 @@ SensorId = {
     11: {
         "name": "dashboard_gps_sensor",
         "num_bytes": [4, 4, 4],
-        "h_file_comment": "ECEF X, Y, Z",
+        "h_file_comment": "ECEF X, Y, Z (in cm)",
         0: {
             "name": "gps_ecef_x",
             "object": "GPS",
             "display_name": "GPS ECEF X",
             "orientation": None,
-            "is_float": False
+            "unit": "Centimeters",
+            "unit_short": "cm",
+            "is_float": True
         },
         1: {
             "name": "gps_ecef_y",
             "object": "GPS",
             "display_name": "GPS ECEF Y",
             "orientation": None,
-            "is_float": False
+            "unit": "Centimeters",
+            "unit_short": "cm",
+            "is_float": True
         },
         2: {
             "name": "gps_ecef_z",
             "object": "GPS",
             "display_name": "GPS ECEF Z",
             "orientation": None,
-            "is_float": False
+            "unit": "Centimeters",
+            "unit_short": "cm",
+            "is_float": True
         }
     },
     90: {
