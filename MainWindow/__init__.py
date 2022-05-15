@@ -7,6 +7,7 @@ import logging
 import os
 import sys
 import serial
+from serial.tools import list_ports
 import glob
 import ctypes
 import threading
@@ -40,11 +41,9 @@ from Utilities.GoogleDriveHandler.GDriveDataImport import \
 from Utilities import general_constants
 
 import re, itertools
-# import winreg as winreg
 # import breeze_resources
 
 import itertools
-import winreg as winreg
 
 logger = logging.getLogger("MainWindow")
 
@@ -75,6 +74,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         self.import_scenes()
         self.dict_ports = {}
+        self.bad_ports = list()  # Don't use Serial over Bluetooth ports because they hang on Windows
+        self.find_bad_ports()
         self.import_coms()
         self.create_tab_widget()
         self.populate_menu()
@@ -292,16 +293,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         """
         if sys.platform.startswith('win'):
             ports = ['COM%s' % (i + 1) for i in range(256)]
-        elif sys.platform.startswith('linux') or sys.platform.startswith('cygwin'):
-            # this excludes your current terminal "/dev/tty"
-            ports = glob.glob('/dev/tty[A-Za-z]*')
-        elif sys.platform.startswith('darwin'):
-            ports = glob.glob('/dev/tty.*')
-        else:
-            raise EnvironmentError('Unsupported platform')
-
-        if sys.platform.startswith('win'):
-            ports = ['COM%s' % (i + 1) for i in range(256)]
+            ports = [port for port in ports if port not in self.bad_ports]
         elif sys.platform.startswith('linux') or sys.platform.startswith('cygwin'):
             # this excludes your current terminal "/dev/tty"
             ports = glob.glob('/dev/tty[A-Za-z]*')
@@ -332,6 +324,13 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             for portName in new_ports:
                 self.dict_ports[portName] = None
             self.update_comMenu()
+
+    def find_bad_ports(self):
+        ports = list_ports.comports()
+        for port in ports:
+            if "Bluetooth" in port[1]:
+                self.bad_ports.append(port[0])
+
 
     def create_homepage(self):
         """
@@ -368,7 +367,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         data_import.teensy_found = False
         data_import.data_file = None
 
-        logger.info("Input Mode: " + str(input_mode))
+        logger.debug("Input Mode: " + str(input_mode))
         data_import.input_mode = input_mode
         if data_import.input_mode == "BIN":
             try:
@@ -397,8 +396,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         #         logger.debug(logger.findCaller(True))
         #     finally:
         #         data_import.input_mode = ""
-        if "COM" in data_import.input_mode:            
-            data_import.connect_serial()
+        if "COM" in data_import.input_mode or "dev" in data_import.input_mode:
             if not self.data_sending_thread.isActive():
                 self.data_sending_thread.start(100)
                 logger.info("We connected to serial!")
