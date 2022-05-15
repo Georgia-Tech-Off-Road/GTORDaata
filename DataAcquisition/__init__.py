@@ -55,7 +55,7 @@ def read_data():
             except Exception as e:
                 logger.error(e)
                 logger.debug(logger.findCaller(True))
-        elif "COM" in data_import.input_mode:
+        elif "COM" in data_import.input_mode or "dev" in data_import.input_mode:
             try:                
                 assert data_import.teensy_found
                 assert data_import.check_connected()

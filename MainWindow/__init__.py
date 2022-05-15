@@ -39,11 +39,9 @@ from Utilities.GoogleDriveHandler.GDriveDataImport import \
 from Utilities import general_constants
 
 import re, itertools
-# import winreg as winreg
 # import breeze_resources
 
 import itertools
-import winreg as winreg
 
 logger = logging.getLogger("MainWindow")
 
@@ -365,7 +363,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         data_import.teensy_found = False
         data_import.data_file = None
 
-        logger.info("Input Mode: " + str(input_mode))
+        logger.debug("Input Mode: " + str(input_mode))
         data_import.input_mode = input_mode
         if data_import.input_mode == "BIN":
             try:
@@ -394,8 +392,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         #         logger.debug(logger.findCaller(True))
         #     finally:
         #         data_import.input_mode = ""
-        if "COM" in data_import.input_mode:            
-            data_import.connect_serial()
+        if "COM" in data_import.input_mode or "dev" in data_import.input_mode:
             if not self.data_sending_thread.isActive():
                 self.data_sending_thread.start(100)
                 logger.info("We connected to serial!")
