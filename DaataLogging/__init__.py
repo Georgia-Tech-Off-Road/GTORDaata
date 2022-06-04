@@ -6,7 +6,7 @@ logging_objects = {
     "BlinkLEDTest": DEBUG,
     "DataAcquisition": INFO,
     "DataCollection": INFO,
-    "DataImport": INFO,
+    "DataImport": DEBUG,
     "DataExport": INFO,
     "EngineDyno": DEBUG,
     "GDriveDataExport": DEBUG,

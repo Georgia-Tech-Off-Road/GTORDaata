@@ -212,3 +212,8 @@ class Angle(Sensor):
         super().__init__(**kwargs)
         self.unit = kwargs.get('unit', "Degrees")
         self.unit_short = kwargs.get('unit_short', "degrees")
+
+    def transfer_function(self, value):
+        if self.name is "dashboard_quaternion_1" or self.name is "dashboard_quaternion_2" or \
+                self.name is "dashboard_quaternion_3" or self.name is "dashboard_quaternion_4":
+            return value/10000

@@ -66,7 +66,7 @@ SensorId = {
         "name": "command_scale_load_cell",
         "object": "Command",
         "num_bytes": 4,
-        "is_float": True
+        "data_type": 'f'
     },
     8: {
         "name": "gps_sensor",
@@ -116,7 +116,7 @@ SensorId = {
             "orientation": None,
             "unit": "Centimeters",
             "unit_short": "cm",
-            "is_float": True
+            "data_type": 'f'
         },
         1: {
             "name": "gps_ecef_y",
@@ -125,7 +125,7 @@ SensorId = {
             "orientation": None,
             "unit": "Centimeters",
             "unit_short": "cm",
-            "is_float": True
+            "data_type": 'f'
         },
         2: {
             "name": "gps_ecef_z",
@@ -134,7 +134,7 @@ SensorId = {
             "orientation": None,
             "unit": "Centimeters",
             "unit_short": "cm",
-            "is_float": True
+            "data_type": 'f'
         }
     },
     90: {
@@ -539,7 +539,7 @@ SensorId = {
         "name": "force_generic",
         "object": "Force",
         "num_bytes": 4,
-        "is_float": True
+        "data_type": 'f'
     },
     302: {
         "name": "brake_sensor1",
@@ -557,25 +557,25 @@ SensorId = {
         "name": "pressure_frontbrake_psi",
         "object": "Pressure",
         "num_bytes": 4,
-        "is_float": True
+        "data_type": 'f'
     },
     305: {
         "name": "pressure_rearbrake_psi",
         "object": "Pressure",
         "num_bytes": 4,
-        "is_float": True
+        "data_type": 'f'
     },
     306: {
         "name": "force_enginedyno_lbs",
         "object": "Force",
         "num_bytes": 4,
-        "is_float": True
+        "data_type": 'f'
     },
     307: {
         "name": "force_shockdyno_lbs",
         "object": "Force",
         "num_bytes": 4,
-        "is_float": True
+        "data_type": 'f'
     },
     308: {
         "name": "wheel_force_transducer_analog_1",
@@ -585,25 +585,25 @@ SensorId = {
             "name": "fx_analog",
             "object": "Force",
             "display_name": "Wheel Force X Analog",
-            "is_float": True
+            "data_type": 'f'
         },
         1: {
             "name": "fy_analog",
             "object": "Force",
             "display_name": "Wheel Force Y Analog",
-            "is_float": True
+            "data_type": 'f'
         },
         2: {
             "name": "fz_analog",
             "object": "Force",
             "display_name": "Wheel Force Z Analog",
-            "is_float": True
+            "data_type": 'f'
         },
         3: {
             "name": "mx_analog",
             "object": "Gyro",
             "display_name": "Wheel Gyro X Analog",
-            "is_float": True
+            "data_type": 'f'
         }
     },
     309: {
@@ -614,27 +614,27 @@ SensorId = {
             "name": "my_analog",
             "object": "Gyro",
             "display_name": "Wheel Gyro Y Analog",
-            "is_float": True
+            "data_type": 'f'
         },
         1: {
             "name": "mz_analog",
             "object": "Gyro",
             "display_name": "Wheel Gyro Z Analog",
-            "is_float": True
+            "data_type": 'f'
         },
         2: {
             "name": "velocity_analog",
             "object": "Speed",
             "pulses_per_revolution": 1,
             "display_name": "Wheel Velocity Analog",
-            "is_float": True
+            "data_type": 'f'
         },
         3: {
             "name": "position_analog",
             "object": "Position",
             "pulses_per_revolution": 1,
             "display_name": "Wheel Position Analog",
-            "is_float": True
+            "data_type": 'f'
         }
     },
     310: {
@@ -645,39 +645,39 @@ SensorId = {
             "name": "accel_x_analog",
             "object": "Acceleration",
             "display_name": "Wheel Accel X Analog",
-            "is_float": True
+            "data_type": 'f'
         },
         1: {
             "name": "accel_z_analog",
             "object": "Acceleration",
             "display_name": "Wheel Accel Z Analog",
-            "is_float": True
+            "data_type": 'f'
         },
         2: {
             "name": "no_connect_1",
             "object": "Acceleration",
             "display_name": "No Connect 1",
-            "is_float": True
+            "data_type": 'f'
         },
         3: {
             "name": "no_connect_2",
             "object": "Acceleration",
             "display_name": "No Connect 2",
-            "is_float": True
+            "data_type": 'f'
         }
     },
     311: {
         "name": "force_straingauge_strain",
         "object": "Strain",
         "num_bytes": 4,
-        "is_float": True
+        "data_type": 'f'
     },
     312: {
         "name": "loadcell_chassisstiffness_lbs",
         "display_name": "Chassis Stiffness Force",
         "object": "Force",
         "num_bytes": 4,
-        "is_float": True
+        "data_type": 'f'
     },
 
     # 400 - LDS SENSORS
@@ -693,28 +693,28 @@ SensorId = {
         "object": "LDS",
         "num_bytes": 4,
         "stroke_length": 200,
-        "is_float": True
+        "data_type": 'f'
     },
     402: {
         "name": "lds_frontrightshock_mm",
         "object": "LDS",
         "num_bytes": 4,
         "stroke_length": 200,
-        "is_float": True
+        "data_type": 'f'
     },
     403: {
         "name": "lds_backleftshock_mm",
         "object": "LDS",
         "num_bytes": 4,
         "stroke_length": 225,
-        "is_float": True
+        "data_type": 'f'
     },
     404: {
         "name": "lds_backrightshock_mm",
         "object": "LDS",
         "num_bytes": 4,
         "stroke_length": 225,
-        "is_float": True
+        "data_type": 'f'
     },
     405: {
         "name": "lds_shockdyno_mm",
@@ -731,7 +731,7 @@ SensorId = {
         "object": "LDS",
         "num_bytes": 4,
         "stroke_length": 200,
-        "is_float": True
+        "data_type": 'f'
     },
 
     # 500 - IMU SENSORS
@@ -743,72 +743,72 @@ SensorId = {
             "name": "imu_acceleration_x",
             "object": "Acceleration",
             "display_name": "IMU X Acceleration",
-            "is_float": True
+            "data_type": 'f'
         },
         1: {
             "name": "imu_acceleration_y",
             "object": "Acceleration",
             "display_name": "IMU Y Acceleration",
-            "is_float": True
+            "data_type": 'f'
         },
         2: {
             "name": "imu_acceleration_z",
             "object": "Acceleration",
             "display_name": "IMU Z Acceleration",
-            "is_float": True
+            "data_type": 'f'
         },
         3: {
             "name": "imu_gyro_x",
             "object": "Gyro",
             "display_name": "IMU X Gyro",
-            "is_float": True
+            "data_type": 'f'
         },
         4: {
             "name": "imu_gyro_y",
             "object": "Gyro",
             "display_name": "IMU Y Gyro",
-            "is_float": True
+            "data_type": 'f'
         },
         5: {
             "name": "imu_gyro_z",
             "object": "Gyro",
             "display_name": "IMU Z Gyro",
-            "is_float": True
+            "data_type": 'f'
         },
         6: {
             "name": "imu_temperature",
             "object": "Temperature",
             "display_name": "IMU Temperature",
-            "is_float": True
+            "data_type": 'f'
         }
     },
     501: {
         "name": "dashboard_imu_wt901",
-        "num_bytes": [4, 4, 4, 4],
+        "num_bytes": [2, 2, 2, 2],
         "h_file_comment": "Quaternion 1, 2, 3, 4",
         0: {
             "name": "dashboard_quaternion_1",
             "object": "Angle",
             "display_name": "IMU Quaternion 1",
-            "is_float": True
+            "data_type": 'h'
         },
         1: {
             "name": "dashboard_quaternion_2",
             "object": "Angle",
             "display_name": "IMU Quaternion 2",
-            "is_float": True
+            "data_type": 'h'
         },
         2: {
             "name": "dashboard_quaternion_3",
             "object": "Angle",
             "display_name": "IMU Quaternion 3",
-            "is_float": True
+            "data_type": 'h'
         },
         3: {
             "name": "dashboard_quaternion_4",
             "object": "Angle",
             "display_name": "IMU Quaternion 4",
-            "is_float": True
+            "data_type": 'h'
         }
     },
     502: {
@@ -819,61 +819,61 @@ SensorId = {
             "name": "dashboard_accel_x",
             "object": "Acceleration",
             "display_name": "IMU X Acceleration",
-            "is_float": True
+            "data_type": 'f'
         },
         1: {
             "name": "dashboard_accel_y",
             "object": "Acceleration",
             "display_name": "IMU Y Acceleration",
-            "is_float": True
+            "data_type": 'f'
         },
         2: {
             "name": "dashboard_accel_z",
             "object": "Acceleration",
             "display_name": "IMU Z Acceleration",
-            "is_float": True
+            "data_type": 'f'
         },
         3: {
             "name": "dashboard_roll",
             "object": "Angle",
             "display_name": "IMU Roll",
-            "is_float": True
+            "data_type": 'f'
         },
         4: {
             "name": "dashboard_pitch",
             "object": "Angle",
             "display_name": "IMU Pitch",
-            "is_float": True
+            "data_type": 'f'
         },
         5: {
             "name": "dashboard_yaw",
             "object": "Angle",
             "display_name": "IMU Yaw",
-            "is_float": True
+            "data_type": 'f'
         },
         6: {
             "name": "dashboard_quaternion_1_tennessee",
             "object": "Angle",
             "display_name": "IMU Quaternion 1",
-            "is_float": True
+            "data_type": 'f'
         },
         7: {
             "name": "dashboard_quaternion_2_tennessee",
             "object": "Angle",
             "display_name": "IMU Quaternion 2",
-            "is_float": True
+            "data_type": 'f'
         },
         8: {
             "name": "dashboard_quaternion_3_tennessee",
             "object": "Angle",
             "display_name": "IMU Quaternion 3",
-            "is_float": True
+            "data_type": 'f'
         },
         9: {
             "name": "dashboard_quaternion_4_tennessee",
             "object": "Angle",
             "display_name": "IMU Quaternion 4",
-            "is_float": True
+            "data_type": 'f'
         }
     },
 
@@ -883,13 +883,13 @@ SensorId = {
         "object": "Temperature",
         "num_bytes": 4,
         "display_name": "Temperature",
-        "is_float": True
+        "data_type": 'f'
     },
     601: {
         "name": "voltage",
         "object": "Voltage",
         "num_bytes": 4,
         "display_name": "Voltage",
-        "is_float": True
+        "data_type": 'f'
     }
 }
