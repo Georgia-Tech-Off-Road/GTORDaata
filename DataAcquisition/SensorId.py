@@ -784,6 +784,35 @@ SensorId = {
     },
     501: {
         "name": "dashboard_imu_wt901",
+        "num_bytes": [4, 4, 4, 4],
+        "h_file_comment": "Quaternion 1, 2, 3, 4",
+        0: {
+            "name": "dashboard_quaternion_1",
+            "object": "Angle",
+            "display_name": "IMU Quaternion 1",
+            "is_float": True
+        },
+        1: {
+            "name": "dashboard_quaternion_2",
+            "object": "Angle",
+            "display_name": "IMU Quaternion 2",
+            "is_float": True
+        },
+        2: {
+            "name": "dashboard_quaternion_3",
+            "object": "Angle",
+            "display_name": "IMU Quaternion 3",
+            "is_float": True
+        },
+        3: {
+            "name": "dashboard_quaternion_4",
+            "object": "Angle",
+            "display_name": "IMU Quaternion 4",
+            "is_float": True
+        }
+    },
+    502: {
+        "name": "dashboard_imu_wt901_tennessee",
         "num_bytes": [4, 4, 4, 4, 4, 4, 4, 4, 4, 4],
         "h_file_comment": "Accel X, Y, Z; Roll, Pitch, Yaw; Quaternion 1, 2, 3, 4",
         0: {
@@ -823,25 +852,25 @@ SensorId = {
             "is_float": True
         },
         6: {
-            "name": "dashboard_quaternion_1",
+            "name": "dashboard_quaternion_1_tennessee",
             "object": "Angle",
             "display_name": "IMU Quaternion 1",
             "is_float": True
         },
         7: {
-            "name": "dashboard_quaternion_2",
+            "name": "dashboard_quaternion_2_tennessee",
             "object": "Angle",
             "display_name": "IMU Quaternion 2",
             "is_float": True
         },
         8: {
-            "name": "dashboard_quaternion_3",
+            "name": "dashboard_quaternion_3_tennessee",
             "object": "Angle",
             "display_name": "IMU Quaternion 3",
             "is_float": True
         },
         9: {
-            "name": "dashboard_quaternion_4",
+            "name": "dashboard_quaternion_4_tennessee",
             "object": "Angle",
             "display_name": "IMU Quaternion 4",
             "is_float": True

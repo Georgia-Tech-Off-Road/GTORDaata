@@ -47,7 +47,7 @@ class Viewer3D(DAATAScene, uiFile):
         self.view = GLViewWidget()
         self.graph_layout.addWidget(self.view)
         self.gl_mesh = None
-        self.prev_angle = [-90, 1, 0, 0]
+        self.prev_angle = [0, 0, 0, 1] # Set home position, car upright and facing forward
 
         self.create_viewer()
 
@@ -68,6 +68,12 @@ class Viewer3D(DAATAScene, uiFile):
 
         self.gl_mesh.scale(0.002, 0.002, 0.002)
 
+        #self.view.setCameraPosition(6, 0, 0)
+        print(self.view.cameraPosition())
+        self.view.opts['elevation'] = 15
+        self.view.opts['azimuth'] = 0
+        print(self.view.cameraPosition())
+
         self.view.show()
 
     def __reset_all(self):
@@ -80,8 +86,8 @@ class Viewer3D(DAATAScene, uiFile):
             axis_angle = [0, 0, 0, 0]
             axis_angle[0] = 180 / math.pi * 2 * math.acos(qw)  # angle
             axis_angle[1] = qx / math.sqrt(1 - qw ** 2)
-            axis_angle[3] = qy / math.sqrt(1 - qw ** 2)
-            axis_angle[2] = qz / math.sqrt(1 - qw ** 2)
+            axis_angle[2] = qy / math.sqrt(1 - qw ** 2)
+            axis_angle[3] = qz / math.sqrt(1 - qw ** 2)
         except ZeroDivisionError:
             axis_angle = [0, 1, 0, 0]
             logger.error("Divide by zero in quaternion_to_axisangle")
@@ -104,7 +110,7 @@ class Viewer3D(DAATAScene, uiFile):
         qy = data.get_current_value("dashboard_quaternion_3")
         qz = data.get_current_value("dashboard_quaternion_4")
         angle = self.quaternion_to_axisangle(qx, qy, qz, qw)
-        print(angle)
+        # angle = [0, 0, 0, 1] # angle, roll, pitch, yaw
         self.gl_mesh.rotate(-self.prev_angle[0], self.prev_angle[1], self.prev_angle[2], self.prev_angle[3])
         self.prev_angle = angle
         self.gl_mesh.rotate(angle[0], angle[1], angle[2], angle[3])
