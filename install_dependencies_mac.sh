@@ -13,3 +13,5 @@ pip install xlwt
 pip install matplotlib
 pip install func_timeout
 pip install typing_extensions
+pip install numpy-stl
+pip install PyOpenGL
