@@ -14,12 +14,26 @@ Required parameters:
 
 Optional parameters:
     - h_file_comment (not stored within Sensor)
-    - is_float       (defaults to None)
+    - data_type      (defaults to None, which automatically assumes an unsigned integer type)
     - display_name   (defaults to None)
     - unit           (defaults to None)
     - unit_short     (defaults to None)
     - is_plottable   (defaults to True)
     - is_external    (defaults to True)
+
+For data_type:
+    To decode the data, we use struct.unpack() which uses format characters as the data type:
+    https://docs.python.org/3/library/struct.html
+
+    Some common ones that might be used:
+    float: 'f'
+    byte/char: 'c'
+    int8: 'b'
+    uint8: 'B'
+    int16: 'h'
+    uint16: 'H'
+    int32: 'i'
+    uint32: 'I'
 """
 
 SensorId = {
@@ -28,19 +42,16 @@ SensorId = {
         "name": "default_no_sensor",
         "object": "Generic",
         "num_bytes": 0,
-        "is_float": False
     },
     1: {
         "name": "flag_datacollecting",
         "object": "Flag",
         "num_bytes": 1,
-        "is_float": False
     },
     2: {
         "name": "command_sdcardfilenamestring",
         "object": "Command",
         "num_bytes": 12,
-        "is_float": False
     },
     3: {
         "name": "command_toggle_teensy_led",
@@ -77,33 +88,31 @@ SensorId = {
             "object": "GPS",
             "display_name": "GPS Lattitude",
             "orientation": "lattitude",
-            "is_float": False
+
         },
         1: {
             "name": "gps_longitude",
             "object": "GPS",
             "display_name": "GPS Longitude",
             "orientation": "longitude",
-            "is_float": False
+
         },
         2: {
             "name": "gps_speed",
             "object": "Speed",
             "display_name": "GPS Speed",
-            "is_float": False
+
         }
     },
     9: {
         "name": "command_auxdaq_sdwrite",
         "object": "Command",
         "num_bytes": 1,
-        "is_float": False
     },
     10: {
         "name": "flag_auxdaq_sdwrite",
         "object": "Flag",
         "num_bytes": 1,
-        "is_float": False
     },
     11: {
         "name": "dashboard_gps_sensor",
@@ -142,66 +151,56 @@ SensorId = {
         "display_name": "Test Sensor 0",
         "object": "Generic",
         "num_bytes": 4,
-        "is_float": False
     },
     91: {
         "name": "test_sensor_1",
         "display_name": "Test Sensor 1",
         "object": "Generic",
         "num_bytes": 4,
-        "is_float": False
     },
     92: {
         "name": "test_sensor_2",
         "display_name": "Test Sensor 2",
         "object": "Generic",
         "num_bytes": 4,
-        "is_float": False
     },
     93: {
         "name": "test_sensor_3",
         "display_name": "Test Sensor 3",
         "object": "Generic",
         "num_bytes": 4,
-        "is_float": False
     },
     94: {
         "name": "test_sensor_4",
         "display_name": "Test Sensor 4",
         "object": "Generic",
         "num_bytes": 4,
-        "is_float": False
     },
     95: {
         "name": "test_sensor_5",
         "display_name": "Test Sensor 5",
         "object": "Generic",
         "num_bytes": 4,
-        "is_float": False
     },
     96: {
         "name": "test_sensor_6",
         "object": "Generic",
         "num_bytes": 4,
-        "is_float": False
     },
     97: {
         "name": "test_sensor_7",
         "object": "Generic",
         "num_bytes": 4,
-        "is_float": False
     },
     98: {
         "name": "test_sensor_8",
         "object": "Generic",
         "num_bytes": 4,
-        "is_float": False
     },
     99: {
         "name": "test_sensor_9",
         "object": "Generic",
         "num_bytes": 4,
-        "is_float": False
     },
 
     # 100 - TIME "SENSORS"
@@ -209,7 +208,6 @@ SensorId = {
         "name": "time_generic",
         "object": "Time",
         "num_bytes": 4,
-        "is_float": False
     },
     101: {
         "name": "time_internal_seconds",
@@ -217,7 +215,6 @@ SensorId = {
         "num_bytes": 2,  # not 100% sure on this
         "display_name": "Time",
         "unit": "Seconds",
-        "is_float": False,
         "unit_short": "s"
     },
     102: {
@@ -227,55 +224,46 @@ SensorId = {
         "display_name": "Dashboard Time Since Start",
         "unit": "Miliseconds",
         "unit_short": "ms",
-        "is_float": False
     },
     103: {
         "name": "time_dash_us",
         "object": "Time",
         "num_bytes": 4,
-        "is_float": False
     },
     104: {
         "name": "time_auxdaq_ms",
         "object": "Time",
         "num_bytes": 2,
-        "is_float": False
     },
     105: {
         "name": "time_auxdaq_us",
         "object": "Time",
         "num_bytes": 4,
-        "is_float": False
     },
     106: {
         "name": "time_diff_ms",
         "object": "Time",
         "num_bytes": 2,
-        "is_float": False
     },
     107: {
         "name": "time_diff_us",
         "object": "Time",
         "num_bytes": 4,
-        "is_float": False
     },
     108: {
         "name": "time_daata_ms",
         "object": "Time",
         "num_bytes": 2,
-        "is_float": False
     },
     109: {
         "name": "time_daata_us",
         "object": "Time",
         "num_bytes": 4,
-        "is_float": False
     },
     199: {
         "name": "rtc_unixtime",
         "object": "Time",
         "num_bytes": 4,
-        "is_float": False
     },
 
     # 200 - SPEED/POSITION SENSORS
@@ -284,14 +272,12 @@ SensorId = {
         "object": "Speed",
         "num_bytes": 2,
         "pulses_per_revolution": 1,
-        "is_float": False
     },
     201: {
         "name": "position_generic",
         "object": "Position",
         "num_bytes": 4,
         "pulses_per_revolution": 1,
-        "is_float": False
     },
     202: {
         "name": "speed_position_generic4",
@@ -302,14 +288,14 @@ SensorId = {
             "object": "Speed",
             "display_name": "Speed Generic (4ppr Sensor)",
             "pulses_per_revolution": 4,
-            "is_float": False
+
         },
         1: {
             "name": "position_generic4",
             "object": "Position",
             "display_name": "Position Generic (4ppr Sensor)",
             "pulses_per_revolution": 4,
-            "is_float": False
+
         }
     },
     203: {
@@ -321,14 +307,14 @@ SensorId = {
             "object": "Speed",
             "display_name": "Speed Generic (30ppr Sensor)",
             "pulses_per_revolution": 4,
-            "is_float": False
+
         },
         1: {
             "name": "position_generic30",
             "object": "Position",
             "display_name": "Position Generic (30ppr Sensor)",
             "pulses_per_revolution": 4,
-            "is_float": False
+
         }
     },
     204: {
@@ -340,14 +326,14 @@ SensorId = {
             "object": "Speed",
             "display_name": "Speed Generic (500ppr Sensor)",
             "pulses_per_revolution": 500,
-            "is_float": False
+
         },
         1: {
             "name": "position_generic500",
             "object": "Position",
             "display_name": "Position Generic (500ppr Sensor)",
             "pulses_per_revolution": 500,
-            "is_float": False
+
         }
     },
     205: {
@@ -359,14 +345,14 @@ SensorId = {
             "object": "Position",
             "display_name": "Position Generic (600ppr Sensor)",
             "pulses_per_revolution": 600,
-            "is_float": False
+
         },
         1: {
             "name": "speed_generic600",
             "object": "Speed",
             "display_name": "Speed Generic (600ppr Sensor)",
             "pulses_per_revolution": 600,
-            "is_float": False
+
         }
     },
     206: {
@@ -378,14 +364,14 @@ SensorId = {
             "object": "Speed",
             "display_name": "Speed Engine (600ppr Sensor)",
             "pulses_per_revolution": 600,
-            "is_float": False
+
         },
         1: {
             "name": "position_engine600",
             "object": "Position",
             "display_name": "Position Engine (600ppr Sensor)",
             "pulses_per_revolution": 600,
-            "is_float": False
+
         }
     },
     207: {
@@ -397,14 +383,14 @@ SensorId = {
             "object": "Speed",
             "display_name": "Speed",
             "pulses_per_revolution": 4,
-            "is_float": False
+
         },
         1: {
             "name": "position_engine4",
             "object": "Position",
             "display_name": "Position",
             "pulses_per_revolution": 4,
-            "is_float": False
+
         }
     },
     208: {
@@ -416,14 +402,14 @@ SensorId = {
             "object": "Speed",
             "display_name": "Speed",
             "pulses_per_revolution": 30,
-            "is_float": False
+
         },
         1: {
             "name": "position_secondary30",
             "object": "Position",
             "display_name": "Position",
             "pulses_per_revolution": 30,
-            "is_float": False
+
         }
     },
     209: {
@@ -435,7 +421,6 @@ SensorId = {
         "unit": "Revolutions Per Minutes",
         "unit_short": "RPM",
         "pulses_per_revolution": 600,
-        "is_float": False
     },
     210: {
         "name": "speed_engine4_rpm",
@@ -446,7 +431,6 @@ SensorId = {
         "unit": "Revolutions Per Minutes",
         "unit_short": "RPM",
         "pulses_per_revolution": 4,
-        "is_float": False
     },
     211: {
         "name": "speed_secondary30_rpm",
@@ -457,7 +441,6 @@ SensorId = {
         "unit": "Revolutions Per Minutes",
         "unit_short": "RPM",
         "pulses_per_revolution": 30,
-        "is_float": False
     },
     212: {
         "name": "speed_dynoengine600_rpm",
@@ -533,7 +516,6 @@ SensorId = {
         "name": "pressure_generic",
         "object": "Pressure",
         "num_bytes": 2,
-        "is_float": False
     },
     301: {
         "name": "force_generic",
@@ -545,13 +527,11 @@ SensorId = {
         "name": "brake_sensor1",
         "object": "Pressure",
         "num_bytes": 4,
-        "is_float": False
     },
     303: {
         "name": "brake_sensor2",
         "object": "Pressure",
         "num_bytes": 4,
-        "is_float": False
     },
     304: {
         "name": "pressure_frontbrake_psi",
@@ -686,7 +666,6 @@ SensorId = {
         "object": "LDS",
         "num_bytes": 1,
         "stroke_length": 1,
-        "is_float": False
     },
     401: {
         "name": "lds_frontleftshock_mm",
@@ -721,7 +700,6 @@ SensorId = {
         "object": "LDS",
         "num_bytes": 1,
         "stroke_length": 225,
-        "is_float": False
     },
     406: {
         "name": "lds_pedal_mm",
