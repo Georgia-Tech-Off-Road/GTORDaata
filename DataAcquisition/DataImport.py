@@ -43,15 +43,13 @@ class DataImport:
         self.teensy_countdown = 0
 
         # Variables that are used for reading/parsing incoming packets
-        # self.end_code = [b'\xff', b'\xff', b'\xff', b'\xff', b'\xff', b'\xff', b'\xff', b'\xf0']
-        self.end_code = [b'\xff', b'\xf0']
+        self.end_code = [b'\xff', b'\xff', b'\xff', b'\xff', b'\xff', b'\xff', b'\xff', b'\xf0']
         self.current_sensors = []
         self.current_packet = []
         self.ack_code = 0 # Two bit variable, 0 1 2 or 3. Three is stable
         self.packet_index = 0
         self.expected_size = 0
         self.packet_count = 0
-        self.unpacketize_attempts = 0
 
         # Variables that set the ack for sending packets
         self.is_receiving_data = False
@@ -156,10 +154,10 @@ class DataImport:
             self.connect_serial()           
         # If end code is found then unpacketize and clear packet
         packet_length = len(self.current_packet)
-        if packet_length > len(self.end_code) and self.current_packet[(packet_length - len(self.end_code)):(packet_length)] == self.end_code:
+        if packet_length > 8 and self.current_packet[(packet_length - 8):(packet_length)] == self.end_code:  
             self.packet_count += 1
             logger.debug("Packet count: {}".format(self.packet_count))
-            self.current_packet = self.current_packet[0:(packet_length - len(self.end_code))]
+            self.current_packet = self.current_packet[0:(packet_length - 8)]                    
             self.unpacketize()
             self.current_packet.clear()                    
     
@@ -242,7 +240,7 @@ class DataImport:
         :return: bytes
         """
 
-        end_code = b''.join(self.end_code)
+        end_code = b'\xff\xff\xff\xff\xff\xff\xff\xf0'
 
         if self.is_sending_data and self.is_receiving_data:
             byte_data = b''
@@ -332,7 +330,6 @@ class DataImport:
                 # logger.debug("Received data and will now parse")
                 try:
                     assert len(self.current_packet) == self.expected_size
-                    self.unpacketize_attempts = 0
                     for sensor_id in self.current_sensors:
                         if isinstance(SensorId[sensor_id]["num_bytes"], list):
                             data_value = []
@@ -341,9 +338,12 @@ class DataImport:
                                 for i in range(SensorId[sensor_id]["num_bytes"][sensor]):
                                     individual_data_value += self.current_packet[0]
                                     self.current_packet.pop(0)
-                                # Check if value is not an unsigned int by checking data_type, otherwise assume unsigned int (of any size)
+                                # Branch if the value is a float by checking SensorID
                                 try:
-                                    data_value.append(struct.unpack(SensorId[sensor_id][sensor]["data_type"], individual_data_value)[0])
+                                    if SensorId[sensor_id][sensor]["is_float"]:
+                                        data_value.append(struct.unpack('f', individual_data_value)[0])
+                                    else:
+                                        data_value.append(int.from_bytes(individual_data_value, "little"))
                                 except KeyError:
                                     data_value.append(int.from_bytes(individual_data_value, "little"))
                         else:
@@ -351,11 +351,14 @@ class DataImport:
                             for i in range(SensorId[sensor_id]["num_bytes"]):
                                 data_value += self.current_packet[0]
                                 self.current_packet.pop(0)
-                            # Check if value is not an unsigned int by checking data_type, otherwise assume unsigned int (of any size)
+                            # Branch if the value is a float by checking SensorID
                             try:
-                                data_value.append(struct.unpack(SensorId[sensor_id][sensor]["data_type"], individual_data_value)[0])
+                                if SensorId[sensor_id]["is_float"]:
+                                    data_value = struct.unpack('f', data_value)[0]
+                                else:
+                                    data_value = int.from_bytes(data_value, "little")
                             except KeyError:
-                                data_value.append(int.from_bytes(individual_data_value, "little"))
+                                data_value = int.from_bytes(data_value, "little")
 
                         self.data.add_value(sensor_id, data_value)
 
@@ -369,9 +372,7 @@ class DataImport:
 
                 except AssertionError:
                     logger.warning("Packet size of {} is different than expected of {}".format(len(self.current_packet), self.expected_size))
-                    self.unpacketize_attempts += 1
-                    if self.unpacketize_attempts > 10:
-                        self.is_receiving_data = False
+                    self.is_receiving_data = False
                     if "COM" in self.input_mode:
                         self.teensy_ser.flushInput()
                 except Exception as e:
