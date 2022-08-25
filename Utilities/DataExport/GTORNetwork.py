@@ -1,5 +1,6 @@
 import os
-from win32 import win32api     # installed with "pip3.6 install pywin32"
+import sys
+# from win32 import win32api     # installed with "pip3.6 install pywin32"
 # import win32api
 
 from func_timeout import func_timeout, FunctionTimedOut
@@ -51,14 +52,14 @@ def _get_GTORNetworkDrive():
         drive = '{}:\\'.format(letter)
         drive_possibilities.append(drive)
 
-    # check if the GTOR Network drive is present
-    for drive in drive_possibilities:
-        if os.path.exists(drive):
-            drive_info = win32api.GetVolumeInformation(drive)
-            logger.debug("Drive info: ({})".format(drive))
-            if drive_info[0] == 'Data':         # GTOR Network drive has the name "Data"
-                logger.debug("Network drive found ({})".format(drive))
-                return drive
+    # # check if the GTOR Network drive is present
+    # for drive in drive_possibilities:
+    #     if os.path.exists(drive):
+    #         drive_info = win32api.GetVolumeInformation(drive)
+    #         logger.debug("Drive info: ({})".format(drive))
+    #         if drive_info[0] == 'Data':         # GTOR Network drive has the name "Data"
+    #             logger.debug("Network drive found ({})".format(drive))
+    #             return drive
 
     logger.error("DriveConnectionError: Network drive cannot be found")
     return

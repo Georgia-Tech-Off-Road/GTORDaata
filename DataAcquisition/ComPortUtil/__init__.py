@@ -1,4 +1,5 @@
 import sys
+import glob
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
@@ -6,7 +7,6 @@ from PyQt5.QtWidgets import *
 import serial
 from serial.serialutil import SerialException
 import re, itertools
-import winreg as winreg
 
 
 class ListPortsDialog(QDialog):
@@ -50,6 +50,7 @@ class ListPortsDialog(QDialog):
             self.ports_list.addItem(portname)
 
     def full_port_name(self, portname):
+        # WARNING: NOT CROSS COMPATIBLE DUE TO DIFFERENT COM NAMES ON DIFFERENT PLATFORMS
         """ Given a port-name (of the form COM7, 
             COM12, CNCA0, etc.) returns a full 
             name suitable for opening with the 
@@ -62,22 +63,49 @@ class ListPortsDialog(QDialog):
     
 
     def enumerate_serial_ports(self):
-        """ Uses the Win32 registry to return an 
-            iterator of serial (COM) ports 
-            existing on this computer.
-        """
-        path = 'HARDWARE\\DEVICEMAP\\SERIALCOMM'
-        try:
-            key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, path)
-        except WindowsError:
-            raise StopIteration
+        """ Lists serial port names
 
-        for i in itertools.count():
+            :raises EnvironmentError:
+                On unsupported or unknown platforms
+            :returns:
+                A list of the serial ports available on the system
+        """
+        if sys.platform.startswith('win'):
+            ports = ['COM%s' % (i + 1) for i in range(256)]
+        elif sys.platform.startswith('linux') or sys.platform.startswith('cygwin'):
+            # this excludes your current terminal "/dev/tty"
+            ports = glob.glob('/dev/tty[A-Za-z]*')
+        elif sys.platform.startswith('darwin'):
+            ports = glob.glob('/dev/tty.*')
+        else:
+            raise EnvironmentError('Unsupported platform')
+
+        result = []
+        for port in ports:
             try:
-                val = winreg.EnumValue(key, i)
-                yield str(val[1])
-            except EnvironmentError:
-                break
+                s = serial.Serial(port)
+                s.close()
+                result.append(port)
+                yield str(port)
+            except (OSError, serial.SerialException):
+                pass
+        return result
+        # """ Uses the Win32 registry to return an 
+        #     iterator of serial (COM) ports 
+        #     existing on this computer.
+        # """
+        # path = 'HARDWARE\\DEVICEMAP\\SERIALCOMM'
+        # try:
+        #     key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, path)
+        # except WindowsError:
+        #     raise StopIteration
+
+        # for i in itertools.count():
+        #     try:
+        #         val = winreg.EnumValue(key, i)
+        #         yield str(val[1])
+        #     except EnvironmentError:
+        #         break
 
 
 

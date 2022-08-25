@@ -35,8 +35,7 @@ def read_data():
     while True:
         if is_data_collecting.is_set() and not data_was_collecting:
             logger.info("Starting data collection")
-            if "COM" in data_import.input_mode:
-                data.reset()
+            data.reset()
             data_was_collecting = True
 
         if not is_data_collecting.is_set() and data_was_collecting:
@@ -56,28 +55,18 @@ def read_data():
             except Exception as e:
                 logger.error(e)
                 logger.debug(logger.findCaller(True))
-        elif "COM" in data_import.input_mode and data_import.teensy_found:
-            try:
-                try:                    
-                    assert data_import.teensy_found
-                    assert data_import.check_connected()
-                    data_import.teensy_ser.flushInput()
-                except AttributeError:
-                    logger.warning(
-                        "Unable to flush Serial Buffer. No Serial object connected")
-                try:
-                    data_import.read_packet()
-                except AssertionError:
-                    logger.info("Serial port is not open, opening now")
-                    try:
-                        data_import.teensy_ser.open()
-                    except Exception as e:
-                        logger.error(e)
-                        logger.debug(logger.findCaller(True))
+        elif "COM" in data_import.input_mode or "dev" in data_import.input_mode:
+            try:                
+                assert data_import.teensy_found
+                assert data_import.check_connected()
+                data_import.read_packet()                                            
             except AssertionError:
-                time.sleep(0)
+                data_import.connect_serial()    
+            except:
+                logger.info("Error in read_packet()")
         else:
             data_import.input_mode = ""
+            time.sleep(0.01)
             pass
 
 
@@ -89,7 +78,8 @@ def send_data():
     :return: None
     """
 
-    if "COM" not in data_import.input_mode:
+    
+    if data_import.input_mode in ["CSV", "FAKE", "BIN"]:
         pass
     else:
         try:

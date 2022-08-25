@@ -6,7 +6,13 @@ from typing import Dict
 import logging
 import os
 import sys
+import serial
+from serial.tools import list_ports
+import glob
+import ctypes
 import threading
+import glob
+import serial
 
 from Scenes import DAATAScene, MultiDataGraphPreview
 from Scenes.BlinkLEDTest import BlinkLEDTest
@@ -33,10 +39,10 @@ from Utilities.GoogleDriveHandler.GDriveDataImport import \
     GDriveDataImport as GoogleDriveDataImport
 from Utilities import general_constants
 
+import re, itertools
 # import breeze_resources
 
 import itertools
-import winreg as winreg
 
 logger = logging.getLogger("MainWindow")
 
@@ -67,6 +73,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         self.import_scenes()
         self.dict_ports = {}
+        self.bad_ports = list()  # Don't use Serial over Bluetooth ports because they hang on Windows
+        self.find_bad_ports()
         self.import_coms()
         self.create_tab_widget()
         self.populate_menu()
@@ -126,6 +134,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         :return: None
         """
 
+        # Update and check for COM ports
+        self.import_coms()
+        self.com_input_mode()
+
         self.homepage.update_passive()
         for scene in self.tabWidget.findChildren(DAATAScene):
             scene.update_graph_frequency_passively()
@@ -138,9 +150,22 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         :return: None
         """
 
-        import ctypes
         myappid = 'mycompany.myproduct.subproduct.version'  # arbitrary string
-        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+        if sys.platform.startswith('win'):
+            ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+        elif sys.platform.startswith('linux') or sys.platform.startswith('cygwin'):
+            # ctypes.cdll.LoadLibrary("libc.so.6")  
+            # libc = ctypes.CDLL("libc.so.6") 
+            # libc.SetCurrentProcessExplicitAppUserModelID(myappid)
+            test = 0
+        elif sys.platform.startswith('darwin'):
+            # MacOS icon is going to be default
+            test = 0
+            # ctypes.cdll.LoadLibrary("libc.so.6")  
+            # libc = ctypes.CDLL("libc.so.6") 
+            # libc.SetCurrentProcessExplicitAppUserModelID(myappid)
+        else:
+            raise EnvironmentError('Unsupported platform')
 
         path = os.path.join(os.path.dirname(__file__), 'icon_GTORLogo.png')
         self.setWindowIcon(QtGui.QIcon(path))
@@ -257,31 +282,31 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 _Scene(MultiDataGraphPreview, "MultiDataGraphPreview", True),
         }
 
-        return self.dict_scenes
-
-    @staticmethod
-    def enumerate_serial_ports():
-        """ 
+    def enumerate_serial_ports(self):
+        """         
         Uses the Win32 registry to return an iterator of serial (COM) ports
         existing on this computer.
 
-        :return: None
+        :return: List of available COM ports
         """
-
-        path = 'HARDWARE\\DEVICEMAP\\SERIALCOMM'
-        try:
-            key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, path)
-        except WindowsError:
-            logger.debug(logger.findCaller(True))
-            raise StopIteration
-
-        for i in itertools.count():
+        if sys.platform.startswith('win'):
+            ports = ['COM%s' % (i + 1) for i in range(256)]
+            ports = [port for port in ports if port not in self.bad_ports]
+        elif sys.platform.startswith('linux') or sys.platform.startswith('cygwin'):
+            # this excludes your current terminal "/dev/tty"
+            ports = glob.glob('/dev/tty[A-Za-z]*')
+        else:
+            logger.error("Unsupported platform for COM ports")
+        
+        result = []
+        for port in ports:
             try:
-                val = winreg.EnumValue(key, i)
-                yield str(val[1])
-            except EnvironmentError:
-                logger.debug(logger.findCaller(True))
-                break
+                s = serial.Serial(port)
+                s.close()
+                result.append(port)
+            except (OSError, serial.SerialException):
+                pass
+        return result
 
     def import_coms(self):
         """
@@ -289,11 +314,21 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         :return: None
         """
-        
-        # adds the Auto option no matter what
-        self.dict_ports["Auto"] = None
-        for portName in self.enumerate_serial_ports():
-            self.dict_ports[portName] = None
+
+        new_ports = self.enumerate_serial_ports()
+        prev_ports = list(self.dict_ports.keys())
+        if prev_ports != new_ports:
+            self.dict_ports.clear()
+            for portName in new_ports:
+                self.dict_ports[portName] = None
+            self.update_comMenu()
+
+    def find_bad_ports(self):
+        ports = list_ports.comports()
+        for port in ports:
+            if "Bluetooth" in port[1]:
+                self.bad_ports.append(port[0])
+
 
     def create_homepage(self):
         """
@@ -302,19 +337,21 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         :return: None
         """
+
         self.homepage = Homepage()
         self.homepage.setObjectName("Homepage")
         self.gridLayout_tab_homepage.addWidget(self.homepage)
 
     def com_input_mode(self):
         """
-        Sets the input mode to whichever serial port is checked.
-
-        :return: None
-        """        
+        Based on the available COM ports that are listed, it sets the input mode
+        to whichever port is checked at the given time.
+        
+        return: None
+        """
 
         for key in self.dict_ports.keys():
-            if self.dict_ports[key].isChecked():
+            if self.dict_ports[key] and self.dict_ports[key].isChecked():
                 self.set_input_mode(key)
 
     def set_input_mode(self, input_mode):
@@ -328,7 +365,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         data_import.teensy_found = False
         data_import.data_file = None
 
-        logger.info("Input Mode: " + str(input_mode))
+        logger.debug("Input Mode: " + str(input_mode))
         data_import.input_mode = input_mode
         if data_import.input_mode == "BIN":
             try:
@@ -357,8 +394,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         #         logger.debug(logger.findCaller(True))
         #     finally:
         #         data_import.input_mode = ""
-        if "COM" in data_import.input_mode:            
-            data_import.connect_serial()
+        if "COM" in data_import.input_mode or "dev" in data_import.input_mode:
             if not self.data_sending_thread.isActive():
                 self.data_sending_thread.start(100)
                 logger.info("We connected to serial!")
@@ -474,7 +510,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     # --- Imported methods --- #
     from ._tabHandler import create_tab_widget, create_scene_tab, rename_tab, \
         close_tab
-    from ._menubarHandler import populate_menu
+    from ._menubarHandler import populate_menu, update_comMenu
     from Utilities.Settings.SettingsDialog import SettingsDialog
 
     # --- Overridden event methods --- #
@@ -505,12 +541,12 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         :param pe:
         :return: None
         """
-
-        opt = QtGui.QStyleOption()
+        
+        opt = QtWidgets.QStyleOption()
         opt.initFrom(self)
         p = QtGui.QPainter(self)
         s = self.style()
-        s.drawPrimitive(QtGui.QStyle.PE_Widget, opt, p, self)
+        s.drawPrimitive(QtWidgets.QStyle.PE_Widget, opt, p, self)
 
 
 @dataclass

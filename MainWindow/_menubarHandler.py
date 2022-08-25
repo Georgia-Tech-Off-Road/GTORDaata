@@ -6,7 +6,7 @@ from PyQt5 import QtWidgets
 def populate_menu(self):
     create_addLayoutMenu(self)
     create_fileMenu(self)
-    create_comMenu(self)
+    update_comMenu(self)
     create_google_drive_menu(self)
 
 
@@ -24,7 +24,7 @@ def create_addLayoutMenu(self):
 
 
 def create_fileMenu(self):
-    ## Create an action for Preferences
+    # Create an action for Preferences
     self.action_Preferences = QtWidgets.QAction(self)
     self.action_Preferences.setCheckable(False)
     self.action_Preferences.setToolTip("Edit application config_MainWindow")
@@ -32,8 +32,10 @@ def create_fileMenu(self):
     self.menuFile.addAction(self.action_Preferences)
 
 
-def create_comMenu(self):
-    ## Create an action for COM port
+def update_comMenu(self):
+    # Clear the list of COM ports
+    self.menuCOM_Port.clear()
+    # Create an action for each available COM port
     for key in self.dict_ports.keys():
         self.dict_ports[key] = QtWidgets.QAction(self)
         self.dict_ports[key].setCheckable(True)
