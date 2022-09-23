@@ -96,6 +96,9 @@ class PlotSettingsDialog(QtWidgets.QDialog, uiSettingsDialog):
         else:
             y = yOverride
 
+        x = int(x)
+        y = int(y)
+
         self.move(x, y)
 
     def resetYMax(self):
