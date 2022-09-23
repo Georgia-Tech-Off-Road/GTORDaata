@@ -157,7 +157,7 @@ class DataCollection(DAATAScene, uiFile):
                     row += 1
                 if key not in self.graph_objects:
                     self.__create_graph(key)
-                self.graph_objects[key].set_height(graphHeight)
+                self.graph_objects[key].set_height(int(graphHeight))
                 self.gridPlotLayout.addWidget((self.graph_objects[key]), row,
                                               col, 1, 1)
                 self.graph_objects[key].show()
