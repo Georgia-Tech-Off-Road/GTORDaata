@@ -37,9 +37,9 @@ class MultiDataGraph(DAATAScene, uiFile):
         # the tab updates every x*10 ms (ex. 3*10 = every 30 ms)
         self.update_period = 3
 
-        self.graph_objects: Dict[str, CustomPlotWidget] = dict()
+        self.graph_objects: Dict[int, CustomPlotWidget] = dict()
         self.connected_sensors: List[str] = []
-        self.update_connected_sensors()
+        self.__update_connected_sensors()
         self.y_sensors: List[str] = []
 
         self.gridPlotLayout = GridPlotLayout(self.scrollAreaWidgetContents)
@@ -47,18 +47,18 @@ class MultiDataGraph(DAATAScene, uiFile):
         self.scrollAreaWidgetContents.setLayout(self.gridPlotLayout)
         self.collection_start_time: datetime = datetime.min
 
-        self.create_graph_dimension_combo_box()
-        self.addMDG()
-
         from MainWindow import is_data_collecting
         self.is_data_collecting = is_data_collecting
 
-        self.connect_slots_and_signals()
+        self.__create_graph_dimension_combo_box()
+        self.__addMDG()
+
+        self.__connect_slots_and_signals()
         self.configFile = QSettings('DAATA', 'MultiDataGraph')
         self.configFile.clear()
-        self.load_settings()
+        self.__load_settings()
 
-    def create_graph_dimension_combo_box(self):
+    def __create_graph_dimension_combo_box(self):
         """
         This function creates the drop-down box that allows changing the
         number of graphs on the screen.
@@ -71,7 +71,7 @@ class MultiDataGraph(DAATAScene, uiFile):
             for col in range(1, max_cols + 1):
                 self.comboBox_graphDimension.addItem("{0}x{1}".format(row, col))
 
-    def create_grid_plot_layout(self):
+    def __create_grid_plot_layout(self):
         # self.gridPlotLayout = GridPlotLayout(self.scrollAreaWidgetContents)
         # self.gridPlotLayout.setObjectName("gridPlotLayout")
         # self.scrollAreaWidgetContents.setLayout(self.gridPlotLayout)
@@ -119,35 +119,32 @@ class MultiDataGraph(DAATAScene, uiFile):
                                   QtWidgets.QSizePolicy.Expanding)
         self.gridPlotLayout.addItem(self.spacerItem_gridPlotLayout)
 
-    def create_graph(self, key):
+    def __create_graph(self, key: int):
         self.graph_objects.pop(key, None)
-        MDG_init_props = MDGInitProps(y_sensors=self.connected_sensors[:3])
-        self.graph_objects[key] = CustomPlotWidget(key,
+        MDG_initial_props = MDGInitProps(y_sensors=self.connected_sensors[:3])
+        self.graph_objects[key] = CustomPlotWidget(str(key),
                                                    parent=self.scrollAreaWidgetContents,
                                                    layout=self.gridPlotLayout,
                                                    graph_width_seconds=8,
-                                                   enable_scroll=(False, False),
-                                                   MDG_init_props=MDG_init_props)
-        # activate settings button
-        widget = self.graph_objects[key]
-        settings = widget.button_settings.clicked.connect(
-            partial(self.graph_objects[key].open_SettingsWindow))
+                                                   MDG_init_props=MDG_initial_props)
 
         self.graph_objects[key].show()
-        self.create_grid_plot_layout()
+        self.__create_grid_plot_layout()
 
-    def slot_data_collecting_state_change(self):
+    def __slot_data_collecting_state_change(self):
         if self.button_display.isChecked():
             self.__reset_all()
             self.collection_start_time = datetime.now()
             self.indicator_onOrOff.setText("On")
             self.indicator_onOrOff.setStyleSheet("color: green;")
+            self.button_display.setStyleSheet("background-color: '#32CD32';")
             self.button_display.setText("Stop Collecting Data")
             self.is_data_collecting.set()
         else:
             self.indicator_onOrOff.setText("Off")
             self.indicator_onOrOff.setStyleSheet("color: red;")
             self.button_display.setText("Start Collecting Data")
+            self.button_display.setStyleSheet("background-color:red;")
             self.is_data_collecting.clear()
             self.popup_dataSaveLocation("MultiDataGraph",
                                         self.collection_start_time)
@@ -157,23 +154,13 @@ class MultiDataGraph(DAATAScene, uiFile):
         for graph in self.graph_objects.values():
             graph.plotWidget.clear()
             graph.update_xy_sensors()
-        self.create_grid_plot_layout()
+        self.__create_grid_plot_layout()
 
-    def update_sensor_count(self):
-        self.active_sensor_count = 0
-        # for key in self.checkbox_objects.keys():
-        #     if self.checkbox_objects[key].isVisible():
-        #         if self.checkbox_objects[key].isChecked():
-        #             self.active_sensor_count = self.active_sensor_count + 1
-        self.label_active_sensor_count.setText(
-            '(' + str(self.active_sensor_count) + '/' + str(
-                len(self.graph_objects)) + ')')
-
-    def update_graphs(self):
+    def __update_graphs(self):
         for key in self.graph_objects.keys():
             self.graph_objects[key].update_graph()
 
-    def update_time_elapsed(self):
+    def __update_time_elapsed(self):
         """
         This function updates the timer that is displayed in the layout that
         indicates how long a test has been running for.
@@ -197,7 +184,7 @@ class MultiDataGraph(DAATAScene, uiFile):
         except TypeError:
             pass
 
-    def update_connected_sensors(self):
+    def __update_connected_sensors(self):
         """
         Will update the sensor checkboxes if new sensors are added.
         :return: None
@@ -214,27 +201,15 @@ class MultiDataGraph(DAATAScene, uiFile):
 
         :return: None
         """
-
-        if self.is_data_collecting.is_set() and self.button_display.isChecked():
-            self.update_graphs()
-            self.update_time_elapsed()
-
-        # temporary implementation of global recording button update
         if self.is_data_collecting.is_set():
-            self.indicator_onOrOff.setText("On")
-            self.indicator_onOrOff.setStyleSheet("color: green;")
-            self.button_display.setText("Stop Collecting Data")
-            self.button_display.setChecked(True)
-        else:
-            self.indicator_onOrOff.setText("Off")
-            self.indicator_onOrOff.setStyleSheet("color: red;")
-            self.button_display.setText("Start Collecting Data")
-            self.button_display.setChecked(False)
+            self.__update_graphs()
+            self.__update_time_elapsed()
 
     def update_passive(self):
-        self.update_connected_sensors()
+        self.__update_connected_sensors()
+        self.label_active_sensor_count.setText(str(len(self.connected_sensors)))
 
-    def addMDG(self):
+    def __addMDG(self):
         """
         Adds one more independent multi data graph to the scene
         """
@@ -244,15 +219,17 @@ class MultiDataGraph(DAATAScene, uiFile):
 
         # creating new MDG
         current_MDG_count = len(self.graph_objects)
-        self.create_graph(current_MDG_count)
+        self.__create_graph(current_MDG_count)
 
-    def removeMDG(self):
+        self.is_data_collecting.set()
+
+    def __removeMDG(self):
         """
         Removes the most recently added multi data graph from the scene
         """
         # decreasing the MDG count text on GUI
         newMDGNumber = int(self.mdgNumber.text()) - 1
-        if newMDGNumber <= 0:
+        if newMDGNumber < 0:
             return
         self.mdgNumber.setText(str(newMDGNumber))
 
@@ -261,25 +238,28 @@ class MultiDataGraph(DAATAScene, uiFile):
         self.gridPlotLayout.removeWidget(self.graph_objects[latest_mdg_key])
         self.graph_objects[latest_mdg_key].hide()
         del self.graph_objects[latest_mdg_key]
-        self.create_grid_plot_layout()
+        self.__create_grid_plot_layout()
 
-    def connect_slots_and_signals(self):
+        if newMDGNumber == 0:
+            self.is_data_collecting.clear()
+
+    def __connect_slots_and_signals(self):
         self.button_display.clicked.connect(
-            self.slot_data_collecting_state_change)
+            self.__slot_data_collecting_state_change)
 
         # for key in self.currentKeys:
         #     self.checkbox_objects[key].clicked.connect(self.create_grid_plot_layout)
         #     self.checkbox_objects[key].clicked.connect(self.save_settings)
 
         self.comboBox_graphDimension.currentTextChanged.connect(
-            self.create_grid_plot_layout)
+            self.__create_grid_plot_layout)
         self.comboBox_graphDimension.currentTextChanged.connect(
-            self.save_settings)
+            self.__save_settings)
 
-        self.plusMDGButton.clicked.connect(self.addMDG)
-        self.minusMDGButton.clicked.connect(self.removeMDG)
+        self.plusMDGButton.clicked.connect(self.__addMDG)
+        self.minusMDGButton.clicked.connect(self.__removeMDG)
 
-    def save_settings(self):
+    def __save_settings(self):
         """
         This function will save the settings for a given scene to a config
         file so that they can be loaded in again the next time that the scene
@@ -295,34 +275,18 @@ class MultiDataGraph(DAATAScene, uiFile):
         logger.debug("Data Collection config files saved")
         # self.debug_settings()
 
-    def load_settings(self):
+    def __load_settings(self):
         """
         This function loads in the previously saved settings.
 
         :return: None
         """
-        try:
-            active_sensor_count = 0
-            for key in self.configFile.value('enabledSensors'):
-                print(key)
-                # self.checkbox_objects[key].setChecked(True)
-                self.graph_objects[key].show()
-                active_sensor_count = active_sensor_count + 1
-                self.label_active_sensor_count.setText(
-                    '(' + str(active_sensor_count) + '/' + str(
-                        len(self.graph_objects)) + ')')
-        except TypeError or KeyError:
-            logger.error(
-                "Possibly invalid key in config. May need to clear config "
-                "file using self.configFile.clear()")
-            pass
-
         self.comboBox_graphDimension.setCurrentText(
             self.configFile.value('graph_dimension'))
         logger.debug("Data Collection config files loaded")
         # self.debug_settings()
 
-    def debug_settings(self):
+    def __debug_settings(self):
         """
         This method allows you to view the contents of what is currently
         stored in settings :return:
@@ -335,4 +299,4 @@ class MultiDataGraph(DAATAScene, uiFile):
 
     # --- Overridden event methods --- #
     def closeEvent(self, event=None):
-        self.save_settings()
+        self.__save_settings()
