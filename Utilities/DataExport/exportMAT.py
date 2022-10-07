@@ -22,6 +22,9 @@ def saveMAT(filename, directory):
     lastIndex = data.get_most_recent_index()
 
     for sensor in sensorsList:
+        # ignore empty ['command_auxdaq_sdwrite'] sensor data
+        if sensor == 'command_auxdaq_sdwrite':
+            continue
         dataDict['collected_data'][sensor] = numpy.fromiter(
             data.get_values(sensor, lastIndex, lastIndex + 1), dtype=float)
 
