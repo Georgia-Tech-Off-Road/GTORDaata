@@ -106,15 +106,14 @@ class DataImport:
             self.teensy_port = self.input_mode
             self.teensy_ser = serial.Serial(baudrate=230400, port=self.teensy_port, timeout=2,
                                             write_timeout=1)
-            logger.info("Teensy found on port {}".format(self.teensy_ser.port))            
-            #self.teensy_ser.flushInput
-            #self.teensy_ser.flushOutput
+            logger.info("Teensy found on port {}".format(self.teensy_ser.port))
             self.teensy_found = True
             self.teensy_countdown = 0
         except:            
             self.teensy_found = False
             logger.debug(logger.findCaller(True))
             time_diff = Decimal(time()) - Decimal(self.connect_timer)
+            self.disconnect_all_sensors()
             if time_diff > 1.0:
                 logger.info("Looking for Teensy...{}".format(str(10 - self.teensy_countdown)))
                 self.teensy_countdown += 1
@@ -386,9 +385,7 @@ class DataImport:
             logger.info("Settings are being received")
 
             # Sets sensors from previous settings to disconnected
-            for sensor_id in self.current_sensors:
-                self.data.set_disconnected(sensor_id)
-            self.current_sensors.clear()
+            self.disconnect_all_sensors()
             self.expected_size = 0
             self.data.set_connected(101)
 
@@ -415,6 +412,18 @@ class DataImport:
                 logger.debug(logger.findCaller(True))
         else:
             logger.error("The ack code that was received was not a valid value")
+
+    def disconnect_all_sensors(self):
+        """
+        Disconnect all sensors in current_sensors for when we receive new settings or the Teensy
+        gets disconnected.
+
+        :return: None
+        """
+
+        for sensor_id in self.current_sensors:
+            self.data.set_disconnected(sensor_id)
+        self.current_sensors.clear()
 
     def attach_output_sensor(self, sensor_id):
         """
