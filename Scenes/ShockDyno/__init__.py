@@ -1,29 +1,30 @@
 from PyQt5 import QtWidgets, uic, QtGui, QtCore
 from PyQt5.QtCore import QSettings
 from PyQt5.QtGui import QPalette
-import os
-
-import pyqtgraph as pg
+from datetime import datetime
 from functools import partial
-import DataAcquisition
+from typing import Dict
+import logging
+import os
+import pyqtgraph as pg
+
 from DataAcquisition import data
 from DataAcquisition import data_import
-from Utilities.CustomWidgets.Plotting import CustomPlotWidget, GridPlotLayout
 from Scenes import DAATAScene
-import logging
-from datetime import datetime
+from Utilities.CustomWidgets.Plotting import CustomPlotWidget, GridPlotLayout
+import DataAcquisition
 
 # Default plot configuration for pyqtgraph
 pg.setConfigOption('background', 'w')   # white
 pg.setConfigOption('foreground', 'k')   # black
 
 # load the .ui file from QT Designer
-uiFile, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'engine_dyno.ui'))
+uiFile, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'shock_dyno.ui'))
 
-logger = logging.getLogger("EngineDyno")
+logger = logging.getLogger("ShockDyno")
 
 
-class EngineDyno(DAATAScene, uiFile):
+class ShockDyno(DAATAScene, uiFile):
     def __init__(self):
         super().__init__()
         self.setupUi(self)
