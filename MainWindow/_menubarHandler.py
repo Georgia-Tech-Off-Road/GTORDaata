@@ -6,24 +6,25 @@ from PyQt5 import QtWidgets
 def populate_menu(self):
     create_addLayoutMenu(self)
     create_fileMenu(self)
-    create_comMenu(self)
+    update_comMenu(self)
     create_google_drive_menu(self)
 
 
 def create_addLayoutMenu(self):
     ## Make an action to create a tab for each imported widget
     for key in self.dict_scenes.keys():
-        self.dict_scenes[key]['menu_action'] = QtWidgets.QAction(self)
-        self.dict_scenes[key]['menu_action'].setCheckable(False)
-        self.dict_scenes[key]['menu_action'].setToolTip('Open a new tab for ' + key)
-        self.dict_scenes[key]['menu_action'].setText(key)
-        if self.dict_scenes[key].get('disabled'):
-            self.dict_scenes[key]['menu_action'].setVisible(False)
-        self.menuAdd_Layout.addAction(self.dict_scenes[key]['menu_action'])
+        self.dict_scenes[key].menu_action = QtWidgets.QAction(self)
+        self.dict_scenes[key].menu_action.setCheckable(False)
+        self.dict_scenes[key].menu_action.setToolTip(
+            'Open a new tab for ' + key)
+        self.dict_scenes[key].menu_action.setText(key)
+        if self.dict_scenes[key].is_preview_scene:
+            self.dict_scenes[key].menu_action.setVisible(False)
+        self.menuAdd_Layout.addAction(self.dict_scenes[key].menu_action)
 
 
 def create_fileMenu(self):
-    ## Create an action for Preferences
+    # Create an action for Preferences
     self.action_Preferences = QtWidgets.QAction(self)
     self.action_Preferences.setCheckable(False)
     self.action_Preferences.setToolTip("Edit application config_MainWindow")
@@ -31,8 +32,10 @@ def create_fileMenu(self):
     self.menuFile.addAction(self.action_Preferences)
 
 
-def create_comMenu(self):
-    ## Create an action for COM port
+def update_comMenu(self):
+    # Clear the list of COM ports
+    self.menuCOM_Port.clear()
+    # Create an action for each available COM port
     for key in self.dict_ports.keys():
         self.dict_ports[key] = QtWidgets.QAction(self)
         self.dict_ports[key].setCheckable(True)
@@ -63,7 +66,6 @@ def create_google_drive_menu(self):
         "Upload one file manually to Google Drive")
     self.manual_upload_gDrive_widget.setText("Upload a file manually")
     self.google_drive_menu.addAction(self.manual_upload_gDrive_widget)
-
 
 # class MenuAction:
 #     ## Make an action to create a tab for each imported widget

@@ -7,14 +7,16 @@ logging_objects = {
     "DataAcquisition": INFO,
     "DataCollection": INFO,
     "DataImport": INFO,
-    "DataExport": DEBUG,
+    "DataExport": INFO,
     "EngineDyno": DEBUG,
+    "GDriveDataExport": DEBUG,
     "GDriveDataImport": DEBUG,
     "GTORNetwork": CRITICAL,
     "GoogleDriveHandler": DEBUG,
     "Homepage": INFO,
     "Logging": DEBUG,
-    "MainWindow": DEBUG,
+    "MainWindow": INFO,
+    "MultiDataGraph": INFO,
     "Plotting": INFO,
 }
 

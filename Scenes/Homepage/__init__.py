@@ -1,6 +1,10 @@
+from decimal import Decimal
+from distutils.command.install_egg_info import to_filename
+from sqlite3 import Time
+from time import time
 from PyQt5 import QtWidgets, uic, QtCore, QtGui
 import os
-from DataAcquisition import data
+from DataAcquisition import data, data_import
 from Scenes import DAATAScene
 import logging
 
@@ -16,8 +20,14 @@ class Homepage(DAATAScene, uiFile):
         self.dict_sensorStatus = {}
         self.connected_sensors = data.get_sensors(is_connected=True)
 
-        self.create_sensorStatusCheckboxes()
-        self.create_connectionStatusCheckboxes()        
+        self.create_sensor_status_checkboxes()
+        self.create_connection_status_checkboxes()  
+
+        self.connect_slots_and_signals()   
+
+        # Vars for sd logic
+        self.is_sd_toggle = False
+        self.last_sd_time = time()
 
         # gridPlotLayout checks for new sensors every x*10 ms (so 1000ms)
         self.update_period = 100
@@ -35,7 +45,7 @@ class Homepage(DAATAScene, uiFile):
 
         pass
 
-    def create_sensorStatusCheckboxes(self):
+    def create_sensor_status_checkboxes(self):
         """
         Lists all sensors in the home page with their respective names and ids
         to show whether they are active or not.
@@ -59,7 +69,7 @@ class Homepage(DAATAScene, uiFile):
                                             QtWidgets.QSizePolicy.Expanding)
         self.verticalLayout_sensorStatus.addItem(spacerItem1)
 
-    def update_sensorStatus(self):
+    def update_sensor_status(self):
         """
         Updates sensor indication colors depending on connected sensors.
         
@@ -73,7 +83,7 @@ class Homepage(DAATAScene, uiFile):
             else:
                 self.dict_sensorStatus[sensor]['indicator'].setChecked(False)
 
-    def create_connectionStatusCheckboxes(self):
+    def create_connection_status_checkboxes(self):
         """
         Creates status indicators for RF Box, SD Card, and Network Drive.
         
@@ -95,21 +105,53 @@ class Homepage(DAATAScene, uiFile):
                                             QtWidgets.QSizePolicy.Expanding)
         self.verticalLayout_connectionStatus.addItem(spacerItem1)
 
-    def update_connectionStatus(self):
+    def update_connection_status(self):
         """
         Updates non-sensor indicators depending on what's connected.
         
         :return: None
         """
 
-        # Check if GTOR network drive is connected
-        network_drive = self.GTORNetwork.get_GTORNetworkDrive()
-        if network_drive:
-            self.ind_connectionStatus.setText("Network Drive Connected" + " (" + network_drive + ")")
-            self.ind_connectionStatus.setCheckState(True)
+        if data_import.teensy_found:
+            # Connected to teensy
+            self.connection_Label.setText("Connected")
+            if data_import.ack_code == 3:
+                # Connected and stable
+                self.connection_Label.setStyleSheet("background-color: #0df200; border: 1px solid black; color: white")                
+            else:
+                # Connected but not stable
+                self.connection_Label.setStyleSheet("background-color: #e3c62f; border: 1px solid black; color: white")
         else:
-            self.ind_connectionStatus.setText("Network Drive Disconnected")
-            self.ind_connectionStatus.setCheckState(False)
+            # We are not connected to teensy
+            self.connection_Label.setText("Disconnected")
+            self.connection_Label.setStyleSheet("background-color: #d60000; border: 1px solid black; color: white")
+           
+        # Check if GTOR network drive is connected
+        # network_drive = self.GTORNetwork.get_GTORNetworkDrive()
+        # if network_drive:
+        #     self.ind_connectionStatus.setText("Network Drive Connected" + " (" + network_drive + ")")
+        #     self.ind_connectionStatus.setCheckState(True)
+        # else:
+        #     self.ind_connectionStatus.setText("Network Drive Disconnected")
+        #     self.ind_connectionStatus.setCheckState(False)
+
+        # Check if SD write is enabled
+        sd_state = data.get_current_value("flag_auxdaq_sdwrite")
+        if sd_state:
+            self.ind_SDCard.setChecked(True)
+        else:
+            self.ind_SDCard.setChecked(False)
+    
+    def update_sd_card_status(self):  
+        """
+        Updates SD card write state whenever the button is clicked.
+        
+        :return: None
+        """
+              
+        self.last_sd_time = time()
+        data.set_current_value("command_auxdaq_sdwrite", True)
+        self.is_sd_toggle = True
 
     def update_active(self):
         """
@@ -119,22 +161,37 @@ class Homepage(DAATAScene, uiFile):
         :return: None
         """
 
-        self.update_sensorStatus()
-        self.update_connectionStatus()
+        self.update_sensor_status()
+        self.update_connection_status()
 
     def update_passive(self):
         """
-        This method is called no matter what scene is selected, but does nothing
-        at the moment.
+        This method is called no matter what scene is selected.
         
         :return: None
         """
 
-        pass
+        if self.is_sd_toggle:
+            time_diff = Decimal(time()) - Decimal(self.last_sd_time)
+            if time_diff > 0.25:
+                data.set_current_value("command_auxdaq_sdwrite", False)
+                self.is_sd_toggle = False
+        
+
+    def connect_slots_and_signals(self):
+        """
+        This function connects all the Qt signals with the slots so that
+        elements such as buttons or checkboxes can be tied to specific
+        functions.
+
+        :return: None
+        """
+
+        self.SDWriteButton.clicked.connect(self.update_sd_card_status)
 
     # --- imported methods --- #
     from Utilities.CustomWidgets.indicatorWidget import QIndicator
-    from Utilities.DataExport import GTORNetwork
+    # from Utilities.DataExport import GTORNetwork
 
     # --- Overridden event methods --- #
     
@@ -146,8 +203,8 @@ class Homepage(DAATAScene, uiFile):
         :return: None
         """
         
-        opt = QtGui.QStyleOption()
+        opt = QtWidgets.QStyleOption()
         opt.initFrom(self)
         p = QtGui.QPainter(self)
         s = self.style()
-        s.drawPrimitive(QtGui.QStyle.PE_Widget, opt, p, self)
+        s.drawPrimitive(QtWidgets.QStyle.PE_Widget, opt, p, self)
