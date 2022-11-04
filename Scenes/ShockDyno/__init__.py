@@ -30,7 +30,9 @@ class ShockDyno(DAATAScene, uiFile):
         self.hide()
 
         self.motor_state = False
+        data.set_current_value("command_motor_enable", self.motor_state)
         self.motor_speed = 0
+        data.set_current_value("command_motor_speed", self.motor_speed)
 
         self.update_period = 3  # the tab updates every x*10 ms (ex. 3*10 = every 30 ms)
 
