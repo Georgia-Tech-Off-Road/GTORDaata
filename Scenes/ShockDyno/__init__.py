@@ -95,7 +95,7 @@ class ShockDyno(DAATAScene, uiFile):
 
     def slot_set_motor_speed(self):
         logger.info("Setting motor speed")
-        data.set_current_value("command_motor_speed", self.motor_speed)
+        data.set_current_value("command_motor_speed", (self.motor_speed + 40))
 
     def slot_toggle_motor(self):
         logger.info("Toggling motor")
