@@ -13,3 +13,8 @@ pip install xlwt
 pip install matplotlib
 pip install func_timeout
 pip install typing_extensions
+pip3 install google
+pip3 install --upgrade google-api-python-client
+pip3 install google-cloud
+pip3 install google_auth_oauthlib
+pip3 install pandas
