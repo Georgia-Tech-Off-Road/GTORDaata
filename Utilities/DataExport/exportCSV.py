@@ -27,7 +27,8 @@ def saveCSV(filename, directory):
         row = [sensor] + data.get_values(sensor, lastIndex, lastIndex + 1)
         if sensor == 'time_internal_seconds':
             sensorData.insert(0, row)
-        else:
+        elif sensor != 'command_auxdaq_sdwrite':
+            # ignore empty ['command_auxdaq_sdwrite'] sensor data
             sensorData.append(row)
 
     # rows -> columns

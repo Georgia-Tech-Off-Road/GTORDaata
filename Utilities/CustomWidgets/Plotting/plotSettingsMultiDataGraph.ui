@@ -242,7 +242,7 @@
         </sizepolicy>
        </property>
        <property name="text">
-        <string>Seconds displayed:</string>
+        <string>Items displayed:</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>

@@ -160,14 +160,13 @@ class MultiDataGraphPreview(DAATAScene, uiFile):
         self.graph_objects.pop(key, None)
         MDG_init_props = MDGInitProps(x_sensor=x_sensor,
                                       y_sensors=y_sensors,
-                                      read_only=True,
                                       initial_data_values=self.READ_ONLY_INIT_VALUES)
-        self.graph_objects[key] = CustomPlotWidget(key,
+        self.graph_objects[key] = CustomPlotWidget(str(key),
                                                    parent=self.scrollAreaWidgetContents,
                                                    layout=self.gridPlotLayout,
                                                    graph_width_seconds=8,
-                                                   enable_scroll=(True, False),
-                                                   MDG_init_props=MDG_init_props)
+                                                   MDG_init_props=MDG_init_props,
+                                                   is_read_only=True)
         # activate settings button
         widget = self.graph_objects[key]
         settings = widget.button_settings.clicked.connect(
