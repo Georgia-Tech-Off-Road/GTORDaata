@@ -252,7 +252,7 @@ class DataImport:
                     logger.debug(logger.findCaller(True))
                     logger.error("Error in packetize with ack 3")
             logger.debug("Sending data : {}".format(byte_data))
-            return b'\x03' + byte_data + end_code
+            return b'\x13' + byte_data + end_code
         elif self.is_sending_data and not self.is_receiving_data:
             byte_data = b''
             for sensor_id in self.output_sensors:
@@ -263,7 +263,7 @@ class DataImport:
                     logger.debug(logger.findCaller(True))
                     logger.error("Error in packetize with ack 2")
             logger.debug("Sending packet : {}".format(b'\x02' + byte_data + end_code))
-            return b'\x02' + byte_data + end_code
+            return b'\x12' + byte_data + end_code
         elif not self.is_sending_data and self.is_receiving_data:
             if self.settings_counter is 5:
                 self.settings_counter = 0
@@ -278,7 +278,7 @@ class DataImport:
                     settings_array = [sensor_id % 256, sensor_id // 256, num_bytes]
                     settings = settings + bytearray(settings_array)
                 logger.debug("Sending packet : {}".format(b'\x01' + settings + end_code))
-                return b'\x01' + settings + end_code
+                return b'\x11' + settings + end_code
             else:
                 self.settings_counter = self.settings_counter + 1
                 return None
@@ -296,7 +296,7 @@ class DataImport:
                     settings_array = [sensor_id % 256, sensor_id // 256, num_bytes]
                     settings = settings + bytearray(settings_array)
                 logger.debug("Sending packet : {}".format(b'\x00' + settings + end_code))
-                return b'\x00' + settings + end_code
+                return b'\x10' + settings + end_code
             else:
                 self.settings_counter = self.settings_counter + 1
                 return None
@@ -311,6 +311,8 @@ class DataImport:
 
         self.ack_code = int.from_bytes(self.current_packet[0],
                                        "little")  # Convert byte string to int for comparison
+        self.ack_code -= 0x10 # Remove safety bit
+
         debug_data = list()
         for data_val in self.current_packet:
             debug_data.append(hex(int.from_bytes(data_val, "little")))
