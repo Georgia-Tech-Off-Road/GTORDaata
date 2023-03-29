@@ -39,11 +39,6 @@ from Utilities.GoogleDriveHandler.GDriveDataImport import \
     GDriveDataImport as GoogleDriveDataImport
 from Utilities import general_constants
 
-import re, itertools
-# import breeze_resources
-
-import itertools
-
 logger = logging.getLogger("MainWindow")
 
 Ui_MainWindow, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__),
@@ -396,7 +391,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         #         data_import.input_mode = ""
         if "COM" in data_import.input_mode or "dev" in data_import.input_mode:
             if not self.data_sending_thread.isActive():
-                self.data_sending_thread.start(100)
+                self.data_sending_thread.start(400)
                 logger.info("We connected to serial!")
         if input_mode != "" and not self.data_reading_thread.is_alive() and input_mode != "Auto":
             self.data_reading_thread.start()

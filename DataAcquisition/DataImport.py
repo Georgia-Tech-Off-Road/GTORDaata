@@ -1,12 +1,5 @@
-import sys
 import csv
-import os
-from unicodedata import decimal
 import serial
-from serial.serialutil import EIGHTBITS
-from serial.tools import list_ports
-from serial.serialutil import SerialException
-from DataAcquisition.ComPortUtil import ListPortsDialog
 from time import time
 from datetime import datetime
 import logging
@@ -69,6 +62,10 @@ class DataImport:
         self.prev_br_lds_val = 0
         self.prev_bl_lds_val = 0
         self.prev_fr_lds_val = 0
+
+        # Packet time rolling average
+        self.last_packet = time()
+        self.dt_window = []
 
     def get_inputMode(self):
         """
@@ -154,13 +151,23 @@ class DataImport:
             self.connect_serial()           
         # If end code is found then unpacketize and clear packet
         packet_length = len(self.current_packet)
-        if packet_length > 8 and self.current_packet[(packet_length - 8):(packet_length)] == self.end_code:  
-            self.packet_count += 1
-            logger.debug("Packet count: {}".format(self.packet_count))
-            self.current_packet = self.current_packet[0:(packet_length - 8)]                    
-            self.unpacketize()
-            self.current_packet.clear()                    
-    
+        if packet_length >= 8 and self.current_packet[(packet_length - 8):(packet_length)] == self.end_code:                      
+            if packet_length > 8:
+                self.packet_count += 1
+                logger.debug("Packet count: {}".format(self.packet_count))
+                self.current_packet = self.current_packet[0:(packet_length - 8)]
+
+                now = time()
+                dt = now - self.last_packet
+                self.dt_window.append(dt)
+                if len(self.dt_window) > 20:
+                    self.dt_window.pop(0)
+                print("dt:", sum(self.dt_window) / len(self.dt_window))
+                self.last_packet = now
+
+                self.unpacketize()
+            self.current_packet.clear()
+        
     def open_bin_file(self, dir):
         """
         Opens the BIN file specified by the given directory and stores it.
