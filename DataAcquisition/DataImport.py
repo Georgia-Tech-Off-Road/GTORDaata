@@ -319,6 +319,7 @@ class DataImport:
         self.ack_code = int.from_bytes(self.current_packet[0],
                                        "little")  # Convert byte string to int for comparison
         self.ack_code -= 0x10 # Remove safety bit
+        print(self.ack_code, self.current_packet)
 
         debug_data = list()
         for data_val in self.current_packet:
