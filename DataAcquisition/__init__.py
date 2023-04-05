@@ -62,8 +62,8 @@ def read_data():
                 data_import.read_packet()                                            
             except AssertionError:
                 data_import.connect_serial()    
-            except:
-                logger.info("Error in read_packet()")
+            except Exception as e:
+                logger.info("Error in read_packet()" + str(e))
         else:
             data_import.input_mode = ""
             time.sleep(0.01)

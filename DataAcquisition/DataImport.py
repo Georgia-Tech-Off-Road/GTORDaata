@@ -36,6 +36,7 @@ class DataImport:
         self.teensy_countdown = 0
 
         # Variables that are used for reading/parsing incoming packets
+        self.start_code = 0xeee0;
         self.end_code = [b'\xff', b'\xff', b'\xff', b'\xff', b'\xff', b'\xff', b'\xff', b'\xf0']
         self.current_sensors = []
         self.current_packet = []
@@ -153,6 +154,7 @@ class DataImport:
         packet_length = len(self.current_packet)
         if packet_length >= 8 and self.current_packet[(packet_length - 8):(packet_length)] == self.end_code:                      
             if packet_length > 8:
+                print(self.current_packet)
                 self.packet_count += 1
                 logger.debug("Packet count: {}".format(self.packet_count))
                 self.current_packet = self.current_packet[0:(packet_length - 8)]
@@ -259,7 +261,7 @@ class DataImport:
                     logger.debug(logger.findCaller(True))
                     logger.error("Error in packetize with ack 3")
             logger.debug("Sending data : {}".format(byte_data))
-            return b'\x13' + byte_data + end_code
+            return b'\xee\xe3' + byte_data + end_code
         elif self.is_sending_data and not self.is_receiving_data:
             byte_data = b''
             for sensor_id in self.output_sensors:
@@ -270,7 +272,7 @@ class DataImport:
                     logger.debug(logger.findCaller(True))
                     logger.error("Error in packetize with ack 2")
             logger.debug("Sending packet : {}".format(b'\x02' + byte_data + end_code))
-            return b'\x12' + byte_data + end_code
+            return b'\xee\xe2' + byte_data + end_code
         elif not self.is_sending_data and self.is_receiving_data:
             if self.settings_counter is 5:
                 self.settings_counter = 0
@@ -285,7 +287,7 @@ class DataImport:
                     settings_array = [sensor_id % 256, sensor_id // 256, num_bytes]
                     settings = settings + bytearray(settings_array)
                 logger.debug("Sending packet : {}".format(b'\x01' + settings + end_code))
-                return b'\x11' + settings + end_code
+                return b'\xee\xe1' + settings + end_code
             else:
                 self.settings_counter = self.settings_counter + 1
                 return None
@@ -303,7 +305,7 @@ class DataImport:
                     settings_array = [sensor_id % 256, sensor_id // 256, num_bytes]
                     settings = settings + bytearray(settings_array)
                 logger.debug("Sending packet : {}".format(b'\x00' + settings + end_code))
-                return b'\x10' + settings + end_code
+                return b'\xee\xe0' + settings + end_code
             else:
                 self.settings_counter = self.settings_counter + 1
                 return None
@@ -316,9 +318,10 @@ class DataImport:
         :return: None
         """
 
-        self.ack_code = int.from_bytes(self.current_packet[0],
-                                       "little")  # Convert byte string to int for comparison
-        self.ack_code -= 0x10 # Remove safety bit
+        self.ack_code = (int.from_bytes(self.current_packet[0], "little") << 8) \
+                      + int.from_bytes(self.current_packet[1], "little") \
+                      - self.start_code
+                                         # Convert byte string to int for comparison
         print(self.ack_code, self.current_packet)
 
         debug_data = list()
@@ -326,6 +329,7 @@ class DataImport:
             debug_data.append(hex(int.from_bytes(data_val, "little")))
         logger.debug(debug_data)
         self.current_packet.pop(0)  # Remove the ack code from the packet
+        self.current_packet.pop(0)  # ""
 
         if self.ack_code == 0x01 or self.ack_code == 0x03:
             self.is_sending_data = True
