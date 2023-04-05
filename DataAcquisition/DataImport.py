@@ -261,7 +261,7 @@ class DataImport:
                     logger.debug(logger.findCaller(True))
                     logger.error("Error in packetize with ack 3")
             logger.debug("Sending data : {}".format(byte_data))
-            return b'\xee\xe3' + byte_data + end_code
+            return (self.start_code + 3).to_bytes(2, 'big') + byte_data + end_code
         elif self.is_sending_data and not self.is_receiving_data:
             byte_data = b''
             for sensor_id in self.output_sensors:
@@ -272,7 +272,7 @@ class DataImport:
                     logger.debug(logger.findCaller(True))
                     logger.error("Error in packetize with ack 2")
             logger.debug("Sending packet : {}".format(b'\x02' + byte_data + end_code))
-            return b'\xee\xe2' + byte_data + end_code
+            return (self.start_code + 2).to_bytes(2, 'big') + byte_data + end_code
         elif not self.is_sending_data and self.is_receiving_data:
             if self.settings_counter is 5:
                 self.settings_counter = 0
@@ -287,7 +287,7 @@ class DataImport:
                     settings_array = [sensor_id % 256, sensor_id // 256, num_bytes]
                     settings = settings + bytearray(settings_array)
                 logger.debug("Sending packet : {}".format(b'\x01' + settings + end_code))
-                return b'\xee\xe1' + settings + end_code
+                return (self.start_code + 1).to_bytes(2, 'big') + settings + end_code
             else:
                 self.settings_counter = self.settings_counter + 1
                 return None
@@ -305,7 +305,7 @@ class DataImport:
                     settings_array = [sensor_id % 256, sensor_id // 256, num_bytes]
                     settings = settings + bytearray(settings_array)
                 logger.debug("Sending packet : {}".format(b'\x00' + settings + end_code))
-                return b'\xee\xe0' + settings + end_code
+                return self.start_code.to_bytes(2, 'big') + settings + end_code
             else:
                 self.settings_counter = self.settings_counter + 1
                 return None
