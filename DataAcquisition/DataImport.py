@@ -154,11 +154,11 @@ class DataImport:
         packet_length = len(self.current_packet)
         if packet_length >= 8 and self.current_packet[(packet_length - 8):(packet_length)] == self.end_code:                      
             if packet_length > 8:
-                print(self.current_packet)
                 self.packet_count += 1
                 logger.debug("Packet count: {}".format(self.packet_count))
                 self.current_packet = self.current_packet[0:(packet_length - 8)]
 
+                #update rolling average dt
                 now = time()
                 dt = now - self.last_packet
                 self.dt_window.append(dt)
@@ -322,7 +322,7 @@ class DataImport:
                       + int.from_bytes(self.current_packet[1], "little") \
                       - self.start_code
                                          # Convert byte string to int for comparison
-        print(self.ack_code, self.current_packet)
+        #print(self.ack_code, self.current_packet)
 
         debug_data = list()
         for data_val in self.current_packet:
