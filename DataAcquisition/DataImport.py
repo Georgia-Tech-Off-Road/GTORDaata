@@ -386,7 +386,7 @@ class DataImport:
 
                 except AssertionError:
                     logger.warning("Packet size of {} is different than expected of {}".format(len(self.current_packet), self.expected_size))
-                    self.is_receiving_data = False
+                    # self.is_receiving_data = False
                     if "COM" in self.input_mode:
                         self.teensy_ser.flushInput()
                 except Exception as e:
