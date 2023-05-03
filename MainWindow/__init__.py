@@ -284,14 +284,16 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         :return: List of available COM ports
         """
+        # ports = [port for port in ports if port not in self.bad_ports]
         if sys.platform.startswith('win'):
             ports = ['COM%s' % (i + 1) for i in range(256)]
-            ports = [port for port in ports if port not in self.bad_ports]
         elif sys.platform.startswith('linux') or sys.platform.startswith('cygwin'):
             # this excludes your current terminal "/dev/tty"
             ports = glob.glob('/dev/tty[A-Za-z]*')
+        elif sys.platform.startswith('darwin'):
+            ports = glob.glob('/dev/tty.*')
         else:
-            logger.error("Unsupported platform for COM ports")
+            raise EnvironmentError('Unsupported platform')     
         
         result = []
         for port in ports:
