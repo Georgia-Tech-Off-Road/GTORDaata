@@ -348,7 +348,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         """
 
         for key in self.dict_ports.keys():
-            if self.dict_ports[key] and self.dict_ports[key].isChecked():
+            if self.dict_ports[key] and self.dict_ports[key].isChecked() and data_import.input_mode != key:
                 self.set_input_mode(key)
 
     def set_input_mode(self, input_mode):
