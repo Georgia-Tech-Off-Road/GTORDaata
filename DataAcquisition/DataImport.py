@@ -122,35 +122,13 @@ class DataImport:
                     logger.info("Stopped looking for Teensy, must reselect it in input tab")
                 self.connect_timer = time()
 
-    def read_packet(self):
+    def check_packet_complete(self):
         """
-        Manages all incoming data on the Serial port and in a BIN file and detects 
-        when a full packet has been received so that it can be parsed.
+        Checks if the current packet is complete and calls unpacketize if it is.
 
         :return: None
         """
-        
-        if self.teensy_ser and self.teensy_found:
-            try:
-                assert self.teensy_ser.in_waiting != 0
-                self.current_packet.append(self.teensy_ser.read(1))  # read in a single byte from COM
-            except AssertionError:
-                pass # logger.debug("Input buffer is empty")
-            except TypeError:
-                logger.info("Teensy has been disconnected, closing and attempting reopen")
-                self.teensy_ser.close()
-                self.teensy_found = False
-            except Exception:
-                logger.debug(logger.findCaller(True))
-        elif self.data_file and self.data_file.readable():                
-            byte = self.data_file.read(1)
-            if not byte:
-                logger.info("Finished BIN file parsing")
-                self.input_mode = ""                                    
-            self.current_packet.append(byte)   # read in a single byte from file                
-        elif not self.teensy_found:
-            self.connect_serial()           
-        # If end code is found then unpacketize and clear packet
+
         packet_length = len(self.current_packet)
         if packet_length >= 8 and self.current_packet[(packet_length - 8):(packet_length)] == self.end_code:                      
             if packet_length > 8:
@@ -169,6 +147,39 @@ class DataImport:
 
                 self.unpacketize()
             self.current_packet.clear()
+    
+    def read_packet(self):
+        """
+        Manages all incoming data on the Serial port and in a BIN file and detects 
+        when a full packet has been received so that it can be parsed.
+
+        :return: None
+        """
+        
+        if self.teensy_ser and self.teensy_found:
+            try:
+                assert self.teensy_ser.in_waiting != 0
+                all_bytes = self.teensy_ser.read_all()
+                for i in all_bytes:
+                    self.current_packet.append(i.to_bytes(1, 'big'))
+                    self.check_packet_complete()
+            except AssertionError:
+                pass # logger.debug("Input buffer is empty")
+            except TypeError:
+                logger.info("Teensy has been disconnected, closing and attempting reopen")
+                self.teensy_ser.close()
+                self.teensy_found = False
+            except Exception:
+                logger.debug(logger.findCaller(True))
+        elif self.data_file and self.data_file.readable():                
+            byte = self.data_file.read(1)
+            if not byte:
+                logger.info("Finished BIN file parsing")
+                self.input_mode = ""                                    
+            self.current_packet.append(byte)   # read in a single byte from file  
+            self.check_packet_complete()              
+        elif not self.teensy_found:
+            self.connect_serial()
         
     def open_bin_file(self, dir):
         """
