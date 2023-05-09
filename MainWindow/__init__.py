@@ -121,10 +121,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                     try:
                         if (
                                 self.update_counter_active % scene.update_period) == 0:
-                            scene.update_active()
+                            scene.update_active()                        
                     except Exception as e:
-                        logger.error(e)
-                        logger.debug(logger.findCaller(True))
+                        self.update_counter_active = 0
 
     def update_passive(self):
         """
@@ -140,6 +139,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         self.homepage.update_passive()
         for scene in self.tabWidget.findChildren(DAATAScene):
+            scene.update_graph_frequency_passively()
             scene.update_passive()
 
     def set_app_icon(self):

@@ -203,18 +203,6 @@
     <property name="title">
      <string>Input</string>
     </property>
-    <widget class="QMenu" name="menuCOM_Port">
-     <property name="title">
-      <string>COM Port</string>
-     </property>
-     <addaction name="separator"/>
-    </widget>
-    <widget class="QMenu" name="google_drive_menu">
-     <property name="title">
-      <string>Google Drive</string>
-     </property>
-     <addaction name="separator"/>
-    </widget>
     <addaction name="actionFake_Data"/>
     <addaction name="actionBIN_File"/>
     <addaction name="openCSV_File"/>
@@ -241,11 +229,11 @@
    </property>
   </action>
   <action name="actionFake_Data">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
    <property name="text">
     <string>Fake Data</string>
+   </property>
+   <property name="checkable">
+    <bool>true</bool>
    </property>
   </action>
   <action name="actionBIN_File">
@@ -258,6 +246,16 @@
     <string>Open CSV File</string>
    </property>
   </action>
+  <widget class="QMenu" name="menuCOM_Port">
+    <property name="title">
+     <string>COM Port</string>
+    </property>
+  </widget>
+  <widget class="QMenu" name="google_drive_menu">
+   <property name="title">
+    <string>Google Drive</string>
+   </property>
+  </widget>
  </widget>
  <resources/>
  <connections/>
