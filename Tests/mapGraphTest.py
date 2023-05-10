@@ -2,6 +2,11 @@ import matplotlib.pyplot as plt
 import matplotlib.animation
 import numpy as np
 
+import sys
+sys.path.append('..')
+
+from DataAcquisition import data
+
 # Set coordinate bounds of map
 boundsBox = [44.09426, 44.08128, -88.53080, -88.51538]
 # Make a test middle point on the map
@@ -26,8 +31,8 @@ def animate(i):
     global longPoint
     global prevLongPoint
 
-    latPoint += 0.0001
-    longPoint += 0.0001
+    latPoint = data.get_current_value("gps_lattitude")
+    longPoint = data.get_current_value("gps_longitude")
 
     if ((latPoint != prevLatPoint) or (longPoint != prevLongPoint)):
         x.clear()
