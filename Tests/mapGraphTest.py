@@ -13,11 +13,11 @@ boundsBox = [44.09426, 44.08128, -88.53080, -88.51538]
 latPoint = prevLatPoint = (boundsBox[0] + boundsBox[1]) / 2
 longPoint = prevLongPoint = (boundsBox[2] + boundsBox[3]) / 2
 # Read downloaded map image using boundsBox coordinates
-oshkosh_m = plt.imread('map.png')
+oshkosh_m = plt.imread('WashougalMap.png')
 
 fig, ax = plt.subplots(figsize = (8,7))
 ax.imshow(oshkosh_m, zorder=0, extent = boundsBox, aspect= 'equal')
-ax.set_title('Plotting Spatial Data on Oshkosh Map')
+ax.set_title('Plotting Spatial Data on Washougal Map')
 ax.set_xlim(boundsBox[0],boundsBox[1])
 ax.set_ylim(boundsBox[2],boundsBox[3])
 x, y = [],[]
