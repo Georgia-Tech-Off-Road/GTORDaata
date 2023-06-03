@@ -1,3 +1,5 @@
+# Unused testing file for __init__.py
+
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.animation import FuncAnimation
@@ -12,6 +14,7 @@ cube_pos = [0, 0, 0]
 cube_size = 1
 
 def update_cube(i):
+    # TODO: Is not None
     # Get the acceleration data for this time step
     ax = data.get_current_value("imu_acceleration_x")
     if (ax is None):

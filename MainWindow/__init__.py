@@ -24,6 +24,8 @@ from Scenes.Homepage import Homepage
 from Scenes.Layout_Test import Widget_Test
 from Scenes.MultiDataGraph import MultiDataGraph
 from Scenes.MultiDataGraphPreview import MultiDataGraphPreview
+from Scenes.AccVis import AccVis
+from Scenes.MapVis import MapVis
 
 from MainWindow._tabHandler import close_tab
 from Utilities.Popups.popups import popup_ParentChildrenTree
@@ -275,6 +277,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
             'Multi Data Graph Preview':
                 _Scene(MultiDataGraphPreview, "MultiDataGraphPreview", True),
+
+            'Accelerometer Visualizer': _Scene(AccVis, "AccVis"),
+
+            'Map Visualizer': _Scene(MapVis, "MapVis"),
         }
 
     def enumerate_serial_ports(self):
