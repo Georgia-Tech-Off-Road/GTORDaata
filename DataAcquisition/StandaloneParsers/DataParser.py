@@ -14,7 +14,7 @@ version: 1.1
 """
 
 # Enter in the bin file using it's absolute directory as the first paramater of this declaration
-dataFile = open("C:/Users/Benjamin/GitHub/DAQ/Application/daata_v1_0/DataAcquisition/TESTPETER.BIN.part", mode="rb")
+dataFile = open("/Users/vishnavdeenadayalan/Desktop/Oshkosh Data/2019-01-01_01-02-07.bin", mode="rb")
 
 # MISC testing
 """
@@ -38,7 +38,7 @@ bytes = dataFile.read()
 dataRecord = list(bytes)
 
 # The CSV file that's written to while the data is recorded
-csvFile = open('C:/Users/Benjamin/GitHub/DAQ/Application/daata_v1_0/DataAcquisition/DataRecord.csv', 'w')
+csvFile = open('/Users/vishnavdeenadayalan/Desktop/Processed Oshkosh Data/oshkoshData2.csv', 'w')
 
 csvWriter = csv.writer(csvFile, lineterminator='\n')
 
@@ -169,7 +169,7 @@ while byteIndex < len(dataRecord):
 					tempBytes = (tempBytes |
 						 ((dataRecord[byteIndex + dataSize[keyList[keyIndex]] - i]) <<
 						 	 ((dataSize[keyList[keyIndex]] - i - 1) * 8)))
-				if keyList[keyIndex] == 212:
+				if keyList[keyIndex] == 8 or keyList[keyIndex] == 401 or keyList[keyIndex] == 402 or keyList[keyIndex] == 403 or keyList[keyIndex] == 404 or keyList[keyIndex] == 304 or keyList[keyIndex] == 305:
 					binOfTempBytes = bin(tempBytes)
 					IEEEconvert = bin_to_float(binOfTempBytes)
 					#print(IEEEconvert)
