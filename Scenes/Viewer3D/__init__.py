@@ -125,14 +125,14 @@ class Viewer3D(DAATAScene, uiFile):
         :return: None
         """
         if self.accel_x_lcd.isEnabled():
-            self.accel_x_lcd.display(data.get_current_value("imu_acceleration_x"))
+            self.accel_x_lcd.display(data.get_current_value("dashboard_accel_x"))
         if self.accel_y_lcd.isEnabled():
-            self.accel_y_lcd.display(data.get_current_value("imu_acceleration_y"))
+            self.accel_y_lcd.display(data.get_current_value("dashboard_accel_y"))
         if self.accel_z_lcd.isEnabled():
-            self.accel_z_lcd.display(data.get_current_value("imu_acceleration_z"))
+            self.accel_z_lcd.display(data.get_current_value("dashboard_accel_z"))
 
         # TODO If imu is connected then update 3D viewer based on imu angle
-        if data.get_is_connected("imu_acceleration_x"):
+        if data.get_is_connected("dashboard_accel_x"):
             self.update_viewer()
         #self.update_viewer()
 
@@ -144,17 +144,17 @@ class Viewer3D(DAATAScene, uiFile):
         :return:
         """
         # Enable or disable the lcd displays based on what sensors are connected
-        if data.get_is_connected("imu_acceleration_x"):
+        if data.get_is_connected("dashboard_accel_x"):
             self.accel_x_lcd.setEnabled(True)
         else:
             self.accel_x_lcd.setEnabled(False)
 
-        if data.get_is_connected("imu_acceleration_y"):
+        if data.get_is_connected("dashboard_accel_y"):
             self.accel_y_lcd.setEnabled(True)
         else:
             self.accel_y_lcd.setEnabled(False)
 
-        if data.get_is_connected("imu_acceleration_z"):
+        if data.get_is_connected("dashboard_accel_z"):
             self.accel_z_lcd.setEnabled(True)
         else:
             self.accel_z_lcd.setEnabled(False)
