@@ -120,7 +120,7 @@ class MapVis(DAATAScene, uiFile):
         if data.get_current_value("gps_longitude") is not None:
             # Need to undo 2's complement since longitude is negative
             self.longPoint = ((two2dec(data.get_current_value("gps_longitude"))) / 10000000)
-        print(self.latPoint, self.longPoint)
+        # print(self.latPoint, self.longPoint)
 
         self.x.append(self.latPoint)
         self.y.append(self.longPoint)

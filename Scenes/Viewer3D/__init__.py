@@ -178,9 +178,14 @@ class Viewer3D(DAATAScene, uiFile):
         :param pe:
         :return: None
         """
-        opt = QtWidgets.QStyleOption()
+        # opt = QStyle.QStyleOption()
+        # opt.initFrom(self)
+        # p = QtGui.QPainter(self)
+        # s = self.style()
+        # s.drawPrimitive(QStyle.QStyle.PE_Widget, opt, p, self)
+        opt = QtGui.QStyleOption()
         opt.initFrom(self)
         p = QtGui.QPainter(self)
         s = self.style()
-        s.drawPrimitive(QtWidgets.QStyle.PE_Widget, opt, p, self)
+        s.drawPrimitive(QtGui.QStyle.PE_Widget, opt, p, self)
 
