@@ -20,13 +20,23 @@ uiFile, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'MapVis.ui'))
 
 # Set coordinate bounds of map
 # TODO: Add in dynamic bounds
-boundsBox = [45.6280, 45.6361, (-122.2587), (-122.2491)]
+# boundsBox = [45.6280, 45.6361, -122.2587, -122.2491]
+boundsBox = [45.6268, 45.6376, -122.2573, -122.2475]
 
 # Set image path
 image_path = './Scenes/MapVis/'
-image_name = 'WashougalMap.png'
+image_name = 'WashougalNewMapRotate.png'
+#image_name = 'WashougalNewMap.png'
+# image_name = 'WashougalMap.png'
 
 DEBUG = False
+
+def two2dec(twodec):
+    s = bin(twodec)[2:]
+    if s[0] == '1':
+        return -1 * (int(''.join('1' if x == '0' else '0' for x in s), 2) + 1)
+    else:
+        return int(s, 2)
 
 class MplCanvas(FigureCanvasQTAgg):
     def __init__(self, fig : Figure):
@@ -86,7 +96,7 @@ class MapVis(DAATAScene, uiFile):
 
         # Create the figure and start the animation
         self.hide()
-        self.update_period = 10  # the tab updates every x*10 ms (ex. 3*10 = every 30 ms)
+        self.update_period = 5  # the tab updates every x*10 ms (ex. 3*10 = every 30 ms)
         self.ani = FuncAnimation(self.fig, self.animate, frames=2, interval=self.update_period * 10, repeat=True)
 
     def update_active(self):
@@ -108,7 +118,9 @@ class MapVis(DAATAScene, uiFile):
         if data.get_current_value("gps_lattitude") is not None:
             self.latPoint = (data.get_current_value("gps_lattitude") / 10000000)
         if data.get_current_value("gps_longitude") is not None:
-            self.longPoint = (data.get_current_value("gps_longitude") / 100000000) - 152.976691
+            # Need to undo 2's complement since longitude is negative
+            self.longPoint = ((two2dec(data.get_current_value("gps_longitude"))) / 10000000)
+        print(self.latPoint, self.longPoint)
 
         self.x.append(self.latPoint)
         self.y.append(self.longPoint)

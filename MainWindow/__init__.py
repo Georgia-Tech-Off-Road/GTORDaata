@@ -26,6 +26,7 @@ from Scenes.MultiDataGraph import MultiDataGraph
 from Scenes.MultiDataGraphPreview import MultiDataGraphPreview
 from Scenes.AccVis import AccVis
 from Scenes.MapVis import MapVis
+from Scenes.Viewer3D import Viewer3D
 
 from MainWindow._tabHandler import close_tab
 from Utilities.Popups.popups import popup_ParentChildrenTree
@@ -40,6 +41,11 @@ from Utilities.GoogleDriveHandler.GDriveDataExport.upload_all_drive_files import
 from Utilities.GoogleDriveHandler.GDriveDataImport import \
     GDriveDataImport as GoogleDriveDataImport
 from Utilities import general_constants
+
+import re, itertools
+# import breeze_resources
+
+import itertools
 
 logger = logging.getLogger("MainWindow")
 
@@ -281,6 +287,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             'Accelerometer Visualizer': _Scene(AccVis, "AccVis"),
 
             'Map Visualizer': _Scene(MapVis, "MapVis"),
+
+            'Viewer3D':  _Scene(Viewer3D, "3DViewer"),
         }
 
     def enumerate_serial_ports(self):
