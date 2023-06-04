@@ -27,6 +27,7 @@ from Scenes.MultiDataGraphPreview import MultiDataGraphPreview
 from Scenes.AccVis import AccVis
 from Scenes.MapVis import MapVis
 from Scenes.Viewer3D import Viewer3D
+from Scenes.MapGPS import MapGPS
 
 from MainWindow._tabHandler import close_tab
 from Utilities.Popups.popups import popup_ParentChildrenTree
@@ -288,7 +289,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
             'Map Visualizer': _Scene(MapVis, "MapVis"),
 
-            'Viewer3D':  _Scene(Viewer3D, "3DViewer"),
+            'Viewer3D': _Scene(Viewer3D, "3DViewer"),
+
+            'GPS Map Tracker': _Scene(MapGPS, "MapGPS"),
         }
 
     def enumerate_serial_ports(self):
