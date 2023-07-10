@@ -109,7 +109,6 @@ class Viewer3D(DAATAScene, uiFile):
         qx = data.get_current_value("dashboard_quaternion_2")
         qy = data.get_current_value("dashboard_quaternion_3")
         qz = data.get_current_value("dashboard_quaternion_4")
-        print(qx)
         angle = self.quaternion_to_axisangle(qx, qy, qz, qw)
         # angle = [0, 0, 0, 1] # angle, roll, pitch, yaw
         self.gl_mesh.rotate(-self.prev_angle[0], self.prev_angle[1], self.prev_angle[2], self.prev_angle[3])
@@ -132,7 +131,7 @@ class Viewer3D(DAATAScene, uiFile):
             self.accel_z_lcd.display(data.get_current_value("dashboard_accel_z"))
 
         # TODO If imu is connected then update 3D viewer based on imu angle
-        if data.get_is_connected("dashboard_accel_x"):
+        if data.get_is_connected("dashboard_quaternion_1"):
             self.update_viewer()
         #self.update_viewer()
 
@@ -178,14 +177,8 @@ class Viewer3D(DAATAScene, uiFile):
         :param pe:
         :return: None
         """
-        # opt = QStyle.QStyleOption()
-        # opt.initFrom(self)
-        # p = QtGui.QPainter(self)
-        # s = self.style()
-        # s.drawPrimitive(QStyle.QStyle.PE_Widget, opt, p, self)
         opt = QtGui.QStyleOption()
         opt.initFrom(self)
         p = QtGui.QPainter(self)
         s = self.style()
         s.drawPrimitive(QtGui.QStyle.PE_Widget, opt, p, self)
-
