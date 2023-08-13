@@ -69,10 +69,10 @@ class Viewer3D(DAATAScene, uiFile):
         self.gl_mesh.scale(0.002, 0.002, 0.002)
 
         #self.view.setCameraPosition(6, 0, 0)
-        #print(self.view.cameraPosition())
+        print(self.view.cameraPosition())
         self.view.opts['elevation'] = 15
         self.view.opts['azimuth'] = 0
-        #print(self.view.cameraPosition())
+        print(self.view.cameraPosition())
 
         self.view.show()
 

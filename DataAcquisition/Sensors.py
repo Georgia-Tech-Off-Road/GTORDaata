@@ -28,7 +28,7 @@ class Sensor(metaclass=ABCMeta):
     def add_value(self, value=None):
         try:
             value = self.transfer_function(value)
-            if value is None:
+            if value == None:
                 value = self.current_value
             self.current_value = value
             if self.is_data_collecting.is_set():
@@ -40,7 +40,7 @@ class Sensor(metaclass=ABCMeta):
 
     def get_value(self, index=None):
         try:
-            if index is None:
+            if index == None:
                 return self.current_value
             return self.values[index]
         except IndexError:
@@ -88,7 +88,7 @@ class Command(Sensor):
         super().__init__(**kwargs)
         self.is_plottable = False
 
-        if self.name is "command_toggle_teensy_led":
+        if self.name == "command_toggle_teensy_led":
             self.current_value = False
 
 
@@ -96,11 +96,11 @@ class Time(Sensor):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.is_plottable = False
-        if self.name is "time_internal_seconds":
+        if self.name == "time_internal_seconds":
             self.start_time = datetime.now()
 
     def transfer_function(self, value):
-        if self.name is "time_internal_seconds":
+        if self.name == "time_internal_seconds":
             return (datetime.now() - self.start_time).total_seconds()
         return value
 
@@ -147,11 +147,11 @@ class Force(Sensor):
 
     def transfer_function(self, value):
         value = value * self.scale
-        if self.name is "fx_analog":
+        if self.name == "fx_analog":
             return (value - 2.5) * 8990 / 5
-        if self.name is "fy_analog":
+        if self.name == "fy_analog":
             return (value - 2.5) * 4500 / 5
-        if self.name is "fz_analog":
+        if self.name == "fz_analog":
             return (value - 2.5) * 8990 / 5
         return value
 
@@ -213,6 +213,6 @@ class Angle(Sensor):
         self.unit_short = kwargs.get('unit_short', "degrees")
 
     def transfer_function(self, value):
-        if self.name is "dashboard_quaternion_1" or self.name is "dashboard_quaternion_2" or \
-                self.name is "dashboard_quaternion_3" or self.name is "dashboard_quaternion_4":
+        if self.name == "dashboard_quaternion_1" or self.name == "dashboard_quaternion_2" or \
+                self.name == "dashboard_quaternion_3" or self.name == "dashboard_quaternion_4":
             return value/10000
