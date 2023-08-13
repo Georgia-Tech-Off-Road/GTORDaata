@@ -1,20 +1,13 @@
-from PyQt5 import QtWidgets, uic, QtGui, QtCore
+from PyQt5 import uic, QtGui
 from PyQt5.QtCore import QSettings
-from PyQt5.QtGui import QPalette
 import os
 
 import pyqtgraph as pg
-from functools import partial
-import DataAcquisition
 from DataAcquisition import data
-from DataAcquisition import data_import
-from Utilities.CustomWidgets.Plotting import CustomPlotWidget, GridPlotLayout
 from Scenes import DAATAScene
 import logging
-from datetime import datetime
 
 from stl import mesh
-import sys
 import numpy as np
 from pyqtgraph.opengl import GLViewWidget, MeshData, GLMeshItem
 import math

@@ -1,21 +1,13 @@
-from PyQt5 import QtWidgets, uic, QtGui, QtCore
-from PyQt5.QtCore import QSettings, QTime, QTimer
-from PyQt5.QtGui import QPalette
+from PyQt5 import QtWidgets, uic, QtGui
+from PyQt5.QtCore import QTime
 import pyproj
 import os
-import sys
-import io
-import folium # pip install folium
-from PyQt5.QtWidgets import QApplication, QWidget, QHBoxLayout, QVBoxLayout
-from PyQt5.QtWebEngineWidgets import QWebEngineView
+import folium
 from shapely.geometry import LineString
 
 import pyqtgraph as pg
-from functools import partial
 import DataAcquisition
 from DataAcquisition import data
-from DataAcquisition import data_import
-from Utilities.CustomWidgets.Plotting import CustomPlotWidget, GridPlotLayout
 from Scenes import DAATAScene
 import logging
 from datetime import datetime
