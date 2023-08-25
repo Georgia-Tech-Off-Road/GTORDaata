@@ -14,5 +14,9 @@ pip install --upgrade google-api-python-client google-auth-httplib2 google-auth-
 pip install requests
 pip install dataclasses
 pip install pandas
+pip install numpy-stl
+pip install PyOpenGL
+pip install folium
+pip install yarn
 
 cmd /k

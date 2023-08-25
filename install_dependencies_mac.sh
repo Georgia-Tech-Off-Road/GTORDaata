@@ -15,3 +15,5 @@ pip install func_timeout
 pip install typing_extensions
 pip install numpy-stl
 pip install PyOpenGL
+pip install folium
+pip install yarn
