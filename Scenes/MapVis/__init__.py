@@ -20,14 +20,12 @@ uiFile, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'MapVis.ui'))
 
 # Set coordinate bounds of map
 # TODO: Add in dynamic bounds
-# boundsBox = [45.6280, 45.6361, -122.2587, -122.2491]
-boundsBox = [45.6268, 45.6376, -122.2573, -122.2475]
+# boundsBox = [45.6268, 45.6376, -122.2573, -122.2475] #WashougalNewMapRotateCoords
+boundsBox = [40.12178, 40.12564, -82.22641, -82.22086]
 
 # Set image path
 image_path = './Scenes/MapVis/'
-image_name = 'WashougalNewMapRotate.png'
-#image_name = 'WashougalNewMap.png'
-# image_name = 'WashougalMap.png'
+image_name = 'OhioMap.png'
 
 DEBUG = False
 
