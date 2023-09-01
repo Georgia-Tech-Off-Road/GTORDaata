@@ -333,7 +333,7 @@ class DataImport:
                       + int.from_bytes(self.current_packet[1], "little") \
                       - self.start_code
                                          # Convert byte string to int for comparison
-        #print(self.ack_code, self.current_packet)
+        # print(self.ack_code, self.current_packet)
 
         debug_data = list()
         for data_val in self.current_packet:

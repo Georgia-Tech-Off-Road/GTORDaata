@@ -29,7 +29,7 @@ def saveMAT(filename, directory):
             data.get_values(sensor, lastIndex, lastIndex + 1), dtype=float)
 
     sio.savemat(os.path.join(directory, filename), dataDict, appendmat=True,
-                oned_as="column")
+                oned_as="column", long_field_names=True)
 
     size = os.path.getsize(f"{directory}/{filename}")
     logger.info(
