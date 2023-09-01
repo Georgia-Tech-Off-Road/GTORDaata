@@ -828,61 +828,61 @@ SensorId = {
             "name": "dashboard_accel_x",
             "object": "Acceleration",
             "display_name": "IMU X Acceleration",
-            "data_type": 'f'
+            "is_float": True
         },
         1: {
             "name": "dashboard_accel_y",
             "object": "Acceleration",
             "display_name": "IMU Y Acceleration",
-            "data_type": 'f'
+            "is_float": True
         },
         2: {
             "name": "dashboard_accel_z",
             "object": "Acceleration",
             "display_name": "IMU Z Acceleration",
-            "data_type": 'f'
+            "is_float": True
         },
         3: {
             "name": "dashboard_roll",
             "object": "Angle",
             "display_name": "IMU Roll",
-            "data_type": 'f'
+            "is_float": True
         },
         4: {
             "name": "dashboard_pitch",
             "object": "Angle",
             "display_name": "IMU Pitch",
-            "data_type": 'f'
+            "is_float": True
         },
         5: {
             "name": "dashboard_yaw",
             "object": "Angle",
             "display_name": "IMU Yaw",
-            "data_type": 'f'
+            "is_float": True
         },
         6: {
             "name": "dashboard_quaternion_1_tennessee",
             "object": "Angle",
             "display_name": "IMU Quaternion 1",
-            "data_type": 'f'
+            "is_float": True
         },
         7: {
             "name": "dashboard_quaternion_2_tennessee",
             "object": "Angle",
             "display_name": "IMU Quaternion 2",
-            "data_type": 'f'
+            "is_float": True
         },
         8: {
             "name": "dashboard_quaternion_3_tennessee",
             "object": "Angle",
             "display_name": "IMU Quaternion 3",
-            "data_type": 'f'
+            "is_float": True
         },
         9: {
             "name": "dashboard_quaternion_4_tennessee",
             "object": "Angle",
             "display_name": "IMU Quaternion 4",
-            "data_type": 'f'
+            "is_float": True
         }
     },
     # 600 - MISC SENSORS
