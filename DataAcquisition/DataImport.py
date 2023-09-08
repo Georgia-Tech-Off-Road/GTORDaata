@@ -354,7 +354,8 @@ class DataImport:
             with self.lock:
                 # logger.debug("Received data and will now parse")
                 try:
-                    assert len(self.current_packet) == self.expected_size
+                    assert len(self.current_packet) >= self.expected_size
+                    self.current_packet = self.current_packet[:self.expected_size]
                     for sensor_id in self.current_sensors:
                         if isinstance(SensorId[sensor_id]["num_bytes"], list):
                             data_value = []
