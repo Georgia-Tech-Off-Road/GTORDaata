@@ -9,7 +9,6 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
 
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.animation import FuncAnimation
 import numpy as np
 import random as rand
@@ -21,7 +20,7 @@ uiFile, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'MapVis.ui'))
 # Set coordinate bounds of map
 # TODO: Add in dynamic bounds
 # boundsBox = [45.6268, 45.6376, -122.2573, -122.2475] #WashougalNewMapRotateCoords
-boundsBox = [40.12178, 40.12564, -82.22641, -82.22086]
+boundsBox = [-82.227019, -82.220582, 40.121399, 40.125859]
 
 # Set image path
 image_path = './Scenes/MapVis/'
@@ -71,13 +70,13 @@ class MapVis(DAATAScene, uiFile):
         self.sc = MplCanvas(self.fig)
 
         # Make a test middle point on the map
-        self.latPoint = prevLatPoint = (boundsBox[0] + boundsBox[1]) / 2
-        self.longPoint = prevLongPoint = (boundsBox[2] + boundsBox[3]) / 2
+        self.latPoint = prevLatPoint = (boundsBox[2] + boundsBox[3]) / 2
+        self.longPoint = prevLongPoint = (boundsBox[0] + boundsBox[1]) / 2
 
         self.prevLatPoint, self.prevLongPoint = 0, 0
         self.x, self.y = [],[]
-        self.x.append(self.prevLatPoint)
-        self.y.append(self.prevLongPoint)
+        self.y.append(self.prevLatPoint)
+        self.x.append(self.prevLongPoint)
 
         self.sc.axes.scatter(self.x,self.y)
 
@@ -120,8 +119,8 @@ class MapVis(DAATAScene, uiFile):
             self.longPoint = ((two2dec(data.get_current_value("gps_longitude"))) / 10000000)
         # print(self.latPoint, self.longPoint)
 
-        self.x.append(self.latPoint)
-        self.y.append(self.longPoint)
+        self.y.append(self.latPoint)
+        self.x.append(self.longPoint)
         while len(self.y) > 100:
             self.y.pop(0)
             self.x.pop(0)
