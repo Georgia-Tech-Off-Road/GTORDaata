@@ -24,7 +24,7 @@ boundsBox = [-82.227019, -82.220582, 40.121399, 40.125859]
 
 # Set image path
 image_path = './Scenes/MapVis/'
-image_name = 'OhioMap.png'
+image_name = 'OhioMapAnnotated.png'
 
 DEBUG = False
 
@@ -48,7 +48,7 @@ class MplCanvas(FigureCanvasQTAgg):
 
         self.axes.imshow(image, zorder=0, extent = boundsBox, aspect= 'equal')
 
-        self.axes.set_title('Plotting Spatial Data on Washougal Map')
+        self.axes.set_title('Plotting Spatial Data on Ohio Map')
         self.axes.set_xlim(xmin=boundsBox[0],xmax=boundsBox[1])
         self.axes.set_ylim(ymin=boundsBox[2],ymax=boundsBox[3])
         self.axes.set_autoscale_on(False)

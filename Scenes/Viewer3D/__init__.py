@@ -1,4 +1,4 @@
-from PyQt5 import uic, QtGui
+from PyQt5 import uic, QtGui, QtWidgets
 from PyQt5.QtCore import QSettings
 import os
 
@@ -90,18 +90,27 @@ class Viewer3D(DAATAScene, uiFile):
         logger.info("Changing imu input for 3D viewer")
         pass
 
+    def euler_to_quaternion(self, yaw, pitch, roll):
+
+        qx = np.sin(roll/2) * np.cos(pitch/2) * np.cos(yaw/2) - np.cos(roll/2) * np.sin(pitch/2) * np.sin(yaw/2)
+        qy = np.cos(roll/2) * np.sin(pitch/2) * np.cos(yaw/2) + np.sin(roll/2) * np.cos(pitch/2) * np.sin(yaw/2)
+        qz = np.cos(roll/2) * np.cos(pitch/2) * np.sin(yaw/2) - np.sin(roll/2) * np.sin(pitch/2) * np.cos(yaw/2)
+        qw = np.cos(roll/2) * np.cos(pitch/2) * np.cos(yaw/2) + np.sin(roll/2) * np.sin(pitch/2) * np.sin(yaw/2)
+
+        return [qx, qy, qz, qw]
+
     def update_viewer(self):
         """
         This function will update the 3D viewer based on the IMU angle that is received
 
         :return:
         """
-        #logger.debug("Updating viewer")
-        #self.gl_mesh.rotate(10, 1, 0, 0)
-        qw = data.get_current_value("dashboard_quaternion_1_tennessee")
-        qx = data.get_current_value("dashboard_quaternion_2_tennessee")
-        qy = data.get_current_value("dashboard_quaternion_3_tennessee")
-        qz = data.get_current_value("dashboard_quaternion_4_tennessee")
+        roll = data.get_current_value("dashboard_roll", default=0)
+        pitch = data.get_current_value("dashboard_pitch", default=0)
+        yaw = data.get_current_value("dashboard_yaw", default=0)
+        print('rpy', roll, pitch, yaw)
+        
+        [qx, qy, qz, qw] = self.euler_to_quaternion(yaw, pitch, roll)
         angle = self.quaternion_to_axisangle(qx, qy, qz, qw)
         # angle = [0, 0, 0, 1] # angle, roll, pitch, yaw
         self.gl_mesh.rotate(-self.prev_angle[0], self.prev_angle[1], self.prev_angle[2], self.prev_angle[3])
@@ -126,7 +135,6 @@ class Viewer3D(DAATAScene, uiFile):
         # TODO If imu is connected then update 3D viewer based on imu angle
         if data.get_is_connected("dashboard_quaternion_1_tennessee"):
             self.update_viewer()
-        #self.update_viewer()
 
     def update_passive(self):
         """
@@ -151,8 +159,6 @@ class Viewer3D(DAATAScene, uiFile):
         else:
             self.accel_z_lcd.setEnabled(False)
 
-        pass
-
 
     def connect_slots_and_signals(self):
         # TODO: connect the dropdown box with updating which imu is controlling the 3D viewer
@@ -170,8 +176,9 @@ class Viewer3D(DAATAScene, uiFile):
         :param pe:
         :return: None
         """
-        opt = QtGui.QStyleOption()
+        opt = QtWidgets.QStyleOption()
         opt.initFrom(self)
         p = QtGui.QPainter(self)
         s = self.style()
-        s.drawPrimitive(QtGui.QStyle.PE_Widget, opt, p, self)
+        s.drawPrimitive(QtWidgets.QStyle.PrimitiveElement.PE_Widget, opt, p, self)
+        pass

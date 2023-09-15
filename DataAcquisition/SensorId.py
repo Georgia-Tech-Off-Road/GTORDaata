@@ -499,40 +499,40 @@ SensorId = {
         }
     },
     214: {
-        "name": "speed_2021car_engine600_rpm",
+        "name": "speed_2021car_engine30_rpm",
         "num_bytes": [4, 2],
-        "h_file_comment": "Speed in RPM and position in ticks (600ppr sensor)",
+        "h_file_comment": "Speed in RPM and position in ticks (30ppr sensor)",
         0: {
             "name": "position_engine_ticks",
             "object": "Position",
-            "display_name": "Position Engine (600ppr Sensor)",
-            "pulses_per_revolution": 600,
+            "display_name": "Position Engine (30ppr Sensor)",
+            "pulses_per_revolution": 30,
             "data_type": "uint32"
         },
         1: {
             "name": "speed_engine_rpm",
             "object": "Speed",
-            "display_name": "Speed Engine (600ppr Sensor)",
-            "pulses_per_revolution": 600,
+            "display_name": "Speed Engine (30ppr Sensor)",
+            "pulses_per_revolution": 30,
             "data_type": "uint16"
         }
     },
     215: {
-        "name": "speed_2021car_secondary30_rpm",
+        "name": "speed_2021car_secondary600_rpm",
         "num_bytes": [4, 2],
         "h_file_comment": "Speed in RPM and position in ticks (600ppr sensor)",
         0: {
             "name": "position_secondary_ticks",
             "object": "Position",
-            "display_name": "Position Secondary (30ppr Sensor)",
-            "pulses_per_revolution": 30,
+            "display_name": "Position Secondary (600ppr Sensor)",
+            "pulses_per_revolution": 600,
             "data_type": "uint32"
         },
         1: {
             "name": "speed_secondary_rpm",
             "object": "Speed",
-            "display_name": "Speed Secondary (30ppr Sensor)",
-            "pulses_per_revolution": 30,
+            "display_name": "Speed Secondary (600ppr Sensor)",
+            "pulses_per_revolution": 600,
             "data_type": "uint16"
         }
     },

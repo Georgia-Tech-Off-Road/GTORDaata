@@ -216,3 +216,4 @@ class Angle(Sensor):
         if self.name == "dashboard_quaternion_1" or self.name == "dashboard_quaternion_2" or \
                 self.name == "dashboard_quaternion_3" or self.name == "dashboard_quaternion_4":
             return value/10000
+        return value

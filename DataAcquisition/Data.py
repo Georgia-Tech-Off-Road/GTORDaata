@@ -138,9 +138,11 @@ class Data:
                 logger.error("The sensor {} does not exist, check your spelling".format(sensor_name))
                 return None
 
-    def get_current_value(self, sensor_name):
+    def get_current_value(self, sensor_name, default=None):
         with self.lock:
             try:
+                if self.__data[sensor_name].current_value == None:
+                    return default
                 return self.__data[sensor_name].current_value
             except Exception as e:
                 logger.error(e)
