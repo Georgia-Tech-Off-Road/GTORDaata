@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>703</width>
+    <width>876</width>
     <height>599</height>
    </rect>
   </property>
@@ -250,7 +250,7 @@
             </font>
            </property>
            <property name="text">
-            <string>Speed Sensors</string>
+            <string>Motor Speed Control</string>
            </property>
            <property name="alignment">
             <set>Qt::AlignCenter</set>
@@ -288,26 +288,9 @@
             <item>
              <layout class="QHBoxLayout" name="horizontalLayout_5">
               <item>
-               <widget class="QLabel" name="label_7">
-                <property name="font">
-                 <font>
-                  <pointsize>10</pointsize>
-                 </font>
-                </property>
-                <property name="text">
-                 <string>Engine Speed (RPM)</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLCDNumber" name="engine_speed_lcd">
-                <property name="enabled">
-                 <bool>false</bool>
-                </property>
-                <property name="font">
-                 <font>
-                  <pointsize>10</pointsize>
-                 </font>
+               <widget class="QSlider" name="horizontalSlider">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
                 </property>
                </widget>
               </item>
@@ -316,30 +299,30 @@
             <item>
              <layout class="QHBoxLayout" name="horizontalLayout_6">
               <item>
-               <widget class="QLabel" name="label_8">
-                <property name="font">
-                 <font>
-                  <pointsize>10</pointsize>
-                 </font>
-                </property>
+               <widget class="QPushButton" name="sweep">
                 <property name="text">
-                 <string>Secondary Speed (RPM)</string>
+                 <string>Sweep</string>
                 </property>
                </widget>
               </item>
               <item>
-               <widget class="QLCDNumber" name="secondary_speed_lcd">
-                <property name="enabled">
-                 <bool>false</bool>
-                </property>
-                <property name="font">
-                 <font>
-                  <pointsize>10</pointsize>
-                 </font>
+               <widget class="QLCDNumber" name="motorspeed_lcd"/>
+              </item>
+              <item>
+               <widget class="QPushButton" name="send_speed">
+                <property name="text">
+                 <string>Set</string>
                 </property>
                </widget>
               </item>
              </layout>
+            </item>
+            <item>
+             <widget class="QPushButton" name="kill_motor">
+              <property name="text">
+               <string>Toggle Motor On</string>
+              </property>
+             </widget>
             </item>
            </layout>
           </widget>
@@ -451,7 +434,7 @@
      <property name="frameShadow">
       <enum>QFrame::Raised</enum>
      </property>
-     <layout class="QHBoxLayout" name="horizontalLayout_9" stretch="3,1">
+     <layout class="QHBoxLayout" name="horizontalLayout_9" stretch="3,0">
       <property name="leftMargin">
        <number>0</number>
       </property>
@@ -514,7 +497,7 @@
             </font>
            </property>
            <property name="text">
-            <string>Power Output (HP)</string>
+            <string>LDS Position (mm)</string>
            </property>
            <property name="alignment">
             <set>Qt::AlignCenter</set>
@@ -522,105 +505,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QLCDNumber" name="power_lcd">
-           <property name="enabled">
-            <bool>false</bool>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>0</width>
-             <height>30</height>
-            </size>
-           </property>
-           <property name="font">
-            <font>
-             <pointsize>10</pointsize>
-            </font>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <spacer name="verticalSpacer_3">
-           <property name="orientation">
-            <enum>Qt::Vertical</enum>
-           </property>
-           <property name="sizeType">
-            <enum>QSizePolicy::Fixed</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>0</width>
-             <height>5</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-         <item>
-          <widget class="QLabel" name="label_4">
-           <property name="font">
-            <font>
-             <pointsize>10</pointsize>
-            </font>
-           </property>
-           <property name="text">
-            <string>Torque (ft-lbs)</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignCenter</set>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLCDNumber" name="torque_lcd">
-           <property name="enabled">
-            <bool>false</bool>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>0</width>
-             <height>30</height>
-            </size>
-           </property>
-           <property name="font">
-            <font>
-             <pointsize>10</pointsize>
-            </font>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <spacer name="verticalSpacer">
-           <property name="orientation">
-            <enum>Qt::Vertical</enum>
-           </property>
-           <property name="sizeType">
-            <enum>QSizePolicy::Fixed</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>0</width>
-             <height>5</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-         <item>
-          <widget class="QLabel" name="label_9">
-           <property name="font">
-            <font>
-             <pointsize>10</pointsize>
-            </font>
-           </property>
-           <property name="text">
-            <string>CVT Ratio</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignCenter</set>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLCDNumber" name="cvt_ratio_lcd">
+          <widget class="QLCDNumber" name="position_lcd">
            <property name="enabled">
             <bool>false</bool>
            </property>

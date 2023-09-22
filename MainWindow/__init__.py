@@ -19,6 +19,7 @@ from Scenes.BlinkLEDTest import BlinkLEDTest
 from Scenes.DataCollection import DataCollection
 from Scenes.DataCollectionPreview import DataCollectionPreview
 from Scenes.EngineDyno import EngineDyno
+from Scenes.ShockDyno import ShockDyno
 from Scenes.EngineDynoPreview import EngineDynoPreview
 from Scenes.Homepage import Homepage
 from Scenes.Layout_Test import Widget_Test
@@ -274,6 +275,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             'Layout Test': _Scene(Widget_Test, "Layout_Test"),
 
             'Engine Dyno': _Scene(EngineDyno, "EngineDyno"),
+
+            'Shock Dyno': _Scene(ShockDyno, "ShockDyno"),
 
             'Engine Dyno Preview':
                 _Scene(EngineDynoPreview, "EngineDynoPreview", True),
