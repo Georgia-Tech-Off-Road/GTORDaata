@@ -50,6 +50,7 @@ class EngineDyno(DAATAScene, uiFile):
         self.configFile = QSettings('DAATA', 'data_collection')
         # self.configFile.clear()
         # self.load_settings()
+        self.is_data_collecting.set()
 
     def create_graphs(self):
         """
@@ -156,12 +157,12 @@ class EngineDyno(DAATAScene, uiFile):
         if self.secondary_speed_lcd.isEnabled():
             self.secondary_speed_lcd.display(
                 data.get_current_value("dyno_secondary_speed"))
-        if self.force_lcd.isEnabled():
-            self.force_lcd.display(
-                data.get_current_value("force_enginedyno_lbs"))
-        if self.torque_lcd.isEnabled():
-            self.torque_lcd.display(
-                data.get_current_value("force_enginedyno_lbs"))
+        # if self.force_lcd.isEnabled():
+        #     self.force_lcd.display(
+        #         data.get_current_value("force_enginedyno_lbs"))
+        # if self.torque_lcd.isEnabled():
+        #     self.torque_lcd.display(
+        #         data.get_current_value("force_enginedyno_lbs"))
         if self.power_lcd.isEnabled():
             self.power_lcd.display(
                 data.get_current_value("power_engine_horsepower"))
@@ -169,9 +170,8 @@ class EngineDyno(DAATAScene, uiFile):
             self.cvt_ratio_lcd.display(data.get_current_value("ratio_dyno_cvt"))
 
         if self.is_data_collecting.is_set():
-            if self.button_display.isChecked():
-                self.update_graphs()
-                self.update_time_elapsed()
+            self.update_graphs()
+            self.update_time_elapsed()
 
         # temporary implementation of global recording button update
         if self.is_data_collecting.is_set():

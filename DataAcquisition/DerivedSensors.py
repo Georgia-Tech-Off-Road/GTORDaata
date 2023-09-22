@@ -218,6 +218,10 @@ class Ratio(DerivedSensor):
         return values
 
     @property
+    def most_recent_index(self):
+        return min(self.input_speed_rpm.most_recent_index, self.output_speed_rpm.most_recent_index)
+
+    @property
     def is_connected(self):
         return self.input_speed_rpm.is_connected and self.output_speed_rpm.is_connected
 
