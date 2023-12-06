@@ -18,5 +18,7 @@ pip install numpy-stl
 pip install PyOpenGL
 pip install folium
 pip install yarn
+pip install pyproj
+pip install shapely
 
 cmd /k
